@@ -92,7 +92,7 @@ fn player_movement(
 
     player.delta_x = player.delta_x.clamp(-MAX_VELOCITY, MAX_VELOCITY);
     player.delta_y = player.delta_y.clamp(-MAX_VELOCITY, MAX_VELOCITY);
-    // maybe clamp rotation?
+    player.delta_rotation = player.delta_rotation.clamp(-MAX_VELOCITY, MAX_VELOCITY);
 
     trans.translation.x += player.delta_x;
     trans.translation.y += player.delta_y;
@@ -100,7 +100,7 @@ fn player_movement(
     trans.translation.x = trans.translation.x.clamp(-320.0, 320.0);
     trans.translation.y = trans.translation.y.clamp(-320.0, 320.0);
 
-    trans.rotation.z += player.delta_rotation.to_radians();
+    trans.rotate_z(player.delta_rotation.to_radians());
 
     // Decelerate
     player.delta_x *= DECLERATION;
