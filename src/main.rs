@@ -23,6 +23,12 @@ impl Player {
     }
 }
 
+#[derive(Component)]
+struct Projectile {
+    velocity: Vec2,
+    timer: Timer
+}
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -30,6 +36,8 @@ fn main() {
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_startup_system(setup)
         .add_system(player_movement)
+        .add_system(player_fire_weapon)
+        .add_system(projectile_movement)
         .run();
 }
 
@@ -107,6 +115,57 @@ fn player_movement(
     player.delta_y *= DECLERATION;
     player.delta_rotation *= DECLERATION;
 
+}
+
+fn projectile_movement(
+    mut commands: Commands,
+    mut projectile_query: Query<(Entity, &mut Projectile, &mut Transform)>,
+    time: Res<Time>
+)
+{
+    for (ent, mut projectile, mut transform) in projectile_query.iter_mut() {
+        transform.translation.x += projectile.velocity.x;
+        transform.translation.y += projectile.velocity.y;
+
+        projectile.timer.tick(time.delta());
+
+        if projectile.timer.finished() {
+            commands.entity(ent).despawn_recursive();
+        }
+    }
+}
+
+fn player_fire_weapon(
+    mut commands: Commands,
+    keyboard_input: Res<Input<KeyCode>>,
+    player_query: Query<(&mut Player, &mut Transform)>
+)
+{
+    let (player, transform) = player_query.single();
+
+    // why does this work? https://www.reddit.com/r/rust_gamedev/comments/rphgsf/calculating_bullet_x_and_y_position_based_off_of/
+    let velocity = transform.rotation * Vec3::Y;
+
+    // should be just pressed, but it's fun with keyboard_input.pressed()
+    if keyboard_input.just_pressed(KeyCode::Space) {
+        let player_shape = shapes::Circle {
+            ..shapes::Circle::default()
+        };
+    
+        commands.spawn()
+            .insert(Projectile {
+                velocity: Vec2 { x: velocity.x, y: velocity.y },
+                timer: Timer::from_seconds(5.0, false)
+            })
+            .insert_bundle(GeometryBuilder::build_as(
+                &player_shape,
+                DrawMode::Outlined {
+                    fill_mode: FillMode::color(Color::DARK_GRAY),
+                    outline_mode: StrokeMode::new(Color::RED, 1.0),
+                },
+                transform.clone(),
+            ));
+    }
 }
 
 
