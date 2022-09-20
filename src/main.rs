@@ -1,6 +1,7 @@
 use bevy::{prelude::*};
 use bevy::render::camera::RenderTarget;
 use bevy_prototype_lyon::prelude::*;
+use bevy_prototype_lyon::shapes::Line;
 
 // Defines the amount of time that should elapse between each physics step.
 const TIME_STEP: f32 = 1.0 / 60.0;
@@ -33,6 +34,9 @@ struct Projectile {
     timer: Timer
 }
 
+#[derive(Component)]
+struct Crosshair {}
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -54,7 +58,7 @@ fn setup(mut commands: Commands) {
         ..shapes::RegularPolygon::default()
     };
 
-    commands.spawn()
+    let mut player = commands.spawn()
         .insert(Player::new())
         .insert_bundle(GeometryBuilder::build_as(
             &player_shape,
@@ -67,9 +71,28 @@ fn setup(mut commands: Commands) {
                 ..Default::default()
             }
             // Transform::default(),
-        ));
+        )).id();
         // .insert(Collider);
     
+    let line = shapes::Line(
+        Vec2::new(0.0, 0.0),
+        Vec2::new(0.0, 0.0)
+    );
+
+    let crosshair = commands.spawn()
+        .insert(Crosshair {})
+        .insert_bundle(GeometryBuilder::build_as(
+            &line,
+        DrawMode::Outlined {
+                fill_mode: FillMode::color(Color::rgba(1.0, 1.0, 1.0, 0.45)),
+                outline_mode: StrokeMode::new(Color::rgba(1.0, 1.0, 1.0, 0.1), 1.2),
+            },
+            Transform {
+                scale: Vec3::new(1.0, 1.0, 1.0),
+                ..Default::default()
+            }
+        )).id();
+
 }
 
 fn player_movement(
@@ -78,12 +101,15 @@ fn player_movement(
     wnds: Res<Windows>,
     // query to get camera transform
     q_camera: Query<(&Camera, &GlobalTransform)>,
-    mut player_query: Query<(&mut Player, &mut Transform)>
+    mut player_query: Query<(&mut Player, &mut Transform), Without<Crosshair>>,
+    mut crosshair_query: Query<(&mut Crosshair, &mut Path, &mut Transform)>
 ) {
 
     // get the camera info and transform
     // assuming there is exactly one main camera entity, so query::single() is OK
     let (camera, camera_transform) = q_camera.single();
+
+    let (crosshair, mut path, mut crosshair_transform) = crosshair_query.single_mut();
 
     // get the window that the camera is displaying to (or the primary window)
     let wnd = if let RenderTarget::Window(id) = camera.target {
@@ -92,15 +118,13 @@ fn player_movement(
         wnds.get_primary().unwrap()
     };
 
-   
-
     const ACCELERATION: f32 = 0.2;
     const DECLERATION: f32 = 0.95;
     const SPIN_ACCELERATION: f32 = 0.4;
     const SPIN_DECELERATION: f32 = 0.1;
     const MAX_VELOCITY: f32 = 6.0;
 
-    let (mut player, mut trans) = player_query.single_mut();
+    let (mut player, mut player_trans) = player_query.single_mut();
 
     if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
         player.delta_x -= ACCELERATION;
@@ -144,8 +168,21 @@ fn player_movement(
         // reduce it to a 2D value
         let world_pos: Vec2 = world_pos.truncate();
 
-        let player_to_mouse = Vec2::new(trans.translation.x, trans.translation.y) - world_pos;
-        let ship_angle_difference = Vec2::angle_between(player_to_mouse, (trans.rotation * Vec3::Y).truncate());
+        let player_to_mouse = Vec2::new(player_trans.translation.x, player_trans.translation.y) - world_pos;
+        eprintln!("World coords: {}/{}", player_to_mouse.x, player_to_mouse.y);
+
+        let line = shapes::Line (
+            player_trans.translation.truncate(),
+            world_pos,
+            // trans.translation.truncate(),
+        );
+
+        *path = ShapePath::build_as(&line);
+
+        // TODO: Update Crosshair
+        // crosshair_transform.scale = -player_to_mouse.extend(1.0);
+
+        let ship_angle_difference = Vec2::angle_between(player_to_mouse, (player_trans.rotation * Vec3::Y).truncate());
 
         //Rotate towards position mouse is on
         if ship_angle_difference > 0.0 {
@@ -165,13 +202,13 @@ fn player_movement(
     player.delta_y = player.delta_y.clamp(-MAX_VELOCITY, MAX_VELOCITY);
     player.delta_rotation = player.delta_rotation.clamp(-MAX_VELOCITY, MAX_VELOCITY);
 
-    trans.translation.x += player.delta_x;
-    trans.translation.y += player.delta_y;
+    player_trans.translation.x += player.delta_x;
+    player_trans.translation.y += player.delta_y;
 
-    trans.translation.x = trans.translation.x.clamp(-320.0, 320.0);
-    trans.translation.y = trans.translation.y.clamp(-320.0, 320.0);
+    player_trans.translation.x = player_trans.translation.x.clamp(-320.0, 320.0);
+    player_trans.translation.y = player_trans.translation.y.clamp(-320.0, 320.0);
 
-    trans.rotate_z(player.delta_rotation.to_radians());
+    player_trans.rotate_z(player.delta_rotation.to_radians());
 
     // Decelerate
     player.delta_x *= DECLERATION;
