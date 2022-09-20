@@ -142,15 +142,6 @@ fn player_movement(
         player.delta_y -= ACCELERATION;
     }
 
-    // TODO: Rotate towards position mouse is on
-    // if keyboard_input.pressed(KeyCode::Q){
-    //     player.delta_rotation += SPIN_ACCELERATION;
-    // }
-
-    // if keyboard_input.pressed(KeyCode::E){
-    //     player.delta_rotation -= SPIN_ACCELERATION;
-    // }
-
      // check if the cursor is inside the window and get its position
      if let Some(screen_pos) = wnd.cursor_position() {
         // get the size of the window
@@ -169,19 +160,6 @@ fn player_movement(
         let world_pos: Vec2 = world_pos.truncate();
 
         let player_to_mouse = Vec2::new(player_trans.translation.x, player_trans.translation.y) - world_pos;
-        eprintln!("World coords: {}/{}", player_to_mouse.x, player_to_mouse.y);
-
-        let line = shapes::Line (
-            player_trans.translation.truncate(),
-            world_pos,
-            // trans.translation.truncate(),
-        );
-
-        *path = ShapePath::build_as(&line);
-
-        // TODO: Update Crosshair
-        // crosshair_transform.scale = -player_to_mouse.extend(1.0);
-
         let ship_angle_difference = Vec2::angle_between(player_to_mouse, (player_trans.rotation * Vec3::Y).truncate());
 
         //Rotate towards position mouse is on
@@ -193,6 +171,16 @@ fn player_movement(
             player.delta_rotation -= SPIN_ACCELERATION * (TWO_PI - ship_angle_difference.abs());
         }
 
+        // Draw Crosshair
+        {
+            let line = shapes::Line (
+                player_trans.translation.truncate(),
+                world_pos,
+            );
+    
+            *path = ShapePath::build_as(&line);
+        }
+        
         // eprintln!("World coords: {}/{}", world_pos.x, world_pos.y);
     }
 
