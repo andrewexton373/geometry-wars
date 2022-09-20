@@ -9,15 +9,17 @@ const PLAYER_COLOR: Color = Color::rgb(1.0, 0.0, 0.0);
 
 const PLAYER_SIZE: Vec3 = Vec3::new(100.0, 100.0, 0.0);
 
+
 #[derive(Component)]
 struct Player {
     delta_x: f32,
-    delta_y: f32
+    delta_y: f32,
+    delta_rotation: f32
 }
 
 impl Player {
     fn new() -> Player {
-        Player { delta_x: 0.0, delta_y: 0.0 }
+        Player { delta_x: 0.0, delta_y: 0.0, delta_rotation: 0.0 }
     }
 }
 
@@ -64,24 +66,33 @@ fn player_movement(
 
     let (mut player, mut trans) = player_query.single_mut();
 
-    if keyboard_input.pressed(KeyCode::Left) {
+    if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
         player.delta_x -= ACCELERATION;
     }
 
-    if keyboard_input.pressed(KeyCode::Right) {
+    if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
         player.delta_x += ACCELERATION;
     }
 
-    if keyboard_input.pressed(KeyCode::Up) {
+    if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
         player.delta_y += ACCELERATION;
     }
 
-    if keyboard_input.pressed(KeyCode::Down) {
+    if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
         player.delta_y -= ACCELERATION;
+    }
+
+    if keyboard_input.pressed(KeyCode::Q){
+        player.delta_rotation += ACCELERATION;
+    }
+
+    if keyboard_input.pressed(KeyCode::E){
+        player.delta_rotation -= ACCELERATION;
     }
 
     player.delta_x = player.delta_x.clamp(-MAX_VELOCITY, MAX_VELOCITY);
     player.delta_y = player.delta_y.clamp(-MAX_VELOCITY, MAX_VELOCITY);
+    // maybe clamp rotation?
 
     trans.translation.x += player.delta_x;
     trans.translation.y += player.delta_y;
@@ -89,9 +100,13 @@ fn player_movement(
     trans.translation.x = trans.translation.x.clamp(-320.0, 320.0);
     trans.translation.y = trans.translation.y.clamp(-320.0, 320.0);
 
+    trans.rotation.z += player.delta_rotation.to_radians();
+
     // Decelerate
     player.delta_x *= DECLERATION;
     player.delta_y *= DECLERATION;
+    player.delta_rotation *= DECLERATION;
+
 }
 
 
