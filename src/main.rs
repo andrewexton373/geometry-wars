@@ -2,6 +2,8 @@ use bevy::{prelude::*};
 use bevy::render::camera::RenderTarget;
 use bevy_prototype_lyon::prelude::*;
 use bevy_prototype_lyon::shapes::Line;
+use bevy_inspector_egui::{InspectorPlugin, Inspectable};
+use bevy_inspector_egui::WorldInspectorPlugin;
 
 // Defines the amount of time that should elapse between each physics step.
 const TIME_STEP: f32 = 1.0 / 60.0;
@@ -37,20 +39,25 @@ struct Projectile {
 #[derive(Component)]
 struct Crosshair {}
 
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(ShapePlugin)
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_startup_system(setup)
         .add_system(player_movement)
+        .add_system(camera_follows_player)
         .add_system(player_fire_weapon)
         .add_system(projectile_movement)
+        .add_startup_system(spawn_astroids)
+        .add_system(astroid_movement)
         .run();
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    let camera = commands.spawn_bundle(Camera2dBundle::default()).id();
 
     let player_shape = shapes::RegularPolygon {
         sides: 3,
@@ -71,7 +78,8 @@ fn setup(mut commands: Commands) {
                 ..Default::default()
             }
             // Transform::default(),
-        )).id();
+        ));
+
         // .insert(Collider);
     
     let line = shapes::Line(
@@ -93,6 +101,18 @@ fn setup(mut commands: Commands) {
             }
         )).id();
 
+}
+
+fn camera_follows_player(
+    mut camera_query: Query<(&Camera, &mut Transform), (With<Camera>)>,
+    mut player_query: Query<(&Transform), (With<Player>, Without<Camera>)>,
+){
+    let (camera, mut camera_trans) = camera_query.single_mut().into();
+    let (player_trans) = player_query.single();
+
+        // TODO: Set Camera X,Y to Player X,Y
+        let player_to_camera = camera_trans.translation - player_trans.translation;
+        camera_trans.translation -= player_to_camera;
 }
 
 fn player_movement(
@@ -184,8 +204,6 @@ fn player_movement(
         // eprintln!("World coords: {}/{}", world_pos.x, world_pos.y);
     }
 
-
-
     player.delta_x = player.delta_x.clamp(-MAX_VELOCITY, MAX_VELOCITY);
     player.delta_y = player.delta_y.clamp(-MAX_VELOCITY, MAX_VELOCITY);
     player.delta_rotation = player.delta_rotation.clamp(-MAX_VELOCITY, MAX_VELOCITY);
@@ -258,3 +276,62 @@ fn player_fire_weapon(
 }
 
 
+
+#[derive(Component)]
+struct Astroid {
+    velocity: Vec2,
+    size: AsteroidSize,
+    health: Health,
+    // TODO: upon destruction, astroid should split into smaller asteroids
+}
+
+enum AsteroidSize {
+    Small,
+    Medium,
+    Large
+}
+
+#[derive(Component)]
+struct Health {
+    current_health: f32,
+    full_health: f32
+}
+
+fn spawn_astroids(
+    mut commands: Commands
+){
+
+    let astroid_shape = shapes::RegularPolygon {
+        sides: 6,
+        ..shapes::RegularPolygon::default()
+    };
+
+    commands.spawn()
+        .insert(Astroid {
+            velocity: Vec2 { x: 0.0, y: 0.0 },
+            size: AsteroidSize::Large,
+            health: Health {current_health: 50.0, full_health: 100.0}
+        })
+        .insert_bundle(GeometryBuilder::build_as(
+            &astroid_shape,
+            DrawMode::Outlined {
+                fill_mode: FillMode::color(Color::DARK_GRAY),
+                outline_mode: StrokeMode::new(Color::WHITE, 40.0),
+            },
+            default()
+        ));
+
+}
+
+fn astroid_movement(
+    mut astroid_query: Query<(&mut Astroid,&mut Transform)>,
+    time: Res<Time>
+){
+
+    for (mut astroid, mut transform) in astroid_query.iter_mut() {
+        transform.translation.x += astroid.velocity.x;
+        transform.translation.y += astroid.velocity.y;
+
+        // projectile.timer.tick(time.delta());
+    }
+}

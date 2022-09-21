@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 bevy = { version = "0.8.1", features = ["dynamic"] }
 bevy_prototype_lyon = "0.6.0"
+bevy-inspector-egui = "0.13.0"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
