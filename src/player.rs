@@ -1,9 +1,10 @@
 use bevy::prelude::*;
+use bevy::render::camera::RenderTarget;
 use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
-use bevy::render::camera::RenderTarget;
-use crate::{ HitboxCircle, Crosshair, Collider, PI, TWO_PI };
+use crate::{ HitboxCircle, Collider, PI, TWO_PI };
 use crate::projectile::Projectile;
+use crate::crosshair::Crosshair;
 
 pub struct PlayerPlugin;
 
@@ -33,6 +34,7 @@ impl Plugin for PlayerPlugin {
         app
             .add_startup_system(Self::spawn_player)
             .add_system(Self::player_movement)
+            .add_system(Self::ship_rotate_towards_mouse)
             .add_system(Self::player_fire_weapon)
             .register_inspectable::<Player>();
 
@@ -67,27 +69,8 @@ impl PlayerPlugin {
 
     fn player_movement(
         keyboard_input: Res<Input<KeyCode>>,
-        // need to get window dimensions
-        wnds: Res<Windows>,
-        // query to get camera transform
-        q_camera: Query<(&Camera, &GlobalTransform)>,
-        mut player_query: Query<(&mut Player, &mut Transform), Without<Crosshair>>,
-        mut crosshair_query: Query<(&mut Crosshair, &mut Path, &mut Transform)>
+        mut player_query: Query<(&mut Player, &mut Transform), Without<Crosshair>>
     ) {
-    
-        // get the camera info and transform
-        // assuming there is exactly one main camera entity, so query::single() is OK
-        let (camera, camera_transform) = q_camera.single();
-    
-        let (crosshair, mut path, mut crosshair_transform) = crosshair_query.single_mut();
-    
-        // get the window that the camera is displaying to (or the primary window)
-        let wnd = if let RenderTarget::Window(id) = camera.target {
-            wnds.get(id).unwrap()
-        } else {
-            wnds.get_primary().unwrap()
-        };
-    
         const ACCELERATION: f32 = 0.2;
         const DECLERATION: f32 = 0.95;
         const SPIN_ACCELERATION: f32 = 0.4;
@@ -111,6 +94,42 @@ impl PlayerPlugin {
         if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
             player.delta_y -= ACCELERATION;
         }
+    
+    
+        player.delta_x = player.delta_x.clamp(-MAX_VELOCITY, MAX_VELOCITY);
+        player.delta_y = player.delta_y.clamp(-MAX_VELOCITY, MAX_VELOCITY);
+    
+        player_trans.translation.x += player.delta_x;
+        player_trans.translation.y += player.delta_y;
+    
+        // Decelerate
+        player.delta_x *= DECLERATION;
+        player.delta_y *= DECLERATION;
+        player.delta_rotation *= SPIN_DECELERATION;
+    
+    }
+
+    fn ship_rotate_towards_mouse(
+        wnds: Res<Windows>,
+        // query to get camera transform
+        q_camera: Query<(&Camera, &GlobalTransform)>,
+        mut player_query: Query<(&mut Player, &mut Transform), Without<Crosshair>>
+    ) {
+        // get the camera info and transform
+        // assuming there is exactly one main camera entity, so query::single() is OK
+        let (camera, camera_transform) = q_camera.single();
+
+        // get the window that the camera is displaying to (or the primary window)
+        let wnd = if let RenderTarget::Window(id) = camera.target {
+            wnds.get(id).unwrap()
+        } else {
+            wnds.get_primary().unwrap()
+        };
+
+        const SPIN_ACCELERATION: f32 = 0.4;
+        const MAX_VELOCITY: f32 = 6.0;
+    
+        let (mut player, mut player_trans) = player_query.single_mut();
     
          // check if the cursor is inside the window and get its position
          if let Some(screen_pos) = wnd.cursor_position() {
@@ -141,35 +160,10 @@ impl PlayerPlugin {
                 player.delta_rotation -= SPIN_ACCELERATION * (TWO_PI - ship_angle_difference.abs());
             }
     
-            // Draw Crosshair
-            {
-                let line = shapes::Line (
-                    player_trans.translation.truncate(),
-                    world_pos,
-                );
-        
-                *path = ShapePath::build_as(&line);
-            }
-            
-            // eprintln!("World coords: {}/{}", world_pos.x, world_pos.y);
         }
-    
-        player.delta_x = player.delta_x.clamp(-MAX_VELOCITY, MAX_VELOCITY);
-        player.delta_y = player.delta_y.clamp(-MAX_VELOCITY, MAX_VELOCITY);
+
         player.delta_rotation = player.delta_rotation.clamp(-MAX_VELOCITY, MAX_VELOCITY);
-    
-        player_trans.translation.x += player.delta_x;
-        player_trans.translation.y += player.delta_y;
-    
-        // player_trans.translation.x = player_trans.translation.x.clamp(-320.0, 320.0);
-        // player_trans.translation.y = player_trans.translation.y.clamp(-320.0, 320.0);
-    
         player_trans.rotate_z(player.delta_rotation.to_radians());
-    
-        // Decelerate
-        player.delta_x *= DECLERATION;
-        player.delta_y *= DECLERATION;
-        player.delta_rotation *= SPIN_DECELERATION;
     
     }
 

@@ -16,6 +16,9 @@ use astroid::{AstroidPlugin, Astroid, AstroidSize};
 mod projectile;
 use projectile::{ProjectilePlugin};
 
+mod crosshair;
+use crosshair::CrosshairPlugin;
+
 // Defines the amount of time that should elapse between each physics step.
 const TIME_STEP: f32 = 1.0 / 60.0;
 
@@ -32,11 +35,6 @@ pub struct HitboxCircle {
     pub radius: f32
 }
 
-
-
-#[derive(Component)]
-struct Crosshair {}
-
 #[derive(Component)]
 struct Collider;
 
@@ -50,11 +48,11 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new())
+        .add_plugin(ShapePlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(AstroidPlugin)
         .add_plugin(ProjectilePlugin)
-        .register_inspectable::<Player>()
-        .add_plugin(ShapePlugin)
+        .add_plugin(CrosshairPlugin)
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_startup_system(setup)
         .add_system(camera_follows_player)
@@ -63,27 +61,6 @@ fn main() {
 
 fn setup(mut commands: Commands) {
     let camera = commands.spawn_bundle(Camera2dBundle::default()).id();
-        // .insert(Collider);
-    
-    let line = shapes::Line(
-        Vec2::new(0.0, 0.0),
-        Vec2::new(0.0, 0.0)
-    );
-
-    let crosshair = commands.spawn()
-        .insert(Crosshair {})
-        .insert_bundle(GeometryBuilder::build_as(
-            &line,
-        DrawMode::Outlined {
-                fill_mode: FillMode::color(Color::rgba(1.0, 1.0, 1.0, 0.45)),
-                outline_mode: StrokeMode::new(Color::rgba(1.0, 1.0, 1.0, 0.1), 1.2),
-            },
-            Transform {
-                scale: Vec3::new(1.0, 1.0, 1.0),
-                ..Default::default()
-            }
-        )).id();
-
 }
 
 fn camera_follows_player(
