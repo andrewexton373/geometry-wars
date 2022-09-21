@@ -1,11 +1,11 @@
 use bevy::math::vec2;
-use bevy::sprite::collide_aabb::collide;
 use bevy::{prelude::*, transform};
 use bevy::render::camera::RenderTarget;
 use bevy_prototype_lyon::prelude::*;
 use bevy_prototype_lyon::shapes::Line;
 use bevy_inspector_egui::{InspectorPlugin, Inspectable, RegisterInspectable};
 use bevy_inspector_egui::WorldInspectorPlugin;
+use rand::Rng;
 
 // Defines the amount of time that should elapse between each physics step.
 const TIME_STEP: f32 = 1.0 / 60.0;
@@ -227,8 +227,8 @@ fn player_movement(
     player_trans.translation.x += player.delta_x;
     player_trans.translation.y += player.delta_y;
 
-    player_trans.translation.x = player_trans.translation.x.clamp(-320.0, 320.0);
-    player_trans.translation.y = player_trans.translation.y.clamp(-320.0, 320.0);
+    // player_trans.translation.x = player_trans.translation.x.clamp(-320.0, 320.0);
+    // player_trans.translation.y = player_trans.translation.y.clamp(-320.0, 320.0);
 
     player_trans.rotate_z(player.delta_rotation.to_radians());
 
@@ -298,6 +298,8 @@ fn projectile_collision_check(
     projectile_query: Query<(Entity, &Projectile, &Transform), With<Projectile>>,
     collider_query: Query<(Entity, &Transform, Option<&Astroid>), With<Collider>>
 ){
+    let mut rng = rand::thread_rng();
+
     for (projectile_ent, projectile, projectile_transform) in projectile_query.iter() {
         for (ent, ent_transform, maybe_astroid) in &collider_query {
 
@@ -308,7 +310,25 @@ fn projectile_collision_check(
                         ent_transform.translation.truncate())
                          < projectile.hitbox.radius + astroid.hitbox.radius
                     {
-                        println!("HIT");
+                        let split_angle = rng.gen_range(0.0..PI/4.0);
+                        
+                        let right_velocity = projectile.velocity.rotate(Vec2::from_angle(split_angle)) * 0.5;
+                        let left_velocity = projectile.velocity.rotate(Vec2::from_angle(-split_angle)) * 0.5;
+
+                        match &astroid.size {
+                            AstroidSize::Small => {
+                            },
+                            AstroidSize::Medium => {
+                                spawn_astroid(&mut commands, AstroidSize::Small, right_velocity, ent_transform.translation.truncate());
+                                spawn_astroid(&mut commands, AstroidSize::Small, left_velocity, ent_transform.translation.truncate());
+
+                            },
+                            AstroidSize::Large => {
+                                spawn_astroid(&mut commands, AstroidSize::Medium, right_velocity,ent_transform.translation.truncate());
+                                spawn_astroid(&mut commands, AstroidSize::Medium, left_velocity, ent_transform.translation.truncate());
+                            }
+                        }
+
                         commands.entity(projectile_ent).despawn_recursive();
                         commands.entity(ent).despawn_recursive();
                         return;
@@ -331,24 +351,24 @@ struct Collider;
 #[derive(Component)]
 struct Astroid {
     velocity: Vec2,
-    size: AsteroidSize,
+    size: AstroidSize,
     health: Health,
     hitbox: HitboxCircle
-
     // TODO: upon destruction, astroid should split into smaller asteroids
 }
 
-enum AsteroidSize {
+#[derive(Clone, Copy)]
+enum AstroidSize {
     Small,
     Medium,
     Large
 }
 
-impl AsteroidSize {
+impl AstroidSize {
     fn radius(self) -> f32 {
         match self {
-            Self::Small => 5.0,
-            Self::Medium => 10.0,
+            Self::Small => 8.0,
+            Self::Medium => 14.0,
             Self::Large => 20.0
         }
     }
@@ -363,29 +383,66 @@ struct Health {
 fn spawn_astroids(
     mut commands: Commands
 ){
+    let mut rng = rand::thread_rng();
 
-    let astroid_shape = shapes::RegularPolygon {
-        sides: 6,
-        ..shapes::RegularPolygon::default()
-    };
+    for i in 0..15 {
+        let random_postion = Vec2 {x: rng.gen_range(-300.0..300.0), y: rng.gen_range(-300.0..300.0)};
+        spawn_astroid(&mut commands, AstroidSize::Large, Vec2 { x: 0.0, y: 0.0 }, random_postion);
+    }
+
+}
+
+fn spawn_astroid(
+    commands: &mut Commands,
+    size: AstroidSize,
+    velocity: Vec2,
+    position: Vec2
+) {
+
+    let astroid_shape: shapes::RegularPolygon;
+    match size {
+        AstroidSize::Small => {
+            astroid_shape = shapes::RegularPolygon {
+                sides: 3,
+                ..shapes::RegularPolygon::default()
+            };
+        },
+        AstroidSize::Medium => {
+            astroid_shape = shapes::RegularPolygon {
+                sides: 4,
+                ..shapes::RegularPolygon::default()
+            };
+        },
+        AstroidSize::Large => {
+            astroid_shape = shapes::RegularPolygon {
+                sides: 7,
+                ..shapes::RegularPolygon::default()
+            };
+        }
+    }
 
     commands.spawn()
         .insert(Astroid {
-            velocity: Vec2 { x: 0.0, y: 0.0 },
-            size: AsteroidSize::Large,
+            velocity: velocity,
+            size: size,
             health: Health {current_health: 50.0, full_health: 100.0},
-            hitbox: HitboxCircle { radius: AsteroidSize::Large.radius() }
+            hitbox: HitboxCircle { radius: size.radius() }
         })
         .insert_bundle(GeometryBuilder::build_as(
             &astroid_shape,
-            DrawMode::Outlined {
-                fill_mode: FillMode::color(Color::DARK_GRAY),
-                outline_mode: StrokeMode::new(Color::WHITE, 40.0),
-            },
-            default()
+            DrawMode::Fill(FillMode::color(Color::RED)),
+            // DrawMode::Outlined {
+            //     fill_mode: FillMode::color(Color::DARK_GRAY),
+            //     outline_mode: StrokeMode::new(Color::WHITE, 1.0),
+            // },
+            Transform {
+                translation: position.extend(0.0),
+                scale: Vec3::new(size.radius(), size.radius(), 0.0),
+                ..default()
+            }
         ))
         .insert(Collider);
-
+        
 }
 
 fn astroid_movement(
