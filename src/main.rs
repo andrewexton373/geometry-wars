@@ -1,8 +1,10 @@
-use bevy::{prelude::*};
+use bevy::math::vec2;
+use bevy::sprite::collide_aabb::collide;
+use bevy::{prelude::*, transform};
 use bevy::render::camera::RenderTarget;
 use bevy_prototype_lyon::prelude::*;
 use bevy_prototype_lyon::shapes::Line;
-use bevy_inspector_egui::{InspectorPlugin, Inspectable};
+use bevy_inspector_egui::{InspectorPlugin, Inspectable, RegisterInspectable};
 use bevy_inspector_egui::WorldInspectorPlugin;
 
 // Defines the amount of time that should elapse between each physics step.
@@ -17,23 +19,35 @@ const PI: f32 = 3.14159;
 const TWO_PI: f32 = 2.0 * PI;
 
 
-#[derive(Component)]
+#[derive(Component, Inspectable)]
 struct Player {
     delta_x: f32,
     delta_y: f32,
-    delta_rotation: f32
+    delta_rotation: f32,
+    hitbox: HitboxCircle
 }
 
 impl Player {
     fn new() -> Player {
-        Player { delta_x: 0.0, delta_y: 0.0, delta_rotation: 0.0 }
+        Player { 
+            delta_x: 0.0,
+            delta_y: 0.0,
+            delta_rotation: 0.0,
+            hitbox: HitboxCircle { radius: 5.0 }
+        }
     }
+}
+
+#[derive(Component, Inspectable)]
+struct HitboxCircle {
+    radius: f32
 }
 
 #[derive(Component)]
 struct Projectile {
     velocity: Vec2,
-    timer: Timer
+    timer: Timer,
+    hitbox: HitboxCircle
 }
 
 #[derive(Component)]
@@ -44,6 +58,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new())
+        .register_inspectable::<Player>()
         .add_plugin(ShapePlugin)
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_startup_system(setup)
@@ -51,6 +66,7 @@ fn main() {
         .add_system(camera_follows_player)
         .add_system(player_fire_weapon)
         .add_system(projectile_movement)
+        .add_system(projectile_collision_check)
         .add_startup_system(spawn_astroids)
         .add_system(astroid_movement)
         .run();
@@ -262,7 +278,8 @@ fn player_fire_weapon(
         commands.spawn()
             .insert(Projectile {
                 velocity: Vec2 { x: velocity.x, y: velocity.y },
-                timer: Timer::from_seconds(5.0, false)
+                timer: Timer::from_seconds(5.0, false),
+                hitbox: HitboxCircle { radius: 2.0 }
             })
             .insert_bundle(GeometryBuilder::build_as(
                 &player_shape,
@@ -271,17 +288,53 @@ fn player_fire_weapon(
                     outline_mode: StrokeMode::new(Color::RED, 1.0),
                 },
                 transform.clone(),
-            ));
+            ))
+            .insert(Collider);
     }
 }
 
+fn projectile_collision_check(
+    mut commands: Commands,
+    projectile_query: Query<(Entity, &Projectile, &Transform), With<Projectile>>,
+    collider_query: Query<(Entity, &Transform, Option<&Astroid>), With<Collider>>
+){
+    for (projectile_ent, projectile, projectile_transform) in projectile_query.iter() {
+        for (ent, ent_transform, maybe_astroid) in &collider_query {
 
+            match maybe_astroid {
+                Some(astroid) => {
+                    if Vec2::distance(
+                        projectile_transform.translation.truncate(),
+                        ent_transform.translation.truncate())
+                         < projectile.hitbox.radius + astroid.hitbox.radius
+                    {
+                        println!("HIT");
+                        commands.entity(projectile_ent).despawn_recursive();
+                        commands.entity(ent).despawn_recursive();
+                        return;
+                    }
+                },
+                None => {
+
+                }
+            }
+        }
+    }
+
+}
+
+
+
+#[derive(Component)]
+struct Collider;
 
 #[derive(Component)]
 struct Astroid {
     velocity: Vec2,
     size: AsteroidSize,
     health: Health,
+    hitbox: HitboxCircle
+
     // TODO: upon destruction, astroid should split into smaller asteroids
 }
 
@@ -289,6 +342,16 @@ enum AsteroidSize {
     Small,
     Medium,
     Large
+}
+
+impl AsteroidSize {
+    fn radius(self) -> f32 {
+        match self {
+            Self::Small => 5.0,
+            Self::Medium => 10.0,
+            Self::Large => 20.0
+        }
+    }
 }
 
 #[derive(Component)]
@@ -310,7 +373,8 @@ fn spawn_astroids(
         .insert(Astroid {
             velocity: Vec2 { x: 0.0, y: 0.0 },
             size: AsteroidSize::Large,
-            health: Health {current_health: 50.0, full_health: 100.0}
+            health: Health {current_health: 50.0, full_health: 100.0},
+            hitbox: HitboxCircle { radius: AsteroidSize::Large.radius() }
         })
         .insert_bundle(GeometryBuilder::build_as(
             &astroid_shape,
@@ -319,7 +383,8 @@ fn spawn_astroids(
                 outline_mode: StrokeMode::new(Color::WHITE, 40.0),
             },
             default()
-        ));
+        ))
+        .insert(Collider);
 
 }
 
