@@ -10,6 +10,9 @@ use rand::Rng;
 mod player;
 use player::{ PlayerPlugin, Player };
 
+mod astroid;
+use astroid::{AstroidPlugin, Astroid, AstroidSize};
+
 // Defines the amount of time that should elapse between each physics step.
 const TIME_STEP: f32 = 1.0 / 60.0;
 
@@ -26,7 +29,6 @@ pub struct HitboxCircle {
     pub radius: f32
 }
 
-
 #[derive(Component)]
 struct Projectile {
     velocity: Vec2,
@@ -37,12 +39,21 @@ struct Projectile {
 #[derive(Component)]
 struct Crosshair {}
 
+#[derive(Component)]
+struct Collider;
+
+#[derive(Component, Inspectable)]
+pub struct Health {
+    current_health: f32,
+    full_health: f32
+}
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(PlayerPlugin)
+        .add_plugin(AstroidPlugin)
         .register_inspectable::<Player>()
         .add_plugin(ShapePlugin)
         .insert_resource(ClearColor(BACKGROUND_COLOR))
@@ -50,8 +61,6 @@ fn main() {
         .add_system(camera_follows_player)
         .add_system(projectile_movement)
         .add_system(projectile_collision_check)
-        .add_startup_system(spawn_astroids)
-        .add_system(astroid_movement)
         .run();
 }
 
@@ -136,13 +145,13 @@ fn projectile_collision_check(
                             AstroidSize::Small => {
                             },
                             AstroidSize::Medium => {
-                                spawn_astroid(&mut commands, AstroidSize::Small, right_velocity, ent_transform.translation.truncate());
-                                spawn_astroid(&mut commands, AstroidSize::Small, left_velocity, ent_transform.translation.truncate());
+                                AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Small, right_velocity, ent_transform.translation.truncate());
+                                AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Small, left_velocity, ent_transform.translation.truncate());
 
                             },
                             AstroidSize::Large => {
-                                spawn_astroid(&mut commands, AstroidSize::Medium, right_velocity,ent_transform.translation.truncate());
-                                spawn_astroid(&mut commands, AstroidSize::Medium, left_velocity, ent_transform.translation.truncate());
+                                AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Medium, right_velocity,ent_transform.translation.truncate());
+                                AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Medium, left_velocity, ent_transform.translation.truncate());
                             }
                         }
 
@@ -158,119 +167,4 @@ fn projectile_collision_check(
         }
     }
 
-}
-
-
-
-#[derive(Component)]
-struct Collider;
-
-#[derive(Component)]
-struct Astroid {
-    velocity: Vec2,
-    size: AstroidSize,
-    health: Health,
-    hitbox: HitboxCircle
-    // TODO: upon destruction, astroid should split into smaller asteroids
-}
-
-#[derive(Clone, Copy)]
-enum AstroidSize {
-    Small,
-    Medium,
-    Large
-}
-
-impl AstroidSize {
-    fn radius(self) -> f32 {
-        match self {
-            Self::Small => 8.0,
-            Self::Medium => 14.0,
-            Self::Large => 20.0
-        }
-    }
-}
-
-#[derive(Component)]
-struct Health {
-    current_health: f32,
-    full_health: f32
-}
-
-fn spawn_astroids(
-    mut commands: Commands
-){
-    let mut rng = rand::thread_rng();
-
-    for i in 0..15 {
-        let random_postion = Vec2 {x: rng.gen_range(-300.0..300.0), y: rng.gen_range(-300.0..300.0)};
-        spawn_astroid(&mut commands, AstroidSize::Large, Vec2 { x: 0.0, y: 0.0 }, random_postion);
-    }
-
-}
-
-fn spawn_astroid(
-    commands: &mut Commands,
-    size: AstroidSize,
-    velocity: Vec2,
-    position: Vec2
-) {
-
-    let astroid_shape: shapes::RegularPolygon;
-    match size {
-        AstroidSize::Small => {
-            astroid_shape = shapes::RegularPolygon {
-                sides: 3,
-                ..shapes::RegularPolygon::default()
-            };
-        },
-        AstroidSize::Medium => {
-            astroid_shape = shapes::RegularPolygon {
-                sides: 4,
-                ..shapes::RegularPolygon::default()
-            };
-        },
-        AstroidSize::Large => {
-            astroid_shape = shapes::RegularPolygon {
-                sides: 7,
-                ..shapes::RegularPolygon::default()
-            };
-        }
-    }
-
-    commands.spawn()
-        .insert(Astroid {
-            velocity: velocity,
-            size: size,
-            health: Health {current_health: 50.0, full_health: 100.0},
-            hitbox: HitboxCircle { radius: size.radius() }
-        })
-        .insert_bundle(GeometryBuilder::build_as(
-            &astroid_shape,
-            DrawMode::Fill(FillMode::color(Color::RED)),
-            // DrawMode::Outlined {
-            //     fill_mode: FillMode::color(Color::DARK_GRAY),
-            //     outline_mode: StrokeMode::new(Color::WHITE, 1.0),
-            // },
-            Transform {
-                translation: position.extend(0.0),
-                scale: Vec3::new(size.radius(), size.radius(), 0.0),
-                ..default()
-            }
-        ))
-        .insert(Collider);
-        
-}
-
-fn astroid_movement(
-    mut astroid_query: Query<(&mut Astroid,&mut Transform)>,
-    time: Res<Time>
-){
-
-    for (mut astroid, mut transform) in astroid_query.iter_mut() {
-        transform.translation.x += astroid.velocity.x;
-        transform.translation.y += astroid.velocity.y;
-
-        // projectile.timer.tick(time.delta());
-    }
 }
