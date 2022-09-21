@@ -2,7 +2,8 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use bevy::render::camera::RenderTarget;
-use crate::{ HitboxCircle, Crosshair, Projectile, Collider, PI, TWO_PI };
+use crate::{ HitboxCircle, Crosshair, Collider, PI, TWO_PI };
+use crate::projectile::Projectile;
 
 pub struct PlayerPlugin;
 

@@ -13,6 +13,9 @@ use player::{ PlayerPlugin, Player };
 mod astroid;
 use astroid::{AstroidPlugin, Astroid, AstroidSize};
 
+mod projectile;
+use projectile::{ProjectilePlugin};
+
 // Defines the amount of time that should elapse between each physics step.
 const TIME_STEP: f32 = 1.0 / 60.0;
 
@@ -29,12 +32,7 @@ pub struct HitboxCircle {
     pub radius: f32
 }
 
-#[derive(Component)]
-struct Projectile {
-    velocity: Vec2,
-    timer: Timer,
-    hitbox: HitboxCircle
-}
+
 
 #[derive(Component)]
 struct Crosshair {}
@@ -54,13 +52,12 @@ fn main() {
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(PlayerPlugin)
         .add_plugin(AstroidPlugin)
+        .add_plugin(ProjectilePlugin)
         .register_inspectable::<Player>()
         .add_plugin(ShapePlugin)
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_startup_system(setup)
         .add_system(camera_follows_player)
-        .add_system(projectile_movement)
-        .add_system(projectile_collision_check)
         .run();
 }
 
@@ -99,72 +96,4 @@ fn camera_follows_player(
         // TODO: Set Camera X,Y to Player X,Y
         let player_to_camera = camera_trans.translation - player_trans.translation;
         camera_trans.translation -= player_to_camera;
-}
-
-fn projectile_movement(
-    mut commands: Commands,
-    mut projectile_query: Query<(Entity, &mut Projectile, &mut Transform)>,
-    time: Res<Time>
-)
-{
-    for (ent, mut projectile, mut transform) in projectile_query.iter_mut() {
-        transform.translation.x += projectile.velocity.x;
-        transform.translation.y += projectile.velocity.y;
-
-        projectile.timer.tick(time.delta());
-
-        if projectile.timer.finished() {
-            commands.entity(ent).despawn_recursive();
-        }
-    }
-}
-
-fn projectile_collision_check(
-    mut commands: Commands,
-    projectile_query: Query<(Entity, &Projectile, &Transform), With<Projectile>>,
-    collider_query: Query<(Entity, &Transform, Option<&Astroid>), With<Collider>>
-){
-    let mut rng = rand::thread_rng();
-
-    for (projectile_ent, projectile, projectile_transform) in projectile_query.iter() {
-        for (ent, ent_transform, maybe_astroid) in &collider_query {
-
-            match maybe_astroid {
-                Some(astroid) => {
-                    if Vec2::distance(
-                        projectile_transform.translation.truncate(),
-                        ent_transform.translation.truncate())
-                         < projectile.hitbox.radius + astroid.hitbox.radius
-                    {
-                        let split_angle = rng.gen_range(0.0..PI/4.0);
-                        
-                        let right_velocity = projectile.velocity.rotate(Vec2::from_angle(split_angle)) * 0.5;
-                        let left_velocity = projectile.velocity.rotate(Vec2::from_angle(-split_angle)) * 0.5;
-
-                        match &astroid.size {
-                            AstroidSize::Small => {
-                            },
-                            AstroidSize::Medium => {
-                                AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Small, right_velocity, ent_transform.translation.truncate());
-                                AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Small, left_velocity, ent_transform.translation.truncate());
-
-                            },
-                            AstroidSize::Large => {
-                                AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Medium, right_velocity,ent_transform.translation.truncate());
-                                AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Medium, left_velocity, ent_transform.translation.truncate());
-                            }
-                        }
-
-                        commands.entity(projectile_ent).despawn_recursive();
-                        commands.entity(ent).despawn_recursive();
-                        return;
-                    }
-                },
-                None => {
-
-                }
-            }
-        }
-    }
-
 }
