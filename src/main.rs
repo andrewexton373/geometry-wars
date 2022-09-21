@@ -1,17 +1,14 @@
 use bevy::math::vec2;
 use bevy::{prelude::*, transform};
-use bevy::render::camera::RenderTarget;
 use bevy_prototype_lyon::prelude::*;
-use bevy_prototype_lyon::shapes::Line;
 use bevy_inspector_egui::{InspectorPlugin, Inspectable, RegisterInspectable};
 use bevy_inspector_egui::WorldInspectorPlugin;
-use rand::Rng;
 
 mod player;
 use player::{ PlayerPlugin, Player };
 
 mod astroid;
-use astroid::{AstroidPlugin, Astroid, AstroidSize};
+use astroid::{AstroidPlugin};
 
 mod projectile;
 use projectile::{ProjectilePlugin};
@@ -23,9 +20,6 @@ use crosshair::CrosshairPlugin;
 const TIME_STEP: f32 = 1.0 / 60.0;
 
 const BACKGROUND_COLOR: Color = Color::rgb(0.0, 0.0, 0.0);
-const PLAYER_COLOR: Color = Color::rgb(1.0, 0.0, 0.0);
-
-const PLAYER_SIZE: Vec3 = Vec3::new(100.0, 100.0, 0.0);
 
 pub const PI: f32 = 3.14159;
 pub const TWO_PI: f32 = 2.0 * PI;

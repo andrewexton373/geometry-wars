@@ -2,8 +2,6 @@ use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
 use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
-use rand::Rng;
-use crate::{ HitboxCircle, Health, Collider };
 use crate::player::Player;
 
 #[derive(Component)]
