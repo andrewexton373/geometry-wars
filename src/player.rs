@@ -10,6 +10,7 @@ pub struct PlayerPlugin;
 
 #[derive(Component, Inspectable)]
 pub struct Player {
+    // TODO: refactor into velocity Vec2
     pub delta_x: f32,
     pub delta_y: f32,
     pub delta_rotation: f32,

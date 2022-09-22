@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use rand::Rng;
-use crate::{ HitboxCircle, Health, Collider };
+use crate::{ HitboxCircle, Health, Collider, Player };
 
 
 pub struct AstroidPlugin;
@@ -38,6 +38,7 @@ impl Plugin for AstroidPlugin {
         app
             .add_startup_system(Self::spawn_astroids)
             .add_system(Self::astroid_movement)
+            .add_system(Self::astroid_collision_check)
             .register_inspectable::<Astroid>();
     }
 }
@@ -119,5 +120,54 @@ impl AstroidPlugin {
     
             // projectile.timer.tick(time.delta());
         }
+    }
+
+    fn astroid_collision_check(
+        mut commands: Commands,
+        player_query: Query<(Entity, &Player, &Transform), With<Player>>,
+        collider_query: Query<(Entity, &Transform, Option<&Astroid>), With<Collider>>
+    ){
+        // let mut rng = rand::thread_rng();
+    
+        for (player_ent, player, player_transform) in player_query.iter() {
+            for (ent, ent_transform, maybe_astroid) in &collider_query {
+    
+                match maybe_astroid {
+                    Some(astroid) => {
+                        if Vec2::distance(
+                            player_transform.translation.truncate(),
+                            ent_transform.translation.truncate())
+                             < player.hitbox.radius + astroid.hitbox.radius
+                        {
+                            // let split_angle = rng.gen_range(0.0..PI/4.0);
+
+                            // let right_velocity = player.velocity.rotate(Vec2::from_angle(split_angle)) * 0.5;
+                            // let left_velocity = player.velocity.rotate(Vec2::from_angle(-split_angle)) * 0.5;
+    
+                            match &astroid.size {
+                                AstroidSize::Small => {
+                                    println!("Hit small Astroid");
+                                },
+                                AstroidSize::Medium => {
+                                    println!("Hit medium Astroid");
+
+                                },
+                                AstroidSize::Large => {
+                                    println!("Hit large Astroid");
+                                }
+                            }
+    
+                            // commands.entity(player_ent).despawn_recursive();
+                            // commands.entity(ent).despawn_recursive();
+                            return;
+                        }
+                    },
+                    None => {
+    
+                    }
+                }
+            }
+        }
+    
     }
 }
