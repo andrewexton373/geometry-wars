@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use rand::Rng;
 use crate::{ HitboxCircle, Collider, PI };
@@ -24,6 +25,34 @@ impl Plugin for ProjectilePlugin {
 }
 
 impl ProjectilePlugin {
+
+    pub fn spawn_projectile(
+        commands: &mut Commands,
+        position: Vec2,
+        velocity: Vec2
+    ) {
+        let player_shape = shapes::Circle {
+            ..shapes::Circle::default()
+        };
+    
+        commands.spawn()
+            .insert(Projectile {
+                velocity: velocity,
+                timer: Timer::from_seconds(5.0, false),
+                hitbox: HitboxCircle { radius: 2.0 }
+            })
+            .insert_bundle(GeometryBuilder::build_as(
+                &player_shape,
+                DrawMode::Fill(FillMode::color(Color::RED)),
+                Transform {
+                    translation: position.extend(0.0),
+                    scale: Vec3::new(2.0, 2.0, 0.0),
+                    ..default()
+                },
+            ))
+            .insert(Collider);
+    }
+
     fn projectile_movement(
         mut commands: Commands,
         mut projectile_query: Query<(Entity, &mut Projectile, &mut Transform)>,

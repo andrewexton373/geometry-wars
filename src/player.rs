@@ -2,14 +2,10 @@ use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
 use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
-use bevy_prototype_lyon::prelude::tess::geom::Translation;
-use bevy_prototype_lyon::prelude::tess::geom::euclid::Translation2D;
 use crate::healthbar::Health;
-use crate::{ HitboxCircle, Collider, PI, TWO_PI };
-use crate::projectile::Projectile;
+use crate::{ HitboxCircle, PI, TWO_PI };
+use crate::projectile::{ProjectilePlugin};
 use crate::crosshair::Crosshair;
-use crate::HealthBarPlugin;
-use bevy_stat_bars::*;
 
 pub struct PlayerPlugin;
 
@@ -190,32 +186,15 @@ impl PlayerPlugin {
     )
     {
         const BULLET_SPEED: f32 = 4.0;
-        let (player, transform) = player_query.single();
     
-        // why does this work? https://www.reddit.com/r/rust_gamedev/comments/rphgsf/calculating_bullet_x_and_y_position_based_off_of/
-        let velocity = ((transform.rotation * Vec3::Y) * BULLET_SPEED) + Vec3::new(player.delta_x, player.delta_y, 0.0);
-    
-        // should be just pressed, but it's fun with keyboard_input.pressed()
+        // should be just pressed, but it's fun with keyboard_input.pressed()d
         if keyboard_input.just_pressed(MouseButton::Left) {
-            let player_shape = shapes::Circle {
-                ..shapes::Circle::default()
-            };
-        
-            commands.spawn()
-                .insert(Projectile {
-                    velocity: Vec2 { x: velocity.x, y: velocity.y },
-                    timer: Timer::from_seconds(5.0, false),
-                    hitbox: HitboxCircle { radius: 2.0 }
-                })
-                .insert_bundle(GeometryBuilder::build_as(
-                    &player_shape,
-                    DrawMode::Outlined {
-                        fill_mode: FillMode::color(Color::DARK_GRAY),
-                        outline_mode: StrokeMode::new(Color::RED, 1.0),
-                    },
-                    transform.clone(),
-                ))
-                .insert(Collider);
+            let (player, transform) = player_query.single();
+    
+            // why does this work? https://www.reddit.com/r/rust_gamedev/comments/rphgsf/calculating_bullet_x_and_y_position_based_off_of/
+            let velocity = ((transform.rotation * Vec3::Y) * BULLET_SPEED) + Vec3::new(player.delta_x, player.delta_y, 0.0);
+
+            ProjectilePlugin::spawn_projectile(&mut commands, transform.translation.truncate(), velocity.truncate());
         }
     }
 }
