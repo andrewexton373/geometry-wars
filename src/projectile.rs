@@ -1,8 +1,9 @@
+use std::f32::consts::PI;
+
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use rand::Rng;
-use crate::{ HitboxCircle, Collider, PI };
+use crate::{ HitboxCircle, Collider};
 use crate::astroid::{AstroidPlugin, Astroid, AstroidSize};
 // use crate::
 

@@ -2,8 +2,9 @@ use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
 use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
+use std::f32::consts::PI;
 use crate::healthbar::Health;
-use crate::{ HitboxCircle, PI, TWO_PI };
+use crate::{ HitboxCircle };
 use crate::projectile::{ProjectilePlugin};
 use crate::crosshair::Crosshair;
 
@@ -165,11 +166,11 @@ impl PlayerPlugin {
     
             //Rotate towards position mouse is on
             if ship_angle_difference > 0.0 {
-                player.delta_rotation += SPIN_ACCELERATION * (TWO_PI - ship_angle_difference.abs());
+                player.delta_rotation += SPIN_ACCELERATION * (2.0*PI - ship_angle_difference.abs());
             } else
     
             if ship_angle_difference < 0.0 {
-                player.delta_rotation -= SPIN_ACCELERATION * (TWO_PI - ship_angle_difference.abs());
+                player.delta_rotation -= SPIN_ACCELERATION * (2.0*PI - ship_angle_difference.abs());
             }
     
         }

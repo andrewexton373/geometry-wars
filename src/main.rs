@@ -25,9 +25,6 @@ const TIME_STEP: f32 = 1.0 / 60.0;
 
 const BACKGROUND_COLOR: Color = Color::rgb(0.0, 0.0, 0.0);
 
-pub const PI: f32 = 3.14159;
-pub const TWO_PI: f32 = 2.0 * PI;
-
 #[derive(Component, Inspectable, Reflect, Default)]
 #[reflect(Component)]
 pub struct HitboxCircle {
