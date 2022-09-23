@@ -778,6 +778,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_stat_bars"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c0c00ef9b740c8da87a353309d5be87f689811934f916db260e31fb11f84db9a"
+dependencies = [
+ "bevy",
+ "copyless",
+]
+
+[[package]]
 name = "bevy_tasks"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1635,6 +1645,7 @@ dependencies = [
  "bevy",
  "bevy-inspector-egui",
  "bevy_prototype_lyon",
+ "bevy_stat_bars",
  "rand",
 ]
 

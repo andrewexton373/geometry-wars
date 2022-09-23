@@ -2,8 +2,8 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use rand::Rng;
-use crate::{ HitboxCircle, Health, Collider, Player };
-
+use crate::{ HitboxCircle, Collider, Player };
+use crate::healthbar::Health;
 
 pub struct AstroidPlugin;
 
@@ -89,7 +89,7 @@ impl AstroidPlugin {
             .insert(Astroid {
                 velocity: velocity,
                 size: size,
-                health: Health {current_health: 50.0, full_health: 100.0},
+                health: Health {current: 50.0, maximum: 100.0},
                 hitbox: HitboxCircle { radius: size.radius() }
             })
             .insert_bundle(GeometryBuilder::build_as(
@@ -124,12 +124,12 @@ impl AstroidPlugin {
 
     fn astroid_collision_check(
         mut commands: Commands,
-        player_query: Query<(Entity, &Player, &Transform), With<Player>>,
+        mut player_query: Query<(Entity, &mut Player, &Transform), With<Player>>,
         collider_query: Query<(Entity, &Transform, Option<&Astroid>), With<Collider>>
     ){
         // let mut rng = rand::thread_rng();
     
-        for (player_ent, player, player_transform) in player_query.iter() {
+        for (player_ent, mut player, player_transform) in player_query.iter_mut() {
             for (ent, ent_transform, maybe_astroid) in &collider_query {
     
                 match maybe_astroid {
@@ -147,18 +147,23 @@ impl AstroidPlugin {
                             match &astroid.size {
                                 AstroidSize::Small => {
                                     println!("Hit small Astroid");
+                                    // TODO: collect minerals?
+
                                 },
                                 AstroidSize::Medium => {
                                     println!("Hit medium Astroid");
+                                    commands.entity(ent).despawn_recursive();
 
                                 },
                                 AstroidSize::Large => {
                                     println!("Hit large Astroid");
+                                    player.take_damage(5.0);
+                                    commands.entity(ent).despawn_recursive();
+
                                 }
                             }
     
                             // commands.entity(player_ent).despawn_recursive();
-                            // commands.entity(ent).despawn_recursive();
                             return;
                         }
                     },

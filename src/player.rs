@@ -2,19 +2,26 @@ use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
 use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
+use bevy_prototype_lyon::prelude::tess::geom::Translation;
+use bevy_prototype_lyon::prelude::tess::geom::euclid::Translation2D;
+use crate::healthbar::Health;
 use crate::{ HitboxCircle, Collider, PI, TWO_PI };
 use crate::projectile::Projectile;
 use crate::crosshair::Crosshair;
+use crate::HealthBarPlugin;
+use bevy_stat_bars::*;
 
 pub struct PlayerPlugin;
 
-#[derive(Component, Inspectable)]
+#[derive(Component, Inspectable, Reflect, Default)]
+#[reflect(Component)]
 pub struct Player {
     // TODO: refactor into velocity Vec2
     pub delta_x: f32,
     pub delta_y: f32,
     pub delta_rotation: f32,
-    pub hitbox: HitboxCircle
+    pub hitbox: HitboxCircle,
+    pub health: Health
 }
 
 impl Player {
@@ -23,8 +30,15 @@ impl Player {
             delta_x: 0.0,
             delta_y: 0.0,
             delta_rotation: 0.0,
-            hitbox: HitboxCircle { radius: 5.0 }
+            hitbox: HitboxCircle { radius: 5.0 },
+            health: Health { current: 50.0, maximum: 100.0 }
         }
+    }
+
+    pub fn take_damage(&mut self, damage: f32) {
+        let modified_health = self.health.current - damage;
+        let modified_health = modified_health.clamp(0.0, self.health.maximum);
+        self.health.current = modified_health;
     }
 }
 
@@ -33,12 +47,12 @@ impl Plugin for PlayerPlugin {
         // add things to your app here
 
         app
-            .add_startup_system(Self::spawn_player)
+            .add_startup_system(Self::spawn_player.label("spawn_player"))
             .add_system(Self::player_movement)
             .add_system(Self::ship_rotate_towards_mouse)
             .add_system(Self::player_fire_weapon)
-            .register_inspectable::<Player>();
-
+            .register_inspectable::<Player>()
+            .register_type::<Player>();
     }
 }
 
@@ -64,8 +78,9 @@ impl PlayerPlugin {
                     scale: Vec3::new(0.5, 1.0, 1.0),
                     ..Default::default()
                 }
-                // Transform::default(),
-            ));
+            ))
+            .insert(Name::new("Player"))
+            .id();
     }
 
     fn player_movement(
