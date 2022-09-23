@@ -1,8 +1,7 @@
-use bevy::math::vec2;
 use bevy_stat_bars::*;
-use bevy::{prelude::*, transform};
+use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use bevy_inspector_egui::{InspectorPlugin, Inspectable, RegisterInspectable};
+use bevy_inspector_egui::{Inspectable};
 use bevy_inspector_egui::WorldInspectorPlugin;
 
 mod player;
@@ -57,11 +56,11 @@ fn setup(mut commands: Commands) {
 }
 
 fn camera_follows_player(
-    mut camera_query: Query<(&Camera, &mut GlobalTransform), (With<Camera>)>,
-    mut player_query: Query<(&Transform), (With<Player>, Without<Camera>)>,
+    mut camera_query: Query<(&Camera, &mut GlobalTransform), With<Camera>>,
+    player_query: Query<&Transform, (With<Player>, Without<Camera>)>,
 ){
     let (camera, mut camera_trans) = camera_query.single_mut().into();
-    let (player_trans) = player_query.single();
+    let player_trans = player_query.single();
 
         // TODO: seems sloppy, is there another way?
         let player_to_camera = camera_trans.translation() - player_trans.translation;

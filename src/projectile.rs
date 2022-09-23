@@ -5,7 +5,6 @@ use bevy_prototype_lyon::prelude::*;
 use rand::Rng;
 use crate::{ HitboxCircle, Collider};
 use crate::astroid::{AstroidPlugin, Astroid, AstroidSize};
-// use crate::
 
 #[derive(Component)]
 pub struct Projectile {

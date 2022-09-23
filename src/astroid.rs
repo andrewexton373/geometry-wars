@@ -100,17 +100,17 @@ impl AstroidPlugin {
         }
     }
 
-    fn spawn_static_astroids(
-        mut commands: Commands
-    ){
-        let mut rng = rand::thread_rng();
+    // fn spawn_static_astroids(
+    //     mut commands: Commands
+    // ){
+    //     let mut rng = rand::thread_rng();
     
-        for i in 0..15 {
-            let random_postion = Vec2 {x: rng.gen_range(-300.0..300.0), y: rng.gen_range(-300.0..300.0)};
-            Self::spawn_astroid(&mut commands, AstroidSize::Large, Vec2 { x: 0.0, y: 0.0 }, random_postion);
-        }
+    //     for i in 0..15 {
+    //         let random_postion = Vec2 {x: rng.gen_range(-300.0..300.0), y: rng.gen_range(-300.0..300.0)};
+    //         Self::spawn_astroid(&mut commands, AstroidSize::Large, Vec2 { x: 0.0, y: 0.0 }, random_postion);
+    //     }
     
-    }
+    // }
     
     pub fn spawn_astroid(
         commands: &mut Commands,
@@ -151,10 +151,6 @@ impl AstroidPlugin {
             .insert_bundle(GeometryBuilder::build_as(
                 &astroid_shape,
                 DrawMode::Fill(FillMode::color(Color::RED)),
-                // DrawMode::Outlined {
-                //     fill_mode: FillMode::color(Color::DARK_GRAY),
-                //     outline_mode: StrokeMode::new(Color::WHITE, 1.0),
-                // },
                 Transform {
                     translation: position.extend(0.0),
                     scale: Vec3::new(size.radius(), size.radius(), 0.0),
@@ -167,10 +163,10 @@ impl AstroidPlugin {
     
     fn astroid_movement(
         mut astroid_query: Query<(&mut Astroid,&mut Transform)>,
-        time: Res<Time>
+        // time: Res<Time>
     ){
     
-        for (mut astroid, mut transform) in astroid_query.iter_mut() {
+        for (astroid, mut transform) in astroid_query.iter_mut() {
             transform.translation.x += astroid.velocity.x;
             transform.translation.y += astroid.velocity.y;
     
