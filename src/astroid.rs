@@ -9,7 +9,7 @@ use crate::healthbar::Health;
 
 pub struct AstroidPlugin;
 
-#[derive(Component, Inspectable)]
+#[derive(Component, Inspectable, Clone, Copy)]
 pub struct Astroid {
     pub velocity: Vec2,
     pub size: AstroidSize,
@@ -28,9 +28,9 @@ pub enum AstroidSize {
 impl AstroidSize {
     fn radius(self) -> f32 {
         match self {
-            Self::Small => 8.0,
-            Self::Medium => 14.0,
-            Self::Large => 20.0
+            Self::Small => 2.0,
+            Self::Medium => 5.0,
+            Self::Large => 10.0
         }
     }
 }
@@ -47,7 +47,7 @@ impl Plugin for AstroidPlugin {
             .insert_resource(AstroidSpawner{ timer: Timer::from_seconds(0.10, false)})
             .add_system(Self::spawn_astroids_aimed_at_ship)
             .add_system(Self::despawn_far_astroids)
-            .add_system(Self::astroid_movement)
+            // .add_system(Self::astroid_movement) // shouldn't have to do, handled by rapier2d
             .add_system(Self::astroid_collision_check)
             .register_inspectable::<Astroid>();
     }
@@ -78,7 +78,7 @@ impl AstroidPlugin {
             let random_spawn_position = player_position + (rand_direction * SPAWN_DISTANCE);
             let direction_to_player = (player_position - random_spawn_position).normalize(); // maybe?
 
-            Self::spawn_astroid(&mut commands, AstroidSize::Large, direction_to_player, random_spawn_position);
+            Self::spawn_astroid(&mut commands, AstroidSize::Large, direction_to_player * crate::PIXELS_PER_METER, random_spawn_position);
         }
     }
 
@@ -100,18 +100,6 @@ impl AstroidPlugin {
             }
         }
     }
-
-    // fn spawn_static_astroids(
-    //     mut commands: Commands
-    // ){
-    //     let mut rng = rand::thread_rng();
-    
-    //     for i in 0..15 {
-    //         let random_postion = Vec2 {x: rng.gen_range(-300.0..300.0), y: rng.gen_range(-300.0..300.0)};
-    //         Self::spawn_astroid(&mut commands, AstroidSize::Large, Vec2 { x: 0.0, y: 0.0 }, random_postion);
-    //     }
-    
-    // }
     
     pub fn spawn_astroid(
         commands: &mut Commands,
@@ -125,62 +113,64 @@ impl AstroidPlugin {
             AstroidSize::Small => {
                 astroid_shape = lyon::shapes::RegularPolygon {
                     sides: 3,
+                    feature: lyon::RegularPolygonFeature::Radius(crate::PIXELS_PER_METER * size.radius()),
                     ..lyon::shapes::RegularPolygon::default()
                 };
             },
             AstroidSize::Medium => {
                 astroid_shape = lyon::shapes::RegularPolygon {
                     sides: 4,
+                    feature: lyon::RegularPolygonFeature::Radius(crate::PIXELS_PER_METER * size.radius()),
                     ..lyon::shapes::RegularPolygon::default()
                 };
             },
             AstroidSize::Large => {
                 astroid_shape = lyon::shapes::RegularPolygon {
                     sides: 7,
+                    feature: lyon::RegularPolygonFeature::Radius(crate::PIXELS_PER_METER * size.radius()),
                     ..lyon::shapes::RegularPolygon::default()
                 };
             }
         }
+
+        let astroid = Astroid {
+            velocity: velocity,
+            size: size,
+            health: Health {current: 50.0, maximum: 100.0},
+            hitbox: HitboxCircle { radius: size.radius() }
+        };
     
         commands.spawn()
-            .insert(Astroid {
-                velocity: velocity,
-                size: size,
-                health: Health {current: 50.0, maximum: 100.0},
-                hitbox: HitboxCircle { radius: size.radius() }
-            })
+            .insert(astroid)
             .insert_bundle(lyon::GeometryBuilder::build_as(
                 &astroid_shape,
                 lyon::DrawMode::Fill(lyon::FillMode::color(Color::RED)),
-                Transform {
-                    translation: position.extend(0.0),
-                    scale: Vec3::new(size.radius(), size.radius(), 0.0),
-                    ..default()
-                }
+                Default::default()
             ))
             // .insert(Collider) // do we still need? don't think so
             .insert(RigidBody::Dynamic)
+            .insert(Velocity { linvel: astroid.velocity, angvel: 0.0 })
             .insert(Sleeping::disabled())
             .insert(Ccd::enabled())
-            .insert(Collider::ball(size.radius()))
+            .insert(Collider::ball(crate::PIXELS_PER_METER * size.radius()))
             .insert(Transform::from_xyz(position.x, position.y, 0.0))
             .insert(ActiveEvents::COLLISION_EVENTS)
-            .insert(Restitution::coefficient(0.7));
+            .insert(Restitution::coefficient(0.0));
             
     }
     
-    fn astroid_movement(
-        mut astroid_query: Query<(&mut Astroid,&mut Transform)>,
-        // time: Res<Time>
-    ){
+    // fn astroid_movement(
+    //     mut astroid_query: Query<(&mut Astroid,&mut Transform)>,
+    //     // time: Res<Time>
+    // ){
     
-        for (astroid, mut transform) in astroid_query.iter_mut() {
-            transform.translation.x += astroid.velocity.x;
-            transform.translation.y += astroid.velocity.y;
+    //     for (astroid, mut transform) in astroid_query.iter_mut() {
+    //         transform.translation.x += astroid.velocity.x;
+    //         transform.translation.y += astroid.velocity.y;
     
-            // projectile.timer.tick(time.delta());
-        }
-    }
+    //         // projectile.timer.tick(time.delta());
+    //     }
+    // }
 
     fn astroid_collision_check(
         mut commands: Commands,

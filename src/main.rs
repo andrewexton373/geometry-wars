@@ -23,11 +23,11 @@ use healthbar::HealthBarPlugin;
 // Defines the amount of time that should elapse between each physics step.
 const TIME_STEP: f32 = 1.0 / 60.0;
 
-pub const PIXELS_PER_METER : f32 = 500.0;
+pub const PIXELS_PER_METER : f32 = 10.0;
 
 const BACKGROUND_COLOR: Color = Color::rgb(0.0, 0.0, 0.0);
 
-#[derive(Component, Inspectable, Reflect, Default)]
+#[derive(Component, Inspectable, Reflect, Default, Clone, Copy)]
 #[reflect(Component)]
 pub struct HitboxCircle {
     pub radius: f32
@@ -51,6 +51,7 @@ fn main() {
         .add_startup_system(setup)
         .add_system(camera_follows_player)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER))
+        .add_plugin(RapierDebugRenderPlugin::default())
         .run();
 }
 

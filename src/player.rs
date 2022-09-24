@@ -1,6 +1,7 @@
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
+use bevy_prototype_lyon::prelude as lyon;
 use bevy::render::camera::RenderTarget;
-use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use std::f32::consts::PI;
 use crate::healthbar::Health;
@@ -57,25 +58,30 @@ impl PlayerPlugin {
     fn spawn_player(
         mut commands: Commands
     ) {
-        let player_shape = shapes::RegularPolygon {
+        let player_shape = lyon::shapes::RegularPolygon {
             sides: 3,
-            feature: shapes::RegularPolygonFeature::Radius(20.0),
-            ..shapes::RegularPolygon::default()
+            feature: lyon::shapes::RegularPolygonFeature::Radius(crate::PIXELS_PER_METER * 5.0),
+            ..lyon::shapes::RegularPolygon::default()
         };
     
         let mut player = commands.spawn()
             .insert(Player::new())
-            .insert_bundle(GeometryBuilder::build_as(
+            .insert_bundle(lyon::GeometryBuilder::build_as(
                 &player_shape,
-                DrawMode::Outlined {
-                    fill_mode: FillMode::color(Color::CYAN),
-                    outline_mode: StrokeMode::new(Color::WHITE, 2.0),
+                lyon::DrawMode::Outlined {
+                    fill_mode: lyon::FillMode::color(Color::CYAN),
+                    outline_mode: lyon::StrokeMode::new(Color::WHITE, 2.0),
                 },
-                Transform {
-                    scale: Vec3::new(0.5, 1.0, 1.0),
-                    ..Default::default()
-                }
+                Default::default()
             ))
+            .insert(RigidBody::KinematicPositionBased)
+            .insert(Sleeping::disabled())
+            .insert(Ccd::enabled())
+            // .insert(Collider::triangle(player_shape.feature, b, c)) // Need points of triangle
+            .insert(Collider::ball(crate::PIXELS_PER_METER * 1.0))
+            .insert(Transform::default())
+            .insert(ActiveEvents::COLLISION_EVENTS)
+            .insert(Restitution::coefficient(0.0))
             .insert(Name::new("Player"))
             .id();
     }

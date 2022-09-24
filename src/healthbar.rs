@@ -5,7 +5,7 @@ use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use rand::Rng;
 use crate::{ HitboxCircle, Collider, Player };
 
-#[derive(Component, Inspectable, Reflect, Default)]
+#[derive(Component, Inspectable, Reflect, Default, Clone, Copy)]
 pub struct Health {
     pub current: f32,
     pub maximum: f32,
