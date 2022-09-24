@@ -1,9 +1,10 @@
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::*;
+use bevy_rapier2d::prelude::*;
+use bevy_prototype_lyon::prelude as lyon;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use rand::Rng;
 use std::f32::consts::{PI};
-use crate::{ HitboxCircle, Collider, Player };
+use crate::{ HitboxCircle, Player };
 use crate::healthbar::Health;
 
 pub struct AstroidPlugin;
@@ -119,24 +120,24 @@ impl AstroidPlugin {
         position: Vec2
     ) {
     
-        let astroid_shape: shapes::RegularPolygon;
+        let astroid_shape: lyon::shapes::RegularPolygon;
         match size {
             AstroidSize::Small => {
-                astroid_shape = shapes::RegularPolygon {
+                astroid_shape = lyon::shapes::RegularPolygon {
                     sides: 3,
-                    ..shapes::RegularPolygon::default()
+                    ..lyon::shapes::RegularPolygon::default()
                 };
             },
             AstroidSize::Medium => {
-                astroid_shape = shapes::RegularPolygon {
+                astroid_shape = lyon::shapes::RegularPolygon {
                     sides: 4,
-                    ..shapes::RegularPolygon::default()
+                    ..lyon::shapes::RegularPolygon::default()
                 };
             },
             AstroidSize::Large => {
-                astroid_shape = shapes::RegularPolygon {
+                astroid_shape = lyon::shapes::RegularPolygon {
                     sides: 7,
-                    ..shapes::RegularPolygon::default()
+                    ..lyon::shapes::RegularPolygon::default()
                 };
             }
         }
@@ -148,16 +149,23 @@ impl AstroidPlugin {
                 health: Health {current: 50.0, maximum: 100.0},
                 hitbox: HitboxCircle { radius: size.radius() }
             })
-            .insert_bundle(GeometryBuilder::build_as(
+            .insert_bundle(lyon::GeometryBuilder::build_as(
                 &astroid_shape,
-                DrawMode::Fill(FillMode::color(Color::RED)),
+                lyon::DrawMode::Fill(lyon::FillMode::color(Color::RED)),
                 Transform {
                     translation: position.extend(0.0),
                     scale: Vec3::new(size.radius(), size.radius(), 0.0),
                     ..default()
                 }
             ))
-            .insert(Collider);
+            // .insert(Collider) // do we still need? don't think so
+            .insert(RigidBody::Dynamic)
+            .insert(Sleeping::disabled())
+            .insert(Ccd::enabled())
+            .insert(Collider::ball(size.radius()))
+            .insert(Transform::from_xyz(position.x, position.y, 0.0))
+            .insert(ActiveEvents::COLLISION_EVENTS)
+            .insert(Restitution::coefficient(0.7));
             
     }
     
