@@ -1,8 +1,12 @@
 use bevy::prelude::*;
+use bevy_prototype_lyon::prelude::tess::geom::euclid::num;
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use rand::Rng;
+use rand::seq::SliceRandom;
+use std::array::from_fn;
+use std::cmp::Ordering;
 use std::f32::consts::{PI};
 use crate::{ HitboxCircle, Player };
 use crate::healthbar::Health;
@@ -108,6 +112,11 @@ impl AstroidPlugin {
         velocity: Vec2,
         position: Vec2
     ) {
+
+        let astroid_shape_polygon = lyon::shapes::Polygon {
+            points: Self::make_valtr_convex_polygon_coords(7, 100.0),
+            closed: true
+        };
     
         let astroid_shape: lyon::shapes::RegularPolygon;
         match size {
@@ -144,7 +153,7 @@ impl AstroidPlugin {
         commands.spawn()
             .insert(astroid)
             .insert_bundle(lyon::GeometryBuilder::build_as(
-                &astroid_shape,
+                &astroid_shape_polygon,
                 lyon::DrawMode::Fill(lyon::FillMode::color(Color::RED)),
                 Default::default()
             ))
@@ -254,5 +263,95 @@ impl AstroidPlugin {
             }
         }
     
+    }
+
+    fn make_valtr_convex_polygon_coords(num_sides: usize, radius: f32) -> Vec<Vec2> {
+        let valtr_convex_polygon_coords: Vec<Vec2> = vec![];
+
+        let mut xs: Vec<f32> = vec![];
+        let mut ys: Vec<f32> = vec![];
+
+        for _ in 0..num_sides {
+            xs.push(2.0 * radius * rand::random::<f32>());
+            ys.push(2.0 * radius * rand::random::<f32>());
+        }
+
+        // might be different than guide...
+        xs.sort_by(|a, b| {a.partial_cmp(b).unwrap()});
+        xs.sort_by(|a, b| {a.partial_cmp(b).unwrap()});
+
+
+        let min_xs = xs[0];
+        let max_xs = xs[xs.len() - 1];
+        let min_ys = ys[0];
+        let max_ys = ys[ys.len() - 1];
+
+        let vec_xs = make_vector_chain(xs, min_xs, max_xs);
+        let mut vec_ys = make_vector_chain(ys, min_ys, max_ys);
+
+        vec_ys.shuffle(&mut rand::thread_rng());
+
+        let mut vecs: Vec<(f32, f32)> = vec_xs.into_iter().zip(vec_ys).collect();
+
+        vecs.sort_by(|a, b| {
+            let aAng = a.1.atan2(a.0);
+            let bAng = b.1.atan2(b.0);
+
+            if aAng - bAng < 0.0 {
+                Ordering::Less
+            } else if (aAng - bAng == 0.0) {
+                Ordering::Equal
+            } else {
+                Ordering::Greater
+            }
+        });
+
+        let mut vec_angs2: Vec<f32> = vec![];
+
+        for vec in &vecs {
+            let a = vec.1.atan2(vec.0);
+            vec_angs2.push(a);
+        }
+
+        let mut  poly_coords = vec![];
+        let mut x = 0.0;
+        let mut  y = 0.0;
+        for vec in &vecs {
+            x += vec.0 * 1.0;
+            y += vec.1 * 1.0;
+            poly_coords.push(Vec2 { x: x, y: y })
+        }
+
+        // let min_value = values_array.into_iter().min_by(|a, b| {
+        //     a.partial_cmp(&b).unwrap_or(Ordering::Less)
+        // });
+        // let max_value = values_array.into_iter().min_by(|a, b| {
+        //     b.partial_cmp(&a).unwrap_or(Ordering::Greater)
+        // });
+
+        fn make_vector_chain(values_array: Vec<f32>, min_value: f32, max_value: f32) -> Vec<f32> {
+            let mut vector_chain: Vec<f32> = vec![];
+            
+
+            let mut last_min = min_value;
+            let mut last_max = max_value;
+
+            for value in values_array {
+                if rand::random::<f32>() > 0.5 {
+                    vector_chain.push(value - last_min);
+                    last_min = value;
+                } else {
+                    vector_chain.push(last_max - value);
+                    last_max = value;
+                }
+            }
+
+            vector_chain.push(max_value - last_min);
+            vector_chain.push(last_max - max_value);
+
+            vector_chain
+        }
+
+        poly_coords
     }
 }
