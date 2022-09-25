@@ -181,7 +181,6 @@ impl AstroidPlugin {
                             AstroidSize::Small => {
                                 println!("Hit small Astroid");
                                 // TODO: collect minerals?
-
                             },
                             AstroidSize::Medium => {
                                 println!("Hit medium Astroid");
@@ -190,13 +189,6 @@ impl AstroidPlugin {
                             },
                             AstroidSize::Large => {
                                 println!("Hit large Astroid");
-                                
-                                commands.entity(player_ent)
-                                    .insert(ExternalForce {
-                                        force: Vec2::new(1000.0, 2000.0),
-                                        torque: 100.0,
-                                    });
-
                                 player.take_damage(5.0);
                                 // commands.entity(ent).despawn_recursive();
 
@@ -225,7 +217,7 @@ impl AstroidPlugin {
                         if Vec2::distance(
                             player_transform.translation.truncate(),
                             ent_transform.translation.truncate())
-                             < player.hitbox.radius + astroid.hitbox.radius
+                             < 2.0 + astroid.hitbox.radius
                         {
                             // let split_angle = rng.gen_range(0.0..PI/4.0);
 

@@ -6,7 +6,6 @@ use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use bevy_rapier2d::rapier::prelude::RigidBodyVelocity;
 use std::f32::consts::PI;
 use crate::healthbar::Health;
-use crate::{ HitboxCircle };
 use crate::projectile::{ProjectilePlugin};
 use crate::crosshair::Crosshair;
 
@@ -19,7 +18,6 @@ pub struct Player {
     pub delta_x: f32,
     pub delta_y: f32,
     pub delta_rotation: f32,
-    pub hitbox: HitboxCircle,
     pub health: Health
 }
 
@@ -29,7 +27,6 @@ impl Player {
             delta_x: 0.0,
             delta_y: 0.0,
             delta_rotation: 0.0,
-            hitbox: HitboxCircle { radius: 5.0 },
             health: Health { current: 50.0, maximum: 100.0 }
         }
     }

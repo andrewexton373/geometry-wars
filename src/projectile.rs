@@ -1,16 +1,17 @@
-use std::f32::consts::PI;
-
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::*;
+use bevy_rapier2d::prelude::*;
+use bevy_prototype_lyon::prelude as lyon;
+use std::f32::consts::PI;
 use rand::Rng;
-use crate::{ HitboxCircle, Collider};
 use crate::astroid::{AstroidPlugin, Astroid, AstroidSize};
+
+const PROJECTILE_RADIUS: f32 = 0.2;
 
 #[derive(Component)]
 pub struct Projectile {
     pub velocity: Vec2,
     pub timer: Timer,
-    pub hitbox: HitboxCircle
+    // pub hitbox: HitboxCircle
 }
 
 pub struct ProjectilePlugin;
@@ -19,7 +20,8 @@ impl Plugin for ProjectilePlugin {
     fn build(&self, app: &mut App) {
         app
             .add_system(Self::projectile_movement)
-            .add_system(Self::projectile_collision_check);
+            // .add_system(Self::projectile_collision_check);
+            .add_system(Self::handle_projectile_collision_event);
 
     }
 }
@@ -31,26 +33,35 @@ impl ProjectilePlugin {
         position: Vec2,
         velocity: Vec2
     ) {
-        let player_shape = shapes::Circle {
-            ..shapes::Circle::default()
+        let projectile_shape = lyon::shapes::Circle {
+            radius: 2.0 * crate::PIXELS_PER_METER,
+            ..lyon::shapes::Circle::default()
         };
     
         commands.spawn()
             .insert(Projectile {
                 velocity: velocity,
                 timer: Timer::from_seconds(5.0, false),
-                hitbox: HitboxCircle { radius: 2.0 }
+                // hitbox: HitboxCircle { radius: 2.0 }
             })
-            .insert_bundle(GeometryBuilder::build_as(
-                &player_shape,
-                DrawMode::Fill(FillMode::color(Color::RED)),
+            .insert_bundle(lyon::GeometryBuilder::build_as(
+                &projectile_shape,
+                lyon::DrawMode::Fill(lyon::FillMode::color(Color::RED)),
                 Transform {
                     translation: position.extend(0.0),
-                    scale: Vec3::new(2.0, 2.0, 0.0),
+                    // scale: Vec3::new(2.0, 2.0, 0.0),
                     ..default()
                 },
             ))
-            .insert(Collider);
+            // .insert(Collider);
+            .insert(RigidBody::Dynamic)
+            .insert(Velocity { linvel: velocity, angvel: 0.0 })
+            .insert(Sleeping::disabled())
+            .insert(Ccd::enabled())
+            .insert(Collider::ball(projectile_shape.radius))
+            .insert(Transform::from_xyz(position.x, position.y, 0.0))
+            .insert(ActiveEvents::COLLISION_EVENTS)
+            .insert(Restitution::coefficient(0.01));
     }
 
     fn projectile_movement(
@@ -70,6 +81,33 @@ impl ProjectilePlugin {
             }
         }
     }
+
+    fn handle_projectile_collision_event(
+        mut contact_events: EventReader<CollisionEvent>,
+        astroid_query: Query<(Entity, &Astroid), With<Astroid>>,
+        projectile_query: Query<(Entity, &Projectile), With<Projectile>>,
+        time: Res<Time>,
+        mut commands: Commands,
+    ) {
+        for contact_event in contact_events.iter() {
+            if let CollisionEvent::Started(h1, h2, _event_flag) = contact_event {
+
+                //FIXME: there's got to be a better way...
+                // h1 is project, despawn it.
+                if projectile_query.contains(*h1) && astroid_query.contains(*h2) {
+                    println!("PROJECTILE COLLISION WITH ASTROID");
+                    commands.entity(*h1).despawn_recursive();
+                }
+
+                // h2 is projectile, despawn it.
+                if projectile_query.contains(*h2) && astroid_query.contains(*h1) {
+                    println!("PROJECTILE COLLISION WITH ASTROID");
+                    commands.entity(*h2).despawn_recursive();
+                }
+            }
+        }
+
+    }
     
     fn projectile_collision_check(
         mut commands: Commands,
@@ -86,7 +124,7 @@ impl ProjectilePlugin {
                         if Vec2::distance(
                             projectile_transform.translation.truncate(),
                             ent_transform.translation.truncate())
-                             < projectile.hitbox.radius + astroid.hitbox.radius
+                             < PROJECTILE_RADIUS + astroid.hitbox.radius
                         {
                             let split_angle = rng.gen_range(0.0..PI/4.0);
                             
