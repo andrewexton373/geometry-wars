@@ -5,6 +5,7 @@ use bevy::render::camera::RenderTarget;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use bevy_rapier2d::rapier::prelude::RigidBodyVelocity;
 use std::f32::consts::PI;
+use crate::PIXELS_PER_METER;
 use crate::healthbar::Health;
 use crate::projectile::{ProjectilePlugin};
 use crate::crosshair::Crosshair;
@@ -58,7 +59,7 @@ impl PlayerPlugin {
     ) {
         let player_shape = lyon::shapes::RegularPolygon {
             sides: 3,
-            feature: lyon::shapes::RegularPolygonFeature::Radius(crate::PIXELS_PER_METER * 5.0),
+            feature: lyon::shapes::RegularPolygonFeature::Radius(crate::PIXELS_PER_METER * 2.0),
             ..lyon::shapes::RegularPolygon::default()
         };
     
@@ -90,19 +91,17 @@ impl PlayerPlugin {
         mut player_query: Query<&mut Velocity, (With<Player>, Without<Crosshair>)>,
         mut commands: Commands
     ) {
-        const ACCELERATION: f32 = 10.0;
+        const ACCELERATION: f32 =  3.0 * PIXELS_PER_METER;
         const DECLERATION: f32 = 0.95;
 
             let mut velocity = player_query.single_mut();
     
             if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
                 velocity.linvel += Vec2 {x: -ACCELERATION, y: 0.0 };
-    
             }
         
             if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
                 velocity.linvel += Vec2 {x: ACCELERATION, y: 0.0 };
-    
             }
         
             if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
