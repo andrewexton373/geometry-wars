@@ -48,7 +48,8 @@ impl Plugin for AstroidPlugin {
             .add_system(Self::spawn_astroids_aimed_at_ship)
             .add_system(Self::despawn_far_astroids)
             // .add_system(Self::astroid_movement) // shouldn't have to do, handled by rapier2d
-            .add_system(Self::astroid_collision_check)
+            // .add_system(Self::astroid_collision_check)
+            .add_system(Self::handle_astroid_collision_event)
             .register_inspectable::<Astroid>();
     }
 }
@@ -171,6 +172,37 @@ impl AstroidPlugin {
     //         // projectile.timer.tick(time.delta());
     //     }
     // }
+
+    fn handle_astroid_collision_event(
+        astroid_query: Query<(Entity, &Astroid), With<Astroid>>,
+        player_query: Query<(Entity, &Player), With<Player>>,
+        time: Res<Time>,
+        mut contact_events: EventReader<CollisionEvent>,
+        mut commands: Commands
+    ) {
+        let (player_ent, player) = player_query.single();
+
+        for contact_event in contact_events.iter() {
+            for (entity, astroid) in astroid_query.iter() {
+                if let CollisionEvent::Started(h1, h2, _event_flag) = contact_event {
+                    if (player_ent == *h1 || player_ent == *h2) {
+                        // assume its the player 
+                        let timestamp_last_hit = time.seconds_since_startup();
+                        commands.entity(entity).despawn();
+                    }
+                    
+                    // println!("{:?}", h1.get_type_info());
+                    // if h1 == &entity || h2 == &entity {
+                    //     //Respawn to change color
+                    //     // let pos = astroid.;
+                    //     let timestamp_last_hit = time.seconds_since_startup();
+                    //     commands.entity(entity).despawn();
+                    //     // spawn_single_pin(&mut commands, pos, Some(timestamp_last_hit));
+                    // }
+                }
+            }
+        }
+    }
 
     fn astroid_collision_check(
         mut commands: Commands,
