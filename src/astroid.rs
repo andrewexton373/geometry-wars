@@ -156,49 +156,55 @@ impl AstroidPlugin {
             .insert(Collider::ball(crate::PIXELS_PER_METER * size.radius()))
             .insert(Transform::from_xyz(position.x, position.y, 0.0))
             .insert(ActiveEvents::COLLISION_EVENTS)
-            .insert(Restitution::coefficient(0.0));
+            .insert(Restitution::coefficient(0.01));
             
     }
-    
-    // fn astroid_movement(
-    //     mut astroid_query: Query<(&mut Astroid,&mut Transform)>,
-    //     // time: Res<Time>
-    // ){
-    
-    //     for (astroid, mut transform) in astroid_query.iter_mut() {
-    //         transform.translation.x += astroid.velocity.x;
-    //         transform.translation.y += astroid.velocity.y;
-    
-    //         // projectile.timer.tick(time.delta());
-    //     }
-    // }
 
     fn handle_astroid_collision_event(
         astroid_query: Query<(Entity, &Astroid), With<Astroid>>,
-        player_query: Query<(Entity, &Player), With<Player>>,
+        mut player_query: Query<(Entity, &mut Player), With<Player>>,
         time: Res<Time>,
         mut contact_events: EventReader<CollisionEvent>,
         mut commands: Commands
     ) {
-        let (player_ent, player) = player_query.single();
+        let (player_ent, mut player) = player_query.single_mut();
 
         for contact_event in contact_events.iter() {
-            for (entity, astroid) in astroid_query.iter() {
+            for (astroid_entity, astroid) in astroid_query.iter() {
                 if let CollisionEvent::Started(h1, h2, _event_flag) = contact_event {
-                    if (player_ent == *h1 || player_ent == *h2) {
-                        // assume its the player 
+                    
+                    // If player hit astroid
+                    if player_ent == *h1 && astroid_entity == *h2 {
                         let timestamp_last_hit = time.seconds_since_startup();
-                        commands.entity(entity).despawn();
+
+                        match &astroid.size {
+                            AstroidSize::Small => {
+                                println!("Hit small Astroid");
+                                // TODO: collect minerals?
+
+                            },
+                            AstroidSize::Medium => {
+                                println!("Hit medium Astroid");
+                                // commands.entity(ent).despawn_recursive();
+
+                            },
+                            AstroidSize::Large => {
+                                println!("Hit large Astroid");
+                                
+                                commands.entity(player_ent)
+                                    .insert(ExternalForce {
+                                        force: Vec2::new(1000.0, 2000.0),
+                                        torque: 100.0,
+                                    });
+
+                                player.take_damage(5.0);
+                                // commands.entity(ent).despawn_recursive();
+
+                            }
+                        }
+                        return;
                     }
                     
-                    // println!("{:?}", h1.get_type_info());
-                    // if h1 == &entity || h2 == &entity {
-                    //     //Respawn to change color
-                    //     // let pos = astroid.;
-                    //     let timestamp_last_hit = time.seconds_since_startup();
-                    //     commands.entity(entity).despawn();
-                    //     // spawn_single_pin(&mut commands, pos, Some(timestamp_last_hit));
-                    // }
                 }
             }
         }

@@ -3,6 +3,7 @@ use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
 use bevy::render::camera::RenderTarget;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
+use bevy_rapier2d::rapier::prelude::RigidBodyVelocity;
 use std::f32::consts::PI;
 use crate::healthbar::Health;
 use crate::{ HitboxCircle };
@@ -74,57 +75,49 @@ impl PlayerPlugin {
                 },
                 Default::default()
             ))
-            .insert(RigidBody::KinematicPositionBased)
+            .insert(RigidBody::Dynamic)
+            .insert(Velocity::zero())
             .insert(Sleeping::disabled())
             .insert(Ccd::enabled())
             // .insert(Collider::triangle(player_shape.feature, b, c)) // Need points of triangle
             .insert(Collider::ball(crate::PIXELS_PER_METER * 1.0))
             .insert(Transform::default())
             .insert(ActiveEvents::COLLISION_EVENTS)
-            .insert(Restitution::coefficient(0.0))
+            .insert(Restitution::coefficient(1.0))
             .insert(Name::new("Player"))
             .id();
     }
 
     fn player_movement(
         keyboard_input: Res<Input<KeyCode>>,
-        mut player_query: Query<(&mut Player, &mut Transform), Without<Crosshair>>
+        mut player_query: Query<&mut Velocity, (With<Player>, Without<Crosshair>)>,
+        mut commands: Commands
     ) {
-        const ACCELERATION: f32 = 0.2;
+        const ACCELERATION: f32 = 5.0;
         const DECLERATION: f32 = 0.95;
-        const SPIN_ACCELERATION: f32 = 0.4;
-        const SPIN_DECELERATION: f32 = 0.1;
-        const MAX_VELOCITY: f32 = 6.0;
+
+            let mut velocity = player_query.single_mut();
     
-        let (mut player, mut player_trans) = player_query.single_mut();
+            if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
+                velocity.linvel += Vec2 {x: -ACCELERATION, y: 0.0 };
     
-        if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
-            player.delta_x -= ACCELERATION;
-        }
+            }
+        
+            if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
+                velocity.linvel += Vec2 {x: ACCELERATION, y: 0.0 };
     
-        if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
-            player.delta_x += ACCELERATION;
-        }
-    
-        if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
-            player.delta_y += ACCELERATION;
-        }
-    
-        if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
-            player.delta_y -= ACCELERATION;
-        }
-    
-    
-        player.delta_x = player.delta_x.clamp(-MAX_VELOCITY, MAX_VELOCITY);
-        player.delta_y = player.delta_y.clamp(-MAX_VELOCITY, MAX_VELOCITY);
-    
-        player_trans.translation.x += player.delta_x;
-        player_trans.translation.y += player.delta_y;
-    
-        // Decelerate
-        player.delta_x *= DECLERATION;
-        player.delta_y *= DECLERATION;
-        player.delta_rotation *= SPIN_DECELERATION;
+            }
+        
+            if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
+                velocity.linvel += Vec2 {x: 0.0, y: ACCELERATION };
+            }
+        
+            if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
+                velocity.linvel += Vec2 {x: 0.0, y: -ACCELERATION };
+            }
+        
+            velocity.linvel *= DECLERATION;
+            velocity.angvel = 0.0; // Prevents spin on astrid impact
     
     }
 
@@ -132,7 +125,7 @@ impl PlayerPlugin {
         wnds: Res<Windows>,
         // query to get camera transform
         q_camera: Query<(&Camera, &GlobalTransform)>,
-        mut player_query: Query<(&mut Player, &mut Transform), Without<Crosshair>>
+        mut player_query: Query<(&mut Player, &mut Transform, &mut Velocity), Without<Crosshair>>
     ) {
         // get the camera info and transform
         // assuming there is exactly one main camera entity, so query::single() is OK
@@ -148,7 +141,7 @@ impl PlayerPlugin {
         const SPIN_ACCELERATION: f32 = 0.4;
         const MAX_VELOCITY: f32 = 6.0;
     
-        let (mut player, mut player_trans) = player_query.single_mut();
+        let (mut player, mut player_trans, mut velocity) = player_query.single_mut();
     
          // check if the cursor is inside the window and get its position
          if let Some(screen_pos) = wnd.cursor_position() {
@@ -172,11 +165,13 @@ impl PlayerPlugin {
     
             //Rotate towards position mouse is on
             if ship_angle_difference > 0.0 {
-                player.delta_rotation += SPIN_ACCELERATION * (2.0*PI - ship_angle_difference.abs());
+                // player.delta_rotation += SPIN_ACCELERATION * (2.0*PI - ship_angle_difference.abs());
+                velocity.angvel += SPIN_ACCELERATION * (2.0*PI - ship_angle_difference.abs());
             } else
     
             if ship_angle_difference < 0.0 {
-                player.delta_rotation -= SPIN_ACCELERATION * (2.0*PI - ship_angle_difference.abs());
+                // player.delta_rotation += -SPIN_ACCELERATION * (2.0*PI - ship_angle_difference.abs());
+                velocity.angvel += -SPIN_ACCELERATION * (2.0*PI - ship_angle_difference.abs());
             }
     
         }
