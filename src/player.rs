@@ -183,17 +183,15 @@ impl PlayerPlugin {
         keyboard_input: Res<Input<MouseButton>>,
         player_query: Query<(&mut Player, &mut Transform)>
     )
-    {
-        const BULLET_SPEED: f32 = 4.0;
-    
+    {    
         // should be just pressed, but it's fun with keyboard_input.pressed()d
         if keyboard_input.just_pressed(MouseButton::Left) {
             let (player, transform) = player_query.single();
     
             // why does this work? https://www.reddit.com/r/rust_gamedev/comments/rphgsf/calculating_bullet_x_and_y_position_based_off_of/
-            let velocity = ((transform.rotation * Vec3::Y) * BULLET_SPEED) + Vec3::new(player.delta_x, player.delta_y, 0.0);
+            let player_velocity = (transform.rotation * Vec3::Y) + Vec3::new(player.delta_x, player.delta_y, 0.0);
 
-            ProjectilePlugin::spawn_projectile(&mut commands, transform.translation.truncate(), velocity.truncate());
+            ProjectilePlugin::spawn_projectile(&mut commands, transform.translation.truncate(), player_velocity.truncate());
         }
     }
 }
