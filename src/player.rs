@@ -48,6 +48,7 @@ impl Plugin for PlayerPlugin {
             .add_system(Self::player_movement)
             .add_system(Self::ship_rotate_towards_mouse)
             .add_system(Self::player_fire_weapon)
+            .add_system(Self::player_camera_control)
             .register_inspectable::<Player>()
             .register_type::<Player>();
     }
@@ -191,6 +192,23 @@ impl PlayerPlugin {
             let player_velocity = (transform.rotation * Vec3::Y) + Vec3::new(player.delta_x, player.delta_y, 0.0);
 
             ProjectilePlugin::spawn_projectile(&mut commands, transform.translation.truncate(), player_velocity.truncate());
+        }
+    }
+
+    fn player_camera_control(kb: Res<Input<KeyCode>>, time: Res<Time>, mut query: Query<&mut OrthographicProjection, With<Camera2d>>) {
+        let dist = 0.75 * time.delta().as_secs_f32();
+    
+        for mut projection in query.iter_mut() {
+            let mut log_scale = projection.scale.ln();
+    
+            if kb.pressed(KeyCode::Period) {
+                log_scale -= dist;
+            }
+            if kb.pressed(KeyCode::Comma) {
+                log_scale += dist;
+            }
+    
+            projection.scale = log_scale.exp();
         }
     }
 }
