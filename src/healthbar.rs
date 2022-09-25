@@ -27,10 +27,9 @@ impl HealthBarPlugin {
         mut camera: Entity
     ) {
         commands.entity(camera)
-            .insert(Health {current: 25.0, maximum: 100.0})
             .insert_bundle(StatBarBundle::new(
                 StatBar { 
-                    value: 0.5, 
+                    value: 1.0, 
                     length: 80.0, 
                     thickness: 4.0, 
                     style: StatBarStyle {
@@ -46,10 +45,10 @@ impl HealthBarPlugin {
 
     fn update_player_heath_bar(
         player_query: Query<(&Player)>,
-        mut camera_stat_bar_query: Query<(&Camera2d, &mut StatBar), With<StatBar>>
+        mut camera_stat_bar_query: Query<&mut StatBar, With<Camera2d>>
     ) {
         let (player) = player_query.single();
-        let (camera, mut stat_bar) = camera_stat_bar_query.single_mut();
+        let (mut stat_bar) = camera_stat_bar_query.single_mut();
 
         stat_bar.value = player.health.current / player.health.maximum;
     }

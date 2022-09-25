@@ -28,7 +28,7 @@ impl Player {
             delta_x: 0.0,
             delta_y: 0.0,
             delta_rotation: 0.0,
-            health: Health { current: 50.0, maximum: 100.0 }
+            health: Health { current: 100.0, maximum: 100.0 }
         }
     }
 
