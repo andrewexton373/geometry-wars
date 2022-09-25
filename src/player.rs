@@ -90,7 +90,7 @@ impl PlayerPlugin {
         mut player_query: Query<&mut Velocity, (With<Player>, Without<Crosshair>)>,
         mut commands: Commands
     ) {
-        const ACCELERATION: f32 = 5.0;
+        const ACCELERATION: f32 = 10.0;
         const DECLERATION: f32 = 0.95;
 
             let mut velocity = player_query.single_mut();

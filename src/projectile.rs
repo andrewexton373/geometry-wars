@@ -102,19 +102,6 @@ impl ProjectilePlugin {
     
                         }
     
-                        //FIXME: there's got to be a better way...
-                        // h1 is project, despawn it.
-                        // if projectile_query.contains(*h1) && astroid_query.contains(*h2) {
-                        //     println!("PROJECTILE COLLISION WITH ASTROID");
-                        //     commands.entity(*h1).despawn_recursive();
-                        // }
-        
-                        // h2 is projectile, despawn it.
-                        // why does this work, but the above implementation doesn't???
-                        // if projectile_query.contains(*h2) && astroid_query.contains(*h1) {
-                        //     println!("PROJECTILE COLLISION WITH ASTROID");
-                        //     commands.entity(*h2).despawn_recursive();
-                        // }
                     }
                 
                 }
@@ -125,53 +112,4 @@ impl ProjectilePlugin {
 
     }
     
-    // fn projectile_collision_check(
-    //     mut commands: Commands,
-    //     projectile_query: Query<(Entity, &Projectile, &Transform), With<Projectile>>,
-    //     collider_query: Query<(Entity, &Transform, Option<&Astroid>), With<Collider>>
-    // ){
-    //     let mut rng = rand::thread_rng();
-    
-    //     for (projectile_ent, projectile, projectile_transform) in projectile_query.iter() {
-    //         for (ent, ent_transform, maybe_astroid) in &collider_query {
-    
-    //             match maybe_astroid {
-    //                 Some(astroid) => {
-    //                     if Vec2::distance(
-    //                         projectile_transform.translation.truncate(),
-    //                         ent_transform.translation.truncate())
-    //                          < PROJECTILE_RADIUS + astroid.hitbox.radius
-    //                     {
-    //                         let split_angle = rng.gen_range(0.0..PI/4.0);
-                            
-    //                         let right_velocity = projectile.velocity.rotate(Vec2::from_angle(split_angle)) * 0.5;
-    //                         let left_velocity = projectile.velocity.rotate(Vec2::from_angle(-split_angle)) * 0.5;
-    
-    //                         match &astroid.size {
-    //                             AstroidSize::Small => {
-    //                             },
-    //                             AstroidSize::Medium => {
-    //                                 AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Small, right_velocity, ent_transform.translation.truncate());
-    //                                 AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Small, left_velocity, ent_transform.translation.truncate());
-    
-    //                             },
-    //                             AstroidSize::Large => {
-    //                                 AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Medium, right_velocity,ent_transform.translation.truncate());
-    //                                 AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Medium, left_velocity, ent_transform.translation.truncate());
-    //                             }
-    //                         }
-    
-    //                         commands.entity(projectile_ent).despawn_recursive();
-    //                         commands.entity(ent).despawn_recursive();
-    //                         return;
-    //                     }
-    //                 },
-    //                 None => {
-    
-    //                 }
-    //             }
-    //         }
-    //     }
-    
-    // }
 }
