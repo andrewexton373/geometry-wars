@@ -352,6 +352,38 @@ impl AstroidPlugin {
             vector_chain
         }
 
+        fn get_centroid(verticies: &Vec<Vec2>) -> Vec2 {
+            let mut centroid: Vec2 = Vec2 { x: 0.0, y: 0.0 };
+            let n = verticies.len();
+            let mut signed_area = 0.0;
+
+            for i in 0..n {
+                let x0 = verticies[i].x;
+                let y0 = verticies[i].y;
+                let x1 = verticies[(i+1)%n].x;
+                let y1 = verticies[(i+1)%n].y;
+
+                let area = (x0 * y1) - (x1 * y0);
+                signed_area += area;
+
+                centroid.x += (x0 + x1) * area;
+                centroid.y += (y0 + y1) * area;
+            }
+
+            signed_area *= 0.5;
+
+            // what...?
+            centroid.x = centroid.x / (6.0 * signed_area);
+            centroid.y = centroid.y / (6.0 * signed_area);
+
+            centroid
+        }
+
+        let centroid = get_centroid(&poly_coords);
+        poly_coords = poly_coords.iter().map(|e| {
+            Vec2 { x: e.x - centroid.x, y: e.y - centroid.y }
+        }).collect();
+
         poly_coords
     }
 }
