@@ -1,28 +1,25 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::tess::geom::euclid::num;
 use bevy_rapier2d::prelude::*;
-use bevy_prototype_lyon::prelude as lyon;
+use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use rand::Rng;
 use rand::seq::SliceRandom;
-use std::array::from_fn;
 use std::cmp::Ordering;
 use std::f32::consts::{PI};
-use crate::{ HitboxCircle, Player };
+use crate::{ Player };
 use crate::healthbar::Health;
 
 pub struct AstroidPlugin;
 
-#[derive(Component, Inspectable, Clone, Copy)]
+#[derive(Component, Inspectable, Clone, Copy, Debug)]
 pub struct Astroid {
     pub velocity: Vec2,
     pub size: AstroidSize,
-    pub health: Health,
-    pub hitbox: HitboxCircle
-    // TODO: upon destruction, astroid should split into smaller asteroids
+    pub health: Health
 }
 
-#[derive(Clone, Copy, Inspectable)]
+#[derive(Clone, Copy, Inspectable, Debug)]
 pub enum AstroidSize {
     Small,
     Medium,
@@ -47,13 +44,11 @@ pub struct AstroidSpawner {
 impl Plugin for AstroidPlugin {
     fn build(&self, app: &mut App) {
         app
-            // .add_startup_system(Self::spawn_astroids)
             .insert_resource(AstroidSpawner{ timer: Timer::from_seconds(0.10, false)})
             .add_system(Self::spawn_astroids_aimed_at_ship)
             .add_system(Self::despawn_far_astroids)
-            // .add_system(Self::astroid_movement) // shouldn't have to do, handled by rapier2d
-            // .add_system(Self::astroid_collision_check)
             .add_system(Self::handle_astroid_collision_event)
+            .add_system(Self::update_collectible_material_color)
             .register_inspectable::<Astroid>();
     }
 }
@@ -112,33 +107,25 @@ impl AstroidPlugin {
         velocity: Vec2,
         position: Vec2
     ) {
-
-        let astroid_shape_polygon = lyon::shapes::Polygon {
-            points: Self::make_valtr_convex_polygon_coords(7, 100.0),
-            closed: true
-        };
     
-        let astroid_shape: lyon::shapes::RegularPolygon;
+        let astroid_shape: lyon::shapes::Polygon;
         match size {
             AstroidSize::Small => {
-                astroid_shape = lyon::shapes::RegularPolygon {
-                    sides: 3,
-                    feature: lyon::RegularPolygonFeature::Radius(crate::PIXELS_PER_METER * size.radius()),
-                    ..lyon::shapes::RegularPolygon::default()
+                astroid_shape = lyon::shapes::Polygon {
+                    points: Self::make_valtr_convex_polygon_coords(5, 25.0),
+                    closed: true
                 };
             },
             AstroidSize::Medium => {
-                astroid_shape = lyon::shapes::RegularPolygon {
-                    sides: 4,
-                    feature: lyon::RegularPolygonFeature::Radius(crate::PIXELS_PER_METER * size.radius()),
-                    ..lyon::shapes::RegularPolygon::default()
+                astroid_shape = lyon::shapes::Polygon {
+                    points: Self::make_valtr_convex_polygon_coords(7, 50.0),
+                    closed: true
                 };
             },
             AstroidSize::Large => {
-                astroid_shape = lyon::shapes::RegularPolygon {
-                    sides: 7,
-                    feature: lyon::RegularPolygonFeature::Radius(crate::PIXELS_PER_METER * size.radius()),
-                    ..lyon::shapes::RegularPolygon::default()
+                astroid_shape = lyon::shapes::Polygon {
+                    points: Self::make_valtr_convex_polygon_coords(11, 100.0),
+                    closed: true
                 };
             }
         }
@@ -146,14 +133,13 @@ impl AstroidPlugin {
         let astroid = Astroid {
             velocity: velocity,
             size: size,
-            health: Health {current: 50.0, maximum: 100.0},
-            hitbox: HitboxCircle { radius: size.radius() }
+            health: Health {current: 50.0, maximum: 100.0}
         };
     
         commands.spawn()
             .insert(astroid)
             .insert_bundle(lyon::GeometryBuilder::build_as(
-                &astroid_shape_polygon,
+                &astroid_shape,
                 lyon::DrawMode::Fill(lyon::FillMode::color(Color::GRAY)),
                 Default::default()
             ))
@@ -162,15 +148,36 @@ impl AstroidPlugin {
             .insert(Velocity { linvel: astroid.velocity, angvel: 0.0 })
             .insert(Sleeping::disabled())
             .insert(Ccd::enabled())
-            .insert(Collider::convex_hull(&astroid_shape_polygon.points).unwrap())
+            .insert(Collider::convex_hull(&astroid_shape.points).unwrap())
             .insert(Transform::from_xyz(position.x, position.y, 0.0))
             .insert(ActiveEvents::COLLISION_EVENTS)
             .insert(Restitution::coefficient(0.01));
             
     }
 
+    fn update_collectible_material_color(
+        mut astroid_query: Query<(&Astroid, &mut DrawMode), With<Astroid>>
+    ) {
+
+        for (astroid, mut draw_mode) in astroid_query.iter_mut() {
+
+            match astroid.size {
+                AstroidSize::Small => {
+                    if let DrawMode::Fill(ref mut fill_mode) = *draw_mode {
+                        fill_mode.color = Color::GOLD;
+                    }
+                },
+
+                _ => {
+
+                }
+            }
+        }
+
+    }
+
     fn handle_astroid_collision_event(
-        astroid_query: Query<(Entity, &Astroid), With<Astroid>>,
+        mut astroid_query: Query<(Entity, &Astroid, &mut DrawMode), With<Astroid>>,
         mut player_query: Query<(Entity, &mut Player), With<Player>>,
         time: Res<Time>,
         mut contact_events: EventReader<CollisionEvent>,
@@ -179,20 +186,23 @@ impl AstroidPlugin {
         let (player_ent, mut player) = player_query.single_mut();
 
         for contact_event in contact_events.iter() {
-            for (astroid_entity, astroid) in astroid_query.iter() {
+            for (astroid_entity, astroid, mut draw_mode) in astroid_query.iter_mut() {
                 if let CollisionEvent::Started(h1, h2, _event_flag) = contact_event {
                     
                     // If player hit astroid
                     if player_ent == *h1 && astroid_entity == *h2 {
                         let timestamp_last_hit = time.seconds_since_startup();
 
-                        match &astroid.size {
+                        match astroid.size {
                             AstroidSize::Small => {
-                                println!("Hit small Astroid");
+                                println!("Hit small Astroid, let's collect it!");
+                                
                                 // TODO: collect minerals?
+                                commands.entity(astroid_entity).despawn_recursive();
                             },
                             AstroidSize::Medium => {
                                 println!("Hit medium Astroid");
+                                player.take_damage(2.5);
                                 // commands.entity(ent).despawn_recursive();
 
                             },
@@ -209,60 +219,6 @@ impl AstroidPlugin {
                 }
             }
         }
-    }
-
-    fn astroid_collision_check(
-        mut commands: Commands,
-        mut player_query: Query<(Entity, &mut Player, &Transform), With<Player>>,
-        collider_query: Query<(Entity, &Transform, Option<&Astroid>), With<Collider>>
-    ){
-        // let mut rng = rand::thread_rng();
-    
-        for (player_ent, mut player, player_transform) in player_query.iter_mut() {
-            for (ent, ent_transform, maybe_astroid) in &collider_query {
-    
-                match maybe_astroid {
-                    Some(astroid) => {
-                        if Vec2::distance(
-                            player_transform.translation.truncate(),
-                            ent_transform.translation.truncate())
-                             < 2.0 + astroid.hitbox.radius
-                        {
-                            // let split_angle = rng.gen_range(0.0..PI/4.0);
-
-                            // let right_velocity = player.velocity.rotate(Vec2::from_angle(split_angle)) * 0.5;
-                            // let left_velocity = player.velocity.rotate(Vec2::from_angle(-split_angle)) * 0.5;
-    
-                            match &astroid.size {
-                                AstroidSize::Small => {
-                                    println!("Hit small Astroid");
-                                    // TODO: collect minerals?
-
-                                },
-                                AstroidSize::Medium => {
-                                    println!("Hit medium Astroid");
-                                    commands.entity(ent).despawn_recursive();
-
-                                },
-                                AstroidSize::Large => {
-                                    println!("Hit large Astroid");
-                                    player.take_damage(5.0);
-                                    commands.entity(ent).despawn_recursive();
-
-                                }
-                            }
-    
-                            // commands.entity(player_ent).despawn_recursive();
-                            return;
-                        }
-                    },
-                    None => {
-    
-                    }
-                }
-            }
-        }
-    
     }
 
     fn make_valtr_convex_polygon_coords(num_sides: usize, radius: f32) -> Vec<Vec2> {
@@ -321,13 +277,6 @@ impl AstroidPlugin {
             y += vec.1 * 1.0;
             poly_coords.push(Vec2 { x: x, y: y })
         }
-
-        // let min_value = values_array.into_iter().min_by(|a, b| {
-        //     a.partial_cmp(&b).unwrap_or(Ordering::Less)
-        // });
-        // let max_value = values_array.into_iter().min_by(|a, b| {
-        //     b.partial_cmp(&a).unwrap_or(Ordering::Greater)
-        // });
 
         fn make_vector_chain(values_array: Vec<f32>, min_value: f32, max_value: f32) -> Vec<f32> {
             let mut vector_chain: Vec<f32> = vec![];

@@ -2,10 +2,9 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_stat_bars::*;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
-use rand::Rng;
-use crate::{ HitboxCircle, Collider, Player };
+use crate::{ Player };
 
-#[derive(Component, Inspectable, Reflect, Default, Clone, Copy)]
+#[derive(Component, Inspectable, Reflect, Default, Clone, Copy, Debug)]
 pub struct Health {
     pub current: f32,
     pub maximum: f32,

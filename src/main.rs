@@ -27,12 +27,6 @@ pub const PIXELS_PER_METER : f32 = 10.0;
 
 const BACKGROUND_COLOR: Color = Color::rgb(0.0, 0.0, 0.0);
 
-#[derive(Component, Inspectable, Reflect, Default, Clone, Copy)]
-#[reflect(Component)]
-pub struct HitboxCircle {
-    pub radius: f32
-}
-
 #[derive(Component)]
 struct Collider;
 

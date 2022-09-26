@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use bevy_prototype_lyon::prelude as lyon;
+use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
 use rand::Rng;
 use crate::{astroid::{AstroidPlugin, Astroid, AstroidSize}, PIXELS_PER_METER};
 
@@ -61,14 +61,14 @@ impl ProjectilePlugin {
 
     fn handle_projectile_collision_event(
         mut contact_events: EventReader<CollisionEvent>,
-        astroid_query: Query<(Entity, &Astroid, &Transform, &Velocity), With<Astroid>>,
+        mut astroid_query: Query<(Entity, &Astroid, &Transform, &Velocity), With<Astroid>>,
         projectile_query: Query<(Entity, &Projectile, &Velocity), With<Projectile>>,
         time: Res<Time>,
         mut commands: Commands,
     ) {
         for contact_event in contact_events.iter() {
             for (projectile_ent, projectile, projectile_velocity) in projectile_query.iter() {
-                for (astroid_ent, astroid, astroid_transform, astroid_velocity) in astroid_query.iter() {
+                for (astroid_ent, astroid, astroid_transform, astroid_velocity) in astroid_query.iter_mut() {
                 
                     if let CollisionEvent::Started(h1, h2, _event_flag) = contact_event {
 
@@ -89,16 +89,16 @@ impl ProjectilePlugin {
                                 AstroidSize::Medium => {
                                     AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Small, right_velocity, astroid_transform.translation.truncate());
                                     AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Small, left_velocity, astroid_transform.translation.truncate());
-    
+                                    commands.entity(astroid_ent).despawn_recursive();
                                 },
                                 AstroidSize::Large => {
                                     AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Medium, right_velocity,astroid_transform.translation.truncate());
                                     AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Medium, left_velocity, astroid_transform.translation.truncate());
+                                    commands.entity(astroid_ent).despawn_recursive();
                                 }
                             }
     
                             commands.entity(projectile_ent).despawn_recursive();
-                            commands.entity(astroid_ent).despawn_recursive();
     
                         }
     
