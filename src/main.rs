@@ -2,7 +2,6 @@ use bevy_stat_bars::*;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use bevy_inspector_egui::{Inspectable};
 use bevy_inspector_egui::WorldInspectorPlugin;
 
 mod player;
@@ -49,6 +48,9 @@ fn main() {
         .run();
 }
 
+#[derive(Component)]
+pub struct InventoryText;
+
 fn setup(
     mut commands: Commands,
     mut rapier_config: ResMut<RapierConfiguration>
@@ -62,7 +64,7 @@ fn camera_follows_player(
     mut camera_query: Query<(&Camera, &mut GlobalTransform), With<Camera>>,
     player_query: Query<&Transform, (With<Player>, Without<Camera>)>,
 ){
-    let (camera, mut camera_trans) = camera_query.single_mut().into();
+    let (_camera, mut camera_trans) = camera_query.single_mut().into();
     let player_trans = player_query.single();
 
         // TODO: seems sloppy, is there another way?

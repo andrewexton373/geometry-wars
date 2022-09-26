@@ -2,11 +2,11 @@ use std::f32::consts::PI;
 
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
+use bevy_prototype_lyon::prelude as lyon;
 use rand::Rng;
-use crate::{astroid::{AstroidPlugin, Astroid, AstroidSize}, PIXELS_PER_METER};
+use crate::{astroid::{AstroidPlugin, Astroid, AstroidSize}};
 
-const PROJECTILE_RADIUS: f32 = 0.2;
+const PROJECTILE_RADIUS: f32 = 0.5;
 
 #[derive(Component)]
 pub struct Projectile {
@@ -32,7 +32,7 @@ impl ProjectilePlugin {
         const BULLET_SPEED: f32 = 4.0;
 
         let projectile_shape = lyon::shapes::Circle {
-            radius: 0.5 * crate::PIXELS_PER_METER,
+            radius: PROJECTILE_RADIUS * crate::PIXELS_PER_METER,
             ..lyon::shapes::Circle::default()
         };
 
@@ -63,12 +63,11 @@ impl ProjectilePlugin {
         mut contact_events: EventReader<CollisionEvent>,
         mut astroid_query: Query<(Entity, &Astroid, &Transform, &Velocity), With<Astroid>>,
         projectile_query: Query<(Entity, &Projectile, &Velocity), With<Projectile>>,
-        time: Res<Time>,
         mut commands: Commands,
     ) {
         for contact_event in contact_events.iter() {
-            for (projectile_ent, projectile, projectile_velocity) in projectile_query.iter() {
-                for (astroid_ent, astroid, astroid_transform, astroid_velocity) in astroid_query.iter_mut() {
+            for (projectile_ent, _projectile, projectile_velocity) in projectile_query.iter() {
+                for (astroid_ent, astroid, astroid_transform, _astroid_velocity) in astroid_query.iter_mut() {
                 
                     if let CollisionEvent::Started(h1, h2, _event_flag) = contact_event {
 

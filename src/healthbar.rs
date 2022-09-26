@@ -1,7 +1,6 @@
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::*;
 use bevy_stat_bars::*;
-use bevy_inspector_egui::{Inspectable, RegisterInspectable};
+use bevy_inspector_egui::{Inspectable};
 use crate::{ Player };
 
 #[derive(Component, Inspectable, Reflect, Default, Clone, Copy, Debug)]
@@ -22,8 +21,8 @@ impl Plugin for HealthBarPlugin {
 impl HealthBarPlugin {
 
     pub fn attach_player_health_bar(
-        mut commands: &mut Commands,
-        mut camera: Entity
+        commands: &mut Commands,
+        camera: Entity
     ) {
         commands.entity(camera)
             .insert_bundle(StatBarBundle::new(
@@ -43,11 +42,11 @@ impl HealthBarPlugin {
     }
 
     fn update_player_heath_bar(
-        player_query: Query<(&Player)>,
+        player_query: Query<&Player>,
         mut camera_stat_bar_query: Query<&mut StatBar, With<Camera2d>>
     ) {
-        let (player) = player_query.single();
-        let (mut stat_bar) = camera_stat_bar_query.single_mut();
+        let player = player_query.single();
+        let mut stat_bar = camera_stat_bar_query.single_mut();
 
         stat_bar.value = player.health.current / player.health.maximum;
     }

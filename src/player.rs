@@ -1,26 +1,32 @@
-use bevy::prelude::*;
+use bevy::{prelude::*};
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
 use bevy::render::camera::RenderTarget;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
-use bevy_rapier2d::rapier::prelude::RigidBodyVelocity;
 use std::f32::consts::PI;
 use crate::PIXELS_PER_METER;
-use crate::astroid::Collectible;
+use crate::astroid::{Collectible};
 use crate::healthbar::Health;
 use crate::projectile::{ProjectilePlugin};
 use crate::crosshair::Crosshair;
+use crate::astroid::AstroidMaterial;
 
 pub struct PlayerPlugin;
 
-#[derive(Component, Inspectable, Reflect, Default)]
+#[derive(Component, Default, Inspectable, Reflect)]
+pub struct Inventory {
+    items_and_weights: Vec<(AstroidMaterial, f32)>
+}
+
+#[derive(Component, Inspectable, Default, Reflect)]
 #[reflect(Component)]
 pub struct Player {
     // TODO: refactor into velocity Vec2
     pub delta_x: f32,
     pub delta_y: f32,
     pub delta_rotation: f32,
-    pub health: Health
+    pub health: Health,
+    pub inventory: Inventory
 }
 
 impl Player {
@@ -29,7 +35,8 @@ impl Player {
             delta_x: 0.0,
             delta_y: 0.0,
             delta_rotation: 0.0,
-            health: Health { current: 100.0, maximum: 100.0 }
+            health: Health { current: 100.0, maximum: 100.0 },
+            inventory: Inventory { items_and_weights: Vec::new() }
         }
     }
 
@@ -37,6 +44,24 @@ impl Player {
         let modified_health = self.health.current - damage;
         let modified_health = modified_health.clamp(0.0, self.health.maximum);
         self.health.current = modified_health;
+    }
+
+    // I'd rather have the inventory be a hashmap, but was struggling with bevy-inspector traits
+    pub fn add_to_inventory(&mut self, material: AstroidMaterial, weight: f32) {
+         
+        if self.inventory.items_and_weights.iter().map(|a|{a.0}).collect::<Vec<AstroidMaterial>>().contains(&material) {
+            self.inventory.items_and_weights = self.inventory.items_and_weights.iter().map(|(e, w)| {
+                if *e == material {
+                    (*e, w + weight)
+                } else {
+                    (*e, *w)
+                }
+            }).collect();
+        } else {
+            self.inventory.items_and_weights.push((material, weight));
+        }
+
+        println!("INVENTORY: {:?}", self.inventory.items_and_weights);
     }
 }
 
@@ -66,7 +91,7 @@ impl PlayerPlugin {
             ..lyon::shapes::RegularPolygon::default()
         };
     
-        let mut player = commands.spawn()
+        let _player = commands.spawn()
             .insert(Player::new())
             .insert_bundle(lyon::GeometryBuilder::build_as(
                 &player_shape,
@@ -92,7 +117,6 @@ impl PlayerPlugin {
     fn player_movement(
         keyboard_input: Res<Input<KeyCode>>,
         mut player_query: Query<&mut Velocity, (With<Player>, Without<Crosshair>)>,
-        mut commands: Commands
     ) {
         const ACCELERATION: f32 =  3.0 * PIXELS_PER_METER;
         const DECLERATION: f32 = 0.95;
@@ -219,11 +243,9 @@ impl PlayerPlugin {
         player_query: Query<(Entity, &Player, &Transform), With<Player>>
     ) {
         const MAX_GRAVITATION_DISTANCE: f32 = 30.0 * crate::PIXELS_PER_METER;
-        let (player_ent, player, player_transform) = player_query.single();
+        let (_player_ent, _player, player_transform) = player_query.single();
 
-        for (ent, collectible, collectible_tranform, mut veclocity) in collectible_query.iter_mut() {
-
-            
+        for (_ent, _collectible, collectible_tranform, mut veclocity) in collectible_query.iter_mut() {
             let distance_to_player_from_collectible = player_transform.translation.truncate().distance(collectible_tranform.translation.truncate());
             if distance_to_player_from_collectible < MAX_GRAVITATION_DISTANCE {
                 let percent_distance_from_max = distance_to_player_from_collectible / MAX_GRAVITATION_DISTANCE;
@@ -234,4 +256,5 @@ impl PlayerPlugin {
 
         }
     }
+
 }

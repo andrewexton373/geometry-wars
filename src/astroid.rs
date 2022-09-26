@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::tess::geom::euclid::num;
+use bevy::reflect::FromReflect;
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
@@ -39,6 +39,14 @@ impl AstroidSize {
     }
 }
 
+#[derive(Component, Inspectable, Reflect, FromReflect, Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub enum AstroidMaterial {
+    #[default]
+    Iron,
+    Gold,
+    Silver
+}
+
 #[derive(Component)]
 pub struct AstroidSpawner {
     timer: Timer
@@ -69,7 +77,7 @@ impl AstroidPlugin {
             astroid_spawner.timer.reset();
 
             let mut rng = rand::thread_rng();
-            let (player, transform) = player_query.single();
+            let (_player, transform) = player_query.single();
 
             let player_position = transform.translation.truncate();
 
@@ -87,14 +95,14 @@ impl AstroidPlugin {
 
     fn despawn_far_astroids(
         mut commands: Commands,
-        mut astroid_query: Query<(Entity, &mut Astroid, &mut Transform), With<Astroid>>,
+        astroid_query: Query<(Entity, &mut Astroid, &mut Transform), With<Astroid>>,
         player_query: Query<(&Player, &Transform), (With<Player>, Without<Astroid>)>,
     ) {
         const DESPAWN_DISTANCE: f32 = 5000.0;
-        let (player, transform) = player_query.single();
+        let (_player, transform) = player_query.single();
         let player_position = transform.translation.truncate();
 
-        for (entity, astroid, transform) in astroid_query.iter() {
+        for (entity, _astroid, transform) in astroid_query.iter() {
             let astroid_position = transform.translation.truncate();
             // println!("{}", player_position.distance(astroid_position));
             if player_position.distance(astroid_position) > DESPAWN_DISTANCE {
@@ -186,21 +194,19 @@ impl AstroidPlugin {
     }
 
     fn handle_astroid_collision_event(
-        mut astroid_query: Query<(Entity, &Astroid, &mut DrawMode), With<Astroid>>,
+        mut astroid_query: Query<(Entity, &Astroid), With<Astroid>>,
         mut player_query: Query<(Entity, &mut Player), With<Player>>,
-        time: Res<Time>,
         mut contact_events: EventReader<CollisionEvent>,
         mut commands: Commands
     ) {
         let (player_ent, mut player) = player_query.single_mut();
 
         for contact_event in contact_events.iter() {
-            for (astroid_entity, astroid, mut draw_mode) in astroid_query.iter_mut() {
+            for (astroid_entity, astroid) in astroid_query.iter_mut() {
                 if let CollisionEvent::Started(h1, h2, _event_flag) = contact_event {
                     
                     // If player hit astroid
                     if player_ent == *h1 && astroid_entity == *h2 {
-                        let timestamp_last_hit = time.seconds_since_startup();
 
                         match astroid.size {
                             AstroidSize::Small => {
@@ -208,6 +214,7 @@ impl AstroidPlugin {
                                 
                                 // TODO: collect minerals?
                                 commands.entity(astroid_entity).despawn_recursive();
+                                player.add_to_inventory(AstroidMaterial::Gold, 100.0);
                             },
                             AstroidSize::Medium => {
                                 println!("Hit medium Astroid");
@@ -231,8 +238,6 @@ impl AstroidPlugin {
     }
 
     fn make_valtr_convex_polygon_coords(num_sides: usize, radius: f32) -> Vec<Vec2> {
-        let valtr_convex_polygon_coords: Vec<Vec2> = vec![];
-
         let mut xs: Vec<f32> = vec![];
         let mut ys: Vec<f32> = vec![];
 
@@ -259,12 +264,12 @@ impl AstroidPlugin {
         let mut vecs: Vec<(f32, f32)> = vec_xs.into_iter().zip(vec_ys).collect();
 
         vecs.sort_by(|a, b| {
-            let aAng = a.1.atan2(a.0);
-            let bAng = b.1.atan2(b.0);
+            let a_ang = a.1.atan2(a.0);
+            let b_ang = b.1.atan2(b.0);
 
-            if aAng - bAng < 0.0 {
+            if a_ang - b_ang < 0.0 {
                 Ordering::Less
-            } else if (aAng - bAng == 0.0) {
+            } else if a_ang - b_ang == 0.0 {
                 Ordering::Equal
             } else {
                 Ordering::Greater

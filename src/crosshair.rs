@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
 use bevy_prototype_lyon::prelude::*;
-use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use crate::player::Player;
 
 #[derive(Component)]
@@ -26,7 +25,7 @@ impl CrosshairPlugin {
             Vec2::new(0.0, 0.0)
         );
     
-        let crosshair = commands.spawn()
+        let _crosshair = commands.spawn()
             .insert(Crosshair {})
             .insert_bundle(GeometryBuilder::build_as(
                 &line,
@@ -45,13 +44,13 @@ impl CrosshairPlugin {
         wnds: Res<Windows>,
         q_camera: Query<(&Camera, &GlobalTransform)>,
         player_query: Query<(&Player, &Transform), Without<Crosshair>>,
-        mut crosshair_query: Query<(&mut Crosshair, &mut Path, &mut Transform)>
+        mut crosshair_query: Query<(&mut Crosshair, &mut Path)>
     ){
         // get the camera info and transform
         // assuming there is exactly one main camera entity, so query::single() is OK
         let (camera, camera_transform) = q_camera.single();
-        let (mut player, mut player_trans) = player_query.single();
-        let (crosshair, mut path, mut crosshair_transform) = crosshair_query.single_mut();
+        let (_player, player_trans) = player_query.single();
+        let (_crosshair, mut path) = crosshair_query.single_mut();
     
         // get the window that the camera is displaying to (or the primary window)
         let wnd = if let RenderTarget::Window(id) = camera.target {
