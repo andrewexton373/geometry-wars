@@ -154,7 +154,7 @@ impl AstroidPlugin {
             .insert(astroid)
             .insert_bundle(lyon::GeometryBuilder::build_as(
                 &astroid_shape_polygon,
-                lyon::DrawMode::Fill(lyon::FillMode::color(Color::RED)),
+                lyon::DrawMode::Fill(lyon::FillMode::color(Color::GRAY)),
                 Default::default()
             ))
             // .insert(Collider) // do we still need? don't think so
@@ -162,7 +162,7 @@ impl AstroidPlugin {
             .insert(Velocity { linvel: astroid.velocity, angvel: 0.0 })
             .insert(Sleeping::disabled())
             .insert(Ccd::enabled())
-            .insert(Collider::ball(crate::PIXELS_PER_METER * size.radius()))
+            .insert(Collider::convex_hull(&astroid_shape_polygon.points).unwrap())
             .insert(Transform::from_xyz(position.x, position.y, 0.0))
             .insert(ActiveEvents::COLLISION_EVENTS)
             .insert(Restitution::coefficient(0.01));
