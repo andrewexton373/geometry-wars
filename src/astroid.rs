@@ -19,12 +19,15 @@ pub struct Astroid {
     pub health: Health
 }
 
-#[derive(Clone, Copy, Inspectable, Debug)]
+#[derive(Clone, Copy, Inspectable, Debug, PartialEq)]
 pub enum AstroidSize {
     Small,
     Medium,
     Large
 }
+
+#[derive(Component)]
+pub struct Collectible;
 
 impl AstroidSize {
     fn radius(self) -> f32 {
@@ -44,7 +47,7 @@ pub struct AstroidSpawner {
 impl Plugin for AstroidPlugin {
     fn build(&self, app: &mut App) {
         app
-            .insert_resource(AstroidSpawner{ timer: Timer::from_seconds(0.10, false)})
+            .insert_resource(AstroidSpawner{ timer: Timer::from_seconds(0.25, false)})
             .add_system(Self::spawn_astroids_aimed_at_ship)
             .add_system(Self::despawn_far_astroids)
             .add_system(Self::handle_astroid_collision_event)
@@ -72,11 +75,11 @@ impl AstroidPlugin {
 
             let rand_x: f32 = rng.gen_range(-PI..PI);
             let rand_y: f32 = rng.gen_range(-PI..PI);
-            let rand_direction = Vec2::new(rand_x, rand_y);
+            let rand_direction = Vec2::new(rand_x.cos(), rand_y.sin()).normalize();
 
-            const SPAWN_DISTANCE: f32 = 1000.0;
-            let random_spawn_position = player_position + (rand_direction * SPAWN_DISTANCE);
-            let direction_to_player = (player_position - random_spawn_position).normalize(); // maybe?
+            const SPAWN_DISTANCE: f32 = 400.0;
+            let random_spawn_position = player_position + (rand_direction * SPAWN_DISTANCE * crate::PIXELS_PER_METER);
+            let direction_to_player = (player_position - random_spawn_position).normalize() * 20.0; // maybe?
 
             Self::spawn_astroid(&mut commands, AstroidSize::Large, direction_to_player * crate::PIXELS_PER_METER, random_spawn_position);
         }
@@ -136,7 +139,7 @@ impl AstroidPlugin {
             health: Health {current: 50.0, maximum: 100.0}
         };
     
-        commands.spawn()
+        let astroid_ent = commands.spawn()
             .insert(astroid)
             .insert_bundle(lyon::GeometryBuilder::build_as(
                 &astroid_shape,
@@ -151,7 +154,13 @@ impl AstroidPlugin {
             .insert(Collider::convex_hull(&astroid_shape.points).unwrap())
             .insert(Transform::from_xyz(position.x, position.y, 0.0))
             .insert(ActiveEvents::COLLISION_EVENTS)
-            .insert(Restitution::coefficient(0.01));
+            .insert(Restitution::coefficient(0.01)).id();
+
+        // If the astroid size is small, add Collectible Tag
+        if astroid.size == AstroidSize::Small {
+            commands.entity(astroid_ent)
+                .insert(Collectible);
+        }
             
     }
 

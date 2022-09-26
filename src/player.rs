@@ -6,6 +6,7 @@ use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use bevy_rapier2d::rapier::prelude::RigidBodyVelocity;
 use std::f32::consts::PI;
 use crate::PIXELS_PER_METER;
+use crate::astroid::Collectible;
 use crate::healthbar::Health;
 use crate::projectile::{ProjectilePlugin};
 use crate::crosshair::Crosshair;
@@ -49,6 +50,7 @@ impl Plugin for PlayerPlugin {
             .add_system(Self::ship_rotate_towards_mouse)
             .add_system(Self::player_fire_weapon)
             .add_system(Self::player_camera_control)
+            .add_system(Self::gravitate_collectibles)
             .register_inspectable::<Player>()
             .register_type::<Player>();
     }
@@ -209,6 +211,27 @@ impl PlayerPlugin {
             }
     
             projection.scale = log_scale.exp();
+        }
+    }
+
+    fn gravitate_collectibles(
+        mut collectible_query: Query<(Entity, &Collectible, &Transform, &mut Velocity)>,
+        player_query: Query<(Entity, &Player, &Transform), With<Player>>
+    ) {
+        const MAX_GRAVITATION_DISTANCE: f32 = 30.0 * crate::PIXELS_PER_METER;
+        let (player_ent, player, player_transform) = player_query.single();
+
+        for (ent, collectible, collectible_tranform, mut veclocity) in collectible_query.iter_mut() {
+
+            
+            let distance_to_player_from_collectible = player_transform.translation.truncate().distance(collectible_tranform.translation.truncate());
+            if distance_to_player_from_collectible < MAX_GRAVITATION_DISTANCE {
+                let percent_distance_from_max = distance_to_player_from_collectible / MAX_GRAVITATION_DISTANCE;
+                let direction_to_player_from_collectible = (player_transform.translation.truncate() - collectible_tranform.translation.truncate()).normalize();
+                let gravitation_factor = 1.0 - percent_distance_from_max;
+                veclocity.linvel += direction_to_player_from_collectible * gravitation_factor * 5.0 * crate::PIXELS_PER_METER;
+            }
+
         }
     }
 }
