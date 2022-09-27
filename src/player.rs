@@ -1,4 +1,5 @@
 use bevy::{prelude::*};
+use bevy_prototype_lyon::shapes::{Polygon, RegularPolygon};
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
 use bevy::render::camera::RenderTarget;
@@ -85,12 +86,17 @@ impl PlayerPlugin {
     fn spawn_player(
         mut commands: Commands
     ) {
-        let player_shape = lyon::shapes::RegularPolygon {
-            sides: 3,
-            feature: lyon::shapes::RegularPolygonFeature::Radius(crate::PIXELS_PER_METER * 2.0),
-            ..lyon::shapes::RegularPolygon::default()
+        let points = vec![
+            Vec2 {x: 0.0, y: 2.0 * crate::PIXELS_PER_METER},
+            Vec2 {x: 1.0 * crate::PIXELS_PER_METER, y: -1.0 * crate::PIXELS_PER_METER},
+            Vec2{x: -1.0 * crate::PIXELS_PER_METER, y: -1.0* crate::PIXELS_PER_METER}
+        ];
+
+        let player_shape = lyon::shapes::Polygon {
+            points: points,
+            closed: true
         };
-    
+
         let _player = commands.spawn()
             .insert(Player::new())
             .insert_bundle(lyon::GeometryBuilder::build_as(
@@ -105,8 +111,7 @@ impl PlayerPlugin {
             .insert(Velocity::zero())
             .insert(Sleeping::disabled())
             .insert(Ccd::enabled())
-            // .insert(Collider::triangle(player_shape.feature, b, c)) // Need points of triangle
-            .insert(Collider::ball(crate::PIXELS_PER_METER * 1.0))
+            .insert(Collider::convex_hull(&player_shape.points).unwrap())
             .insert(Transform::default())
             .insert(ActiveEvents::COLLISION_EVENTS)
             .insert(Restitution::coefficient(1.0))
@@ -116,12 +121,12 @@ impl PlayerPlugin {
 
     fn player_movement(
         keyboard_input: Res<Input<KeyCode>>,
-        mut player_query: Query<&mut Velocity, (With<Player>, Without<Crosshair>)>,
+        mut player_query: Query<(&mut Transform, &mut Velocity), (With<Player>, Without<Crosshair>)>,
     ) {
         const ACCELERATION: f32 =  3.0 * PIXELS_PER_METER;
         const DECLERATION: f32 = 0.95;
 
-            let mut velocity = player_query.single_mut();
+            let (mut transform, mut velocity) = player_query.single_mut();
     
             if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
                 velocity.linvel += Vec2 {x: -ACCELERATION, y: 0.0 };
@@ -141,6 +146,9 @@ impl PlayerPlugin {
         
             velocity.linvel *= DECLERATION;
             velocity.angvel = 0.0; // Prevents spin on astrid impact
+
+            // TODO: is there a better place to do this?
+            transform.scale = Vec3::new(2.0, 2.0, 1.0);
     
     }
 
@@ -207,15 +215,16 @@ impl PlayerPlugin {
     fn player_fire_weapon(
         mut commands: Commands,
         keyboard_input: Res<Input<MouseButton>>,
-        player_query: Query<(&mut Player, &mut Transform)>
+        player_query: Query<(&mut Player, &mut Transform, &Velocity)>
     )
     {    
         // should be just pressed, but it's fun with keyboard_input.pressed()d
         if keyboard_input.just_pressed(MouseButton::Left) {
-            let (player, transform) = player_query.single();
+            let (player, transform, velocity) = player_query.single();
     
             // why does this work? https://www.reddit.com/r/rust_gamedev/comments/rphgsf/calculating_bullet_x_and_y_position_based_off_of/
             let player_velocity = (transform.rotation * Vec3::Y) + Vec3::new(player.delta_x, player.delta_y, 0.0) * PIXELS_PER_METER;
+
 
             ProjectilePlugin::spawn_projectile(&mut commands, transform.translation.truncate(), player_velocity.truncate());
         }
