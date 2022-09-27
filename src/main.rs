@@ -20,6 +20,9 @@ use crosshair::CrosshairPlugin;
 mod healthbar;
 use healthbar::HealthBarPlugin;
 
+mod base_station;
+use base_station::BaseStationPlugin;
+
 // Defines the amount of time that should elapse between each physics step.
 const TIME_STEP: f32 = 1.0 / 60.0;
 
@@ -40,6 +43,7 @@ fn main() {
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(ShapePlugin)
         .add_plugin(PlayerPlugin)
+        .add_plugin(BaseStationPlugin)
         .add_plugin(AstroidPlugin)
         .add_plugin(ProjectilePlugin)
         .add_plugin(CrosshairPlugin)

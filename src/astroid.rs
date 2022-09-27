@@ -1,15 +1,13 @@
 use bevy::prelude::*;
 use bevy::reflect::FromReflect;
-use bevy_rapier2d::parry::mass_properties;
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
-use bevy_rapier2d::rapier::prelude::RigidBodyMassProps;
 use rand::Rng;
 use rand::seq::SliceRandom;
 use std::cmp::Ordering;
 use std::f32::consts::{PI};
-use crate::{ Player };
+use crate::{ Player, PIXELS_PER_METER };
 use crate::healthbar::Health;
 
 pub struct AstroidPlugin;
@@ -91,7 +89,7 @@ impl AstroidPlugin {
             let rand_y: f32 = rng.gen_range(-PI..PI);
             let rand_direction = Vec2::new(rand_x.cos(), rand_y.sin()).normalize();
 
-            const SPAWN_DISTANCE: f32 = 400.0;
+            const SPAWN_DISTANCE: f32 = 300.0;
             let random_spawn_position = player_position + (rand_direction * SPAWN_DISTANCE * crate::PIXELS_PER_METER);
             let direction_to_player = (player_position - random_spawn_position).normalize() * 20.0; // maybe?
 
@@ -104,7 +102,7 @@ impl AstroidPlugin {
         astroid_query: Query<(Entity, &mut Astroid, &mut Transform), With<Astroid>>,
         player_query: Query<(&Player, &Transform), (With<Player>, Without<Astroid>)>,
     ) {
-        const DESPAWN_DISTANCE: f32 = 5000.0;
+        const DESPAWN_DISTANCE: f32 = 1000.0 * PIXELS_PER_METER;
         let (_player, transform) = player_query.single();
         let player_position = transform.translation.truncate();
 
