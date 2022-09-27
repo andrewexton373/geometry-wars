@@ -13,7 +13,7 @@ use crate::astroid::AstroidMaterial;
 
 pub struct PlayerPlugin;
 
-#[derive(Component, Default, Inspectable, Reflect)]
+#[derive(Component, Default, Debug, Inspectable, Reflect)]
 pub struct Inventory {
     items_and_weights: Vec<(AstroidMaterial, f32)>
 }

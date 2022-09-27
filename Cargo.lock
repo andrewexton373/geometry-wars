@@ -235,6 +235,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy-debug-text-overlay"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ed1cda93d0b16c27d44901d45ae4327f1ec0b487d4a3438af9f011e9b65d2e5"
+dependencies = [
+ "bevy",
+ "lazy_static",
+]
+
+[[package]]
 name = "bevy-inspector-egui"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1711,6 +1721,7 @@ name = "geometry-wars"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy-debug-text-overlay",
  "bevy-inspector-egui",
  "bevy_prototype_lyon",
  "bevy_rapier2d",

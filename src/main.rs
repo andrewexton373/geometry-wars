@@ -1,5 +1,6 @@
 use bevy_stat_bars::*;
-use bevy::prelude::*;
+use bevy::{prelude::*, diagnostic::{FrameTimeDiagnosticsPlugin, Diagnostics}};
+use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
@@ -29,6 +30,10 @@ const BACKGROUND_COLOR: Color = Color::rgb(0.0, 0.0, 0.0);
 #[derive(Component)]
 struct Collider;
 
+// A unit struct to help identify the FPS UI component, since there may be many Text components
+#[derive(Component)]
+struct FpsText;
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -45,6 +50,9 @@ fn main() {
         .add_system(camera_follows_player)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER))
         .add_plugin(RapierDebugRenderPlugin::default())
+        .add_plugin(FrameTimeDiagnosticsPlugin::default())
+        .add_plugin(OverlayPlugin { font_size: 18.0, ..default() })
+        .add_system(screen_print_debug_text)
         .run();
 }
 
@@ -53,7 +61,8 @@ pub struct InventoryText;
 
 fn setup(
     mut commands: Commands,
-    mut rapier_config: ResMut<RapierConfiguration>
+    mut rapier_config: ResMut<RapierConfiguration>,
+    asset_server: Res<AssetServer>
 ) {
     let camera = commands.spawn_bundle(Camera2dBundle::default()).id();
     HealthBarPlugin::attach_player_health_bar(&mut commands, camera);
@@ -72,4 +81,20 @@ fn camera_follows_player(
         let mut_trans = camera_trans.translation_mut();
         mut_trans.x -= player_to_camera.x;
         mut_trans.y -= player_to_camera.y;
+}
+
+fn screen_print_debug_text(
+    diagnostics: Res<Diagnostics>,
+    player_query: Query<&Player>
+) {
+    if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
+        if let Some(average) = fps.average() {
+            // Update the value of the second section
+            screen_print!(col: Color::WHITE, "fps: {average}");
+        }
+    }
+
+    let player = player_query.single();
+    let inventory = &player.inventory;
+    screen_print!(col: Color::LIME_GREEN, "inventory: {inventory:?}");
 }

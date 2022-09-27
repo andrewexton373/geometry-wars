@@ -12,6 +12,7 @@ bevy_prototype_lyon = "0.6.0"
 bevy-inspector-egui = "0.13.0"
 rand = "0.8.5"
 bevy_stat_bars = "0.2"
+bevy-debug-text-overlay = "3.0"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
