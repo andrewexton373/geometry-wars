@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
 use rand::Rng;
-use crate::{astroid::{AstroidPlugin, Astroid, AstroidSize}};
+use crate::{astroid::{AstroidPlugin, Astroid, AstroidSize, AstroidMaterial}};
 
 const PROJECTILE_RADIUS: f32 = 0.5;
 
@@ -29,7 +29,7 @@ impl ProjectilePlugin {
         position: Vec2,
         player_velocity: Vec2
     ) {
-        const BULLET_SPEED: f32 = 4.0;
+        const BULLET_SPEED: f32 = 6.0;
 
         let projectile_shape = lyon::shapes::Circle {
             radius: PROJECTILE_RADIUS * crate::PIXELS_PER_METER,
@@ -73,31 +73,11 @@ impl ProjectilePlugin {
 
                         if (projectile_ent == *h2 && astroid_ent == *h1) ||
                             (projectile_ent == *h1 && astroid_ent == *h2) {
-    
-                            println!("PROJECTILE COLLISION WITH ASTROID");
 
-                            let mut rng = rand::thread_rng();
-                            let split_angle = rng.gen_range(0.0..PI/4.0);
-                            
-                            let right_velocity = projectile_velocity.linvel.rotate(Vec2::from_angle(split_angle)) * 0.5;
-                            let left_velocity = projectile_velocity.linvel.rotate(Vec2::from_angle(-split_angle)) * 0.5;
-    
-                            match &astroid.size {
-                                AstroidSize::Small => {
-                                },
-                                AstroidSize::Medium => {
-                                    AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Small, right_velocity, astroid_transform.translation.truncate());
-                                    AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Small, left_velocity, astroid_transform.translation.truncate());
-                                    commands.entity(astroid_ent).despawn_recursive();
-                                },
-                                AstroidSize::Large => {
-                                    AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Medium, right_velocity,astroid_transform.translation.truncate());
-                                    AstroidPlugin::spawn_astroid(&mut commands, AstroidSize::Medium, left_velocity, astroid_transform.translation.truncate());
-                                    commands.entity(astroid_ent).despawn_recursive();
-                                }
-                            }
-    
+                            println!("PROJECTILE COLLISION WITH ASTROID");
+                            AstroidPlugin::split_astroid(&mut commands, astroid_ent, astroid, astroid_transform.translation.truncate(), projectile_velocity);
                             commands.entity(projectile_ent).despawn_recursive();
+
     
                         }
     

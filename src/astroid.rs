@@ -16,11 +16,13 @@ pub struct AstroidPlugin;
 pub struct Astroid {
     pub velocity: Vec2,
     pub size: AstroidSize,
+    pub material: AstroidMaterial,
     pub health: Health
 }
 
 #[derive(Clone, Copy, Inspectable, Debug, PartialEq)]
 pub enum AstroidSize {
+    OreChunk,
     Small,
     Medium,
     Large
@@ -32,6 +34,7 @@ pub struct Collectible;
 impl AstroidSize {
     fn radius(self) -> f32 {
         match self {
+            Self::OreChunk => 1.0,
             Self::Small => 2.0,
             Self::Medium => 5.0,
             Self::Large => 10.0
@@ -42,6 +45,7 @@ impl AstroidSize {
 #[derive(Component, Inspectable, Reflect, FromReflect, Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum AstroidMaterial {
     #[default]
+    Rock,
     Iron,
     Gold,
     Silver
@@ -89,7 +93,7 @@ impl AstroidPlugin {
             let random_spawn_position = player_position + (rand_direction * SPAWN_DISTANCE * crate::PIXELS_PER_METER);
             let direction_to_player = (player_position - random_spawn_position).normalize() * 20.0; // maybe?
 
-            Self::spawn_astroid(&mut commands, AstroidSize::Large, direction_to_player * crate::PIXELS_PER_METER, random_spawn_position);
+            Self::spawn_astroid(&mut commands, AstroidSize::Large, AstroidMaterial::Rock, direction_to_player * crate::PIXELS_PER_METER, random_spawn_position);
         }
     }
 
@@ -115,21 +119,28 @@ impl AstroidPlugin {
     pub fn spawn_astroid(
         commands: &mut Commands,
         size: AstroidSize,
+        material: AstroidMaterial,
         velocity: Vec2,
         position: Vec2
     ) {
     
         let astroid_shape: lyon::shapes::Polygon;
         match size {
-            AstroidSize::Small => {
+            AstroidSize::OreChunk => {
                 astroid_shape = lyon::shapes::Polygon {
                     points: Self::make_valtr_convex_polygon_coords(5, 25.0),
                     closed: true
                 };
             },
+            AstroidSize::Small => {
+                astroid_shape = lyon::shapes::Polygon {
+                    points: Self::make_valtr_convex_polygon_coords(7, 45.0),
+                    closed: true
+                };
+            },
             AstroidSize::Medium => {
                 astroid_shape = lyon::shapes::Polygon {
-                    points: Self::make_valtr_convex_polygon_coords(7, 50.0),
+                    points: Self::make_valtr_convex_polygon_coords(9, 85.0),
                     closed: true
                 };
             },
@@ -144,6 +155,7 @@ impl AstroidPlugin {
         let astroid = Astroid {
             velocity: velocity,
             size: size,
+            material: material,
             health: Health {current: 50.0, maximum: 100.0}
         };
     
@@ -151,7 +163,7 @@ impl AstroidPlugin {
             .insert(astroid)
             .insert_bundle(lyon::GeometryBuilder::build_as(
                 &astroid_shape,
-                lyon::DrawMode::Fill(lyon::FillMode::color(Color::GRAY)),
+                lyon::DrawMode::Fill(lyon::FillMode::color(Color::DARK_GRAY)),
                 Default::default()
             ))
             // .insert(Collider) // do we still need? don't think so
@@ -164,8 +176,8 @@ impl AstroidPlugin {
             .insert(ActiveEvents::COLLISION_EVENTS)
             .insert(Restitution::coefficient(0.01)).id();
 
-        // If the astroid size is small, add Collectible Tag
-        if astroid.size == AstroidSize::Small {
+        // If the astroid is an ore chunk, add Collectible Tag
+        if astroid.size == AstroidSize::OreChunk {
             commands.entity(astroid_ent)
                 .insert(Collectible);
         }
@@ -179,9 +191,22 @@ impl AstroidPlugin {
         for (astroid, mut draw_mode) in astroid_query.iter_mut() {
 
             match astroid.size {
-                AstroidSize::Small => {
+                AstroidSize::OreChunk => {
                     if let DrawMode::Fill(ref mut fill_mode) = *draw_mode {
-                        fill_mode.color = Color::GOLD;
+
+                        match astroid.material {
+                            AstroidMaterial::Iron => {
+                                fill_mode.color = Color::GRAY;
+                            },
+                            AstroidMaterial::Silver => {
+                                fill_mode.color = Color::SILVER;
+                            },
+                            AstroidMaterial::Gold => {
+                                fill_mode.color = Color::GOLD;
+                            },
+                            _ => {}
+                        }
+
                     }
                 },
 
@@ -209,12 +234,15 @@ impl AstroidPlugin {
                     if player_ent == *h1 && astroid_entity == *h2 {
 
                         match astroid.size {
-                            AstroidSize::Small => {
-                                println!("Hit small Astroid, let's collect it!");
-                                
+                            AstroidSize::OreChunk => {
+                                println!("Hit ore chunk, let's collect it!");
                                 // TODO: collect minerals?
                                 commands.entity(astroid_entity).despawn_recursive();
                                 player.add_to_inventory(AstroidMaterial::Gold, 100.0);
+                            }
+                            AstroidSize::Small => {
+                                println!("Hit small Astroid");
+                                player.take_damage(1.0);
                             },
                             AstroidSize::Medium => {
                                 println!("Hit medium Astroid");
@@ -237,6 +265,61 @@ impl AstroidPlugin {
         }
     }
 
+    pub fn split_astroid(commands: &mut Commands, astroid_ent: Entity, astroid: &Astroid, astroid_translation: Vec2, projectile_velocity: &Velocity) {
+
+        let mut rng = rand::thread_rng();
+        let split_angle = rng.gen_range(0.0..PI/4.0);
+        
+        let right_velocity = projectile_velocity.linvel.rotate(Vec2::from_angle(split_angle)) * 0.5;
+        let left_velocity = projectile_velocity.linvel.rotate(Vec2::from_angle(-split_angle)) * 0.5;
+
+        match &astroid.size {
+            AstroidSize::Small => {
+
+                fn random_ore_material() -> AstroidMaterial {
+                    let mut rng = rand::thread_rng();
+
+                    let mut material: AstroidMaterial;
+
+                    let material = match rng.gen::<u8>() % 3 {
+                        0 => {
+                            AstroidMaterial::Iron
+                        },
+                        1 => {
+                            AstroidMaterial::Silver
+                        },
+                        2 => {
+                            AstroidMaterial::Gold
+                        },
+                        _ => {
+                            AstroidMaterial::Rock
+                        }
+                    };
+                    material
+                }
+
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, random_ore_material(), right_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, random_ore_material(), left_velocity, astroid_translation);
+                commands.entity(astroid_ent).despawn_recursive();
+
+            },
+            AstroidSize::Medium => {
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::Small, AstroidMaterial::Rock, right_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::Small, AstroidMaterial::Rock, left_velocity, astroid_translation);
+                commands.entity(astroid_ent).despawn_recursive();
+            },
+            AstroidSize::Large => {
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::Medium, AstroidMaterial::Rock, right_velocity,astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::Medium, AstroidMaterial::Rock, left_velocity, astroid_translation);
+                commands.entity(astroid_ent).despawn_recursive();
+            }
+            _ => {
+                
+            }
+        }
+    }
+
+    // TODO: comment this well...
     fn make_valtr_convex_polygon_coords(num_sides: usize, radius: f32) -> Vec<Vec2> {
         let mut xs: Vec<f32> = vec![];
         let mut ys: Vec<f32> = vec![];
