@@ -1,8 +1,10 @@
 use bevy::prelude::*;
 use bevy::reflect::FromReflect;
+use bevy_rapier2d::parry::mass_properties;
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
+use bevy_rapier2d::rapier::prelude::RigidBodyMassProps;
 use rand::Rng;
 use rand::seq::SliceRandom;
 use std::cmp::Ordering;
@@ -174,6 +176,7 @@ impl AstroidPlugin {
             .insert(Collider::convex_hull(&astroid_shape.points).unwrap())
             .insert(Transform::from_xyz(position.x, position.y, 0.0))
             .insert(ActiveEvents::COLLISION_EVENTS)
+            .insert(ReadMassProperties(MassProperties::default()))
             .insert(Restitution::coefficient(0.01)).id();
 
         // If the astroid is an ore chunk, add Collectible Tag
@@ -219,7 +222,7 @@ impl AstroidPlugin {
     }
 
     fn handle_astroid_collision_event(
-        mut astroid_query: Query<(Entity, &Astroid), With<Astroid>>,
+        mut astroid_query: Query<(Entity, &Astroid, &ReadMassProperties), With<Astroid>>,
         mut player_query: Query<(Entity, &mut Player), With<Player>>,
         mut contact_events: EventReader<CollisionEvent>,
         mut commands: Commands
@@ -227,7 +230,7 @@ impl AstroidPlugin {
         let (player_ent, mut player) = player_query.single_mut();
 
         for contact_event in contact_events.iter() {
-            for (astroid_entity, astroid) in astroid_query.iter_mut() {
+            for (astroid_entity, astroid, mass_properties) in astroid_query.iter_mut() {
                 if let CollisionEvent::Started(h1, h2, _event_flag) = contact_event {
                     
                     // If player hit astroid
@@ -236,9 +239,9 @@ impl AstroidPlugin {
                         match astroid.size {
                             AstroidSize::OreChunk => {
                                 println!("Hit ore chunk, let's collect it!");
-                                // TODO: collect minerals?
                                 commands.entity(astroid_entity).despawn_recursive();
-                                player.add_to_inventory(AstroidMaterial::Gold, 100.0);
+                                let ore_chunk_mass = mass_properties.0.mass;
+                                player.add_to_inventory(astroid.material, ore_chunk_mass);
                             }
                             AstroidSize::Small => {
                                 println!("Hit small Astroid");
