@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
 use bevy_prototype_lyon::prelude::*;
+use crate::GameCamera;
 use crate::player::Player;
 
 #[derive(Component)]
@@ -42,7 +43,7 @@ impl CrosshairPlugin {
 
     fn draw_crasshair(
         wnds: Res<Windows>,
-        q_camera: Query<(&Camera, &GlobalTransform)>,
+        q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
         player_query: Query<(&Player, &Transform), Without<Crosshair>>,
         mut crosshair_query: Query<(&mut Crosshair, &mut Path)>
     ){

@@ -5,7 +5,7 @@ use bevy_prototype_lyon::prelude as lyon;
 use bevy::render::camera::RenderTarget;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use std::f32::consts::PI;
-use crate::PIXELS_PER_METER;
+use crate::{PIXELS_PER_METER, GameCamera};
 use crate::astroid::{Collectible};
 use crate::healthbar::Health;
 use crate::projectile::{ProjectilePlugin};
@@ -155,7 +155,7 @@ impl PlayerPlugin {
     fn ship_rotate_towards_mouse(
         wnds: Res<Windows>,
         // query to get camera transform
-        q_camera: Query<(&Camera, &GlobalTransform)>,
+        q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
         mut player_query: Query<(&mut Player, &mut Transform, &mut Velocity), Without<Crosshair>>
     ) {
         // get the camera info and transform
