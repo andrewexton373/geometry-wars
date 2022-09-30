@@ -1,12 +1,15 @@
+use bevy::reflect::FromReflect;
 use bevy::{prelude::*};
 use bevy_prototype_lyon::shapes::{Polygon, RegularPolygon};
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
 use bevy::render::camera::RenderTarget;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
+use kayak_ui::core::{Binding, Bound, MutableBound};
 use std::f32::consts::PI;
+use std::fmt;
 use crate::{PIXELS_PER_METER, GameCamera};
-use crate::astroid::{Collectible};
+use crate::astroid::{Collectible, Astroid};
 use crate::healthbar::Health;
 use crate::projectile::{ProjectilePlugin};
 use crate::crosshair::Crosshair;
@@ -14,20 +17,33 @@ use crate::astroid::AstroidMaterial;
 
 pub struct PlayerPlugin;
 
-#[derive(Component, Default, Debug, Inspectable, Reflect)]
+const INVENTORY_SIZE: usize = 20;
+
+#[derive(Component, Default, Debug, Inspectable, Clone, PartialEq)]
 pub struct Inventory {
-    items_and_weights: Vec<(AstroidMaterial, f32)>
+    pub items: [Option<ItemAndWeight>; INVENTORY_SIZE]
 }
 
-#[derive(Component, Inspectable, Default, Reflect)]
-#[reflect(Component)]
+#[derive(Component, Default, Debug, Inspectable, Copy, Clone, PartialEq)]
+pub struct ItemAndWeight {
+    pub item: AstroidMaterial,
+    pub weight: f32
+}
+
+impl fmt::Display for ItemAndWeight {
+    fn fmt(&self, f: &mut  fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Item: {:?} | Weight: {}", &self.item, &self.weight)
+    }
+}
+
+#[derive(Component, Inspectable, Default)]
 pub struct Player {
     // TODO: refactor into velocity Vec2
     pub delta_x: f32,
     pub delta_y: f32,
     pub delta_rotation: f32,
     pub health: Health,
-    pub inventory: Inventory
+    // pub inventory: Inventory
 }
 
 impl Player {
@@ -37,7 +53,7 @@ impl Player {
             delta_y: 0.0,
             delta_rotation: 0.0,
             health: Health { current: 100.0, maximum: 100.0 },
-            inventory: Inventory { items_and_weights: Vec::new() }
+            // inventory: Inventory { items: [None; INVENTORY_SIZE] }
         }
     }
 
@@ -48,21 +64,72 @@ impl Player {
     }
 
     // I'd rather have the inventory be a hashmap, but was struggling with bevy-inspector traits
-    pub fn add_to_inventory(&mut self, material: AstroidMaterial, weight: f32) {
-         
-        if self.inventory.items_and_weights.iter().map(|a|{a.0}).collect::<Vec<AstroidMaterial>>().contains(&material) {
-            self.inventory.items_and_weights = self.inventory.items_and_weights.iter().map(|(e, w)| {
-                if *e == material {
-                    (*e, w + weight)
-                } else {
-                    (*e, *w)
+    pub fn add_to_inventory(&mut self, mut inventory: ResMut<Binding<Inventory>>, material: AstroidMaterial, weight: f32) {
+        let mut current_inventory = inventory.get();
+        println!("BEFORE: {:?}", current_inventory);
+
+
+        let mut item_found = false;
+        let mut ci = current_inventory.items;
+        for item in ci.iter_mut() {
+            if let Some(mut item) = item {
+                if item.item == material {
+                    item_found = true;
+                    item.weight += weight;
+                    break;
                 }
-            }).collect();
-        } else {
-            self.inventory.items_and_weights.push((material, weight));
+            }
         }
 
-        println!("INVENTORY: {:?}", self.inventory.items_and_weights);
+        if !item_found {
+            for item in ci.iter_mut() {
+                if item.is_none() {
+                    *item = Some(ItemAndWeight{item: material, weight: weight});
+                    break;
+                }
+            }
+        }
+
+        inventory.set(Inventory{items: ci.clone()});
+        let mut current_inventory = inventory.get();
+        println!("AFTER: {:?}", current_inventory);
+
+
+        
+        // let mut updated = false;
+
+        // println!("ADDING: {}", weight);
+
+
+
+        // for mut item in current_inventory.items.into_iter()
+        //                                 .filter(|item| item.is_some())
+        //                                 .map(|mut item| item.as_mut().unwrap())
+        // {
+        //     if item.item == material {
+        //         println!("HIT INCREMENT WEIGHT");
+        //         (*item).weight = item.weight + weight;
+        //         updated = true;
+        //         break;
+        //     }
+        // }
+
+
+        // if updated {
+        //     inventory.set(current_inventory.clone());
+        //     return;
+        // }
+
+        // for item in current_inventory.items.iter_mut().filter(|item| item.is_none()) {
+        //     *item = Some(ItemAndWeight{item: material, weight: weight});
+        //     updated = true;
+        //     break;
+        // }
+
+        // if updated {
+        //     inventory.set(current_inventory.clone());
+        // }
+
     }
 }
 
@@ -77,8 +144,7 @@ impl Plugin for PlayerPlugin {
             .add_system(Self::player_fire_weapon)
             .add_system(Self::player_camera_control)
             .add_system(Self::gravitate_collectibles)
-            .register_inspectable::<Player>()
-            .register_type::<Player>();
+            .register_inspectable::<Player>();
     }
 }
 

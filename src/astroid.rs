@@ -3,10 +3,13 @@ use bevy::reflect::FromReflect;
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
+use kayak_ui::core::{Binding, Bound};
 use rand::Rng;
 use rand::seq::SliceRandom;
 use std::cmp::Ordering;
 use std::f32::consts::{PI};
+use std::fmt;
+use crate::player::Inventory;
 use crate::{ Player, PIXELS_PER_METER };
 use crate::healthbar::Health;
 
@@ -49,6 +52,12 @@ pub enum AstroidMaterial {
     Iron,
     Gold,
     Silver
+}
+
+impl fmt::Display for AstroidMaterial {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({})", self)
+    }
 }
 
 #[derive(Component)]
@@ -223,6 +232,7 @@ impl AstroidPlugin {
         mut astroid_query: Query<(Entity, &Astroid, &ReadMassProperties), With<Astroid>>,
         mut player_query: Query<(Entity, &mut Player), With<Player>>,
         mut contact_events: EventReader<CollisionEvent>,
+        inventory_resource: ResMut<Binding<Inventory>>,
         mut commands: Commands
     ) {
         let (player_ent, mut player) = player_query.single_mut();
@@ -239,7 +249,7 @@ impl AstroidPlugin {
                                 println!("Hit ore chunk, let's collect it!");
                                 commands.entity(astroid_entity).despawn_recursive();
                                 let ore_chunk_mass = mass_properties.0.mass;
-                                player.add_to_inventory(astroid.material, ore_chunk_mass);
+                                player.add_to_inventory(inventory_resource, astroid.material, ore_chunk_mass);
                             }
                             AstroidSize::Small => {
                                 println!("Hit small Astroid");

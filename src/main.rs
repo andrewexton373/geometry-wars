@@ -1,26 +1,30 @@
+#![feature(array_methods)]
+
+
 use bevy_stat_bars::*;
 use bevy::{prelude::*, diagnostic::{FrameTimeDiagnosticsPlugin, Diagnostics}};
 use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
-use bevy_rapier2d::prelude::*;
+use bevy_rapier2d::{prelude::*, parry::simba::scalar::SupersetOf};
 use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
 
-use kayak_ui::core::Color as KayakColor;
+use kayak_ui::core::{Color as KayakColor, VecTracker, constructor, Binding, Bound, MutableBound};
 
 use kayak_ui::bevy::{BevyContext, BevyKayakUIPlugin, FontMapping, UICameraBundle};
 use kayak_ui::core::{
     render, rsx,
-    styles::{Style, StyleProp, Units},
+    styles::{Style as KayakStyle, StyleProp, Units},
     widget,
-    use_state
+    use_state,
+    bind
 };
-use kayak_ui::widgets::{App as KayakApp, OnChange, SpinBox, SpinBoxStyle, TextBox, Window};
+use kayak_ui::widgets::{App as KayakApp, OnChange, SpinBox, SpinBoxStyle, Text, TextBox, Window, Element};
 
 mod player;
-use player::{ PlayerPlugin, Player };
+use player::{ PlayerPlugin, Player, Inventory, ItemAndWeight };
 
 mod astroid;
-use astroid::{AstroidPlugin};
+use astroid::{AstroidPlugin, AstroidMaterial};
 
 mod projectile;
 use projectile::{ProjectilePlugin};
@@ -71,74 +75,78 @@ fn main() {
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(OverlayPlugin { font_size: 18.0, ..default() })
         .add_plugin(BevyKayakUIPlugin)
-        .add_system(screen_print_debug_text)
+        // .add_system(screen_print_debug_text)
+        // .add_system(update_inventory_ui)
         .run();
 }
 
 #[derive(Component)]
 pub struct InventoryText;
 
+#[derive(Default, Debug, Clone, PartialEq)]
+pub struct UIItems {
+    pub inventory_items: [Option<ItemAndWeight>; 20],
+}
+
+// fn update_inventory_ui(
+//     inventory_query: Query<
+//         &Inventory,
+//         Changed<Inventory>
+//     >,
+//     ui_items: Res<Binding<UIItems>>,
+// ) {
+
+//     if let inventory = inventory_query.get_single().unwrap() {
+//         println!("SET INVENTORY UI");
+
+//         // get inventory items for ui
+//         // let inventory_items: Vec<ItemAndWeight> = inventory.items.into_iter().filter(|item| item.is_some()).map().collect::<Vec<ItemAndWeight>>().clone();
+//             // .into_iter()
+//             // .filter(|ic| ic.item != ItemType::None)
+//             // .collect();
+
+//         println!("SET INVENTORY UI");
+
+//         // update ui by updating binding object
+//         ui_items.set(UIItems {
+//             inventory_items: inventory.items
+//         });
+//     }
+// }
 
 #[widget]
-fn TextBoxExample() {
-    let (value, set_value, _) = use_state!("I started with a value!".to_string());
-    let (empty_value, set_empty_value, _) = use_state!("".to_string());
-    let (red_value, set_red_value, _) = use_state!("This text is red".to_string());
-    let (spin_value, set_spin_value, _) = use_state!("3".to_string());
+fn UIInventory() {
+    // let (values, set_value, _) = use_state!(vec![]);
+    // let (empty_value, set_empty_value, _) = use_state!("".to_string());
 
-    let input_styles = Style {
-        top: StyleProp::Value(Units::Pixels(10.0)),
-        ..Default::default()
-    };
+    // let input_styles = Style {
+    //     top: StyleProp::Value(Units::Pixels(10.0)),
+    //     ..Default::default()
+    // };
 
-    let red_text_styles = Style {
-        color: StyleProp::Value(KayakColor::new(1., 0., 0., 1.)),
-        ..input_styles.clone()
-    };
+    let inventory = context.query_world::<Res<Binding<Inventory>>, _, _>(move |inventory| inventory.clone());
+    // let ui_items = context.query_world::<Res<Binding<UIItems>>, _, _>(move |ui_items| ui_items.clone());
+    context.bind(&inventory);
 
-    let on_change = OnChange::new(move |event| {
-        set_value(event.value);
-    });
+    let inventory_items = inventory.get().items;
 
-    let on_change_empty = OnChange::new(move |event| {
-        set_empty_value(event.value);
-    });
+    // info!("{:?}", inventory_items);
 
-    let on_change_red = OnChange::new(move |event| {
-        set_red_value(event.value);
-    });
 
-    let on_change_spin = OnChange::new(move |event| {
-        set_spin_value(event.value);
-    });
-
-    let vert = SpinBoxStyle::Vertical;
-
+    let data = vec![
+        "Text 1", "Text 2", "Text 3", "Text 4", "Text 5", "Text 6", "Text 7", "Text 8",
+        "Text 9", "Text 10",
+    ];
+    
     rsx! {
-        <Window position={(50.0, 50.0)} size={(500.0, 300.0)} title={"TextBox Example".to_string()}>
-            <TextBox styles={Some(input_styles)} value={value} on_change={Some(on_change)} />
-            <TextBox
-                styles={Some(input_styles)}
-                value={empty_value}
-                on_change={Some(on_change_empty)}
-                placeholder={Some("This is a placeholder".to_string())}
-            />
-            <TextBox styles={Some(red_text_styles)} value={red_value} on_change={Some(on_change_red)} />
-            <SpinBox
-                styles={Some(input_styles)}
-                value={spin_value}
-                on_change={Some(on_change_spin)}
-                min_val={0.0}
-                max_val={10.0}
-            />
-            <SpinBox
-                spin_button_style={vert}
-                styles={Some(input_styles)}
-                value={spin_value}
-                on_change={Some(on_change_spin)}
-                min_val={0.0}
-                max_val={10.0}
-            />
+        <Window position={(1080.0, 0.0)} size={(200.0, 300.0)} title={"Inventory".to_string()}>
+            <Element>
+                {VecTracker::from(inventory_items.iter().filter(|item| item.is_some()).map(|item| {
+                    constructor! {
+                        <Text content={format!("{:?}", item.clone())} size={16.0} />
+                    }
+                }))}
+            </Element>
         </Window>
     }
 }
@@ -154,11 +162,12 @@ fn setup(
                                     .insert(Name::new("UICamera"));
 
     font_mapping.set_default(asset_server.load("roboto.kayak_font"));
+    commands.insert_resource(bind(UIItems::default()));
 
     let context = BevyContext::new(|context| {
         render! {
             <KayakApp>
-                <TextBoxExample />
+                <UIInventory />
             </KayakApp>
         }
     });
@@ -172,6 +181,8 @@ fn setup(
 
     HealthBarPlugin::attach_player_health_bar(&mut commands, game_camera);
     rapier_config.gravity = Vec2::new(0.0, 0.0);
+
+    commands.insert_resource(bind(Inventory {items: [None; 20]}));
 }
 
 fn camera_follows_player(
@@ -188,18 +199,18 @@ fn camera_follows_player(
         mut_trans.y -= player_to_camera.y;
 }
 
-fn screen_print_debug_text(
-    diagnostics: Res<Diagnostics>,
-    player_query: Query<&Player>
-) {
-    if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
-        if let Some(average) = fps.average() {
-            // Update the value of the second section
-            screen_print!(col: Color::WHITE, "fps: {average}");
-        }
-    }
+// fn screen_print_debug_text(
+//     diagnostics: Res<Diagnostics>,
+//     player_query: Query<&Player>
+// ) {
+//     if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
+//         if let Some(average) = fps.average() {
+//             // Update the value of the second section
+//             screen_print!(col: Color::WHITE, "fps: {average}");
+//         }
+//     }
 
-    let player = player_query.single();
-    let inventory = &player.inventory;
-    screen_print!(col: Color::LIME_GREEN, "inventory: {inventory:?}");
-}
+//     let player = player_query.single();
+//     let inventory = &player.inventory;
+//     screen_print!(col: Color::LIME_GREEN, "inventory: {inventory:?}");
+// }
