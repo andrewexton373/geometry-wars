@@ -3,7 +3,6 @@ use bevy::reflect::FromReflect;
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
-use kayak_ui::core::{Binding, Bound};
 use rand::Rng;
 use rand::seq::SliceRandom;
 use std::cmp::Ordering;

@@ -96,46 +96,18 @@ fn update_inventory_ui(
     inventory_res: Res<Inventory>,
     ui_items: Res<Binding<UIItems>>,
 ) {
-
-    // if let Ok(inventory) = inventory_query.get_single() {
-
-    // get inventory items for ui
-    // let inventory_items: Vec<ItemAndWeight> = inventory.items.into_iter().filter(|item| item.is_some()).map().collect::<Vec<ItemAndWeight>>().clone();
-        // .into_iter()
-        // .filter(|ic| ic.item != ItemType::None)
-        // .collect();
-
-    // let vec_items: Vec<ItemAndWeight> = inventory.items.to_owned().into_iter().map(|(k, v)| {
-    //     ItemAndWeight {item: k.clone(), weight: v.clone()}
-    // }).collect();
-
     // update ui by updating binding object
     ui_items.set(UIItems {
         inventory_items: inventory_res.items.clone()
-    });
-
-// }
-    
+    });    
 }
 
 #[widget]
 fn UIInventory() {
-    // let (values, set_value, _) = use_state!(vec![]);
-    // let (empty_value, set_empty_value, _) = use_state!("".to_string());
-
-    // let input_styles = Style {
-    //     top: StyleProp::Value(Units::Pixels(10.0)),
-    //     ..Default::default()
-    // };
-
     let ui_items = context.query_world::<Res<Binding<UIItems>>, _, _>(move |inventory| inventory.clone());
-
-    // let inventory = context.query_world::<Res<Binding<Inventory>>, _, _>(move |inventory| inventory.clone());
     context.bind(&ui_items);
 
     let inventory = ui_items.get().inventory_items;
-    // let inventory_iter = inventory.iter();
-    // let inventory_items: Vec<(AstroidMaterial, f32)> = inventory.items.into_iter().map(|(k, v)| {(k, v)}).collect();
     
     rsx! {
         <Window position={(1080.0, 0.0)} size={(200.0, 300.0)} title={"Inventory".to_string()}>
