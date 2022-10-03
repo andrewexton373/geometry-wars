@@ -232,7 +232,7 @@ impl AstroidPlugin {
         mut astroid_query: Query<(Entity, &Astroid, &ReadMassProperties), With<Astroid>>,
         mut player_query: Query<(Entity, &mut Player), With<Player>>,
         mut contact_events: EventReader<CollisionEvent>,
-        inventory_resource: ResMut<Binding<Inventory>>,
+        inventory_resource: ResMut<Inventory>,
         mut commands: Commands
     ) {
         let (player_ent, mut player) = player_query.single_mut();

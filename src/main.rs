@@ -2,7 +2,7 @@
 
 
 use bevy_stat_bars::*;
-use bevy::{prelude::*, diagnostic::{FrameTimeDiagnosticsPlugin, Diagnostics}};
+use bevy::{prelude::*, diagnostic::{FrameTimeDiagnosticsPlugin, Diagnostics}, utils::HashMap};
 use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
 use bevy_rapier2d::{prelude::*, parry::simba::scalar::SupersetOf};
 use bevy_prototype_lyon::prelude::*;
@@ -76,7 +76,7 @@ fn main() {
         .add_plugin(OverlayPlugin { font_size: 18.0, ..default() })
         .add_plugin(BevyKayakUIPlugin)
         // .add_system(screen_print_debug_text)
-        // .add_system(update_inventory_ui)
+        .add_system(update_inventory_ui)
         .run();
 }
 
@@ -88,31 +88,35 @@ pub struct UIItems {
     pub inventory_items: [Option<ItemAndWeight>; 20],
 }
 
-// fn update_inventory_ui(
-//     inventory_query: Query<
-//         &Inventory,
-//         Changed<Inventory>
-//     >,
-//     ui_items: Res<Binding<UIItems>>,
-// ) {
+fn update_inventory_ui(
+    // inventory_query: Query<
+    //     &Inventory,
+    //     Changed<Inventory>
+    // >,
+    inventory_res: Res<Inventory>,
+    ui_items: Res<Binding<UIItems>>,
+) {
 
-//     if let inventory = inventory_query.get_single().unwrap() {
-//         println!("SET INVENTORY UI");
+    // if let Ok(inventory) = inventory_query.get_single() {
 
-//         // get inventory items for ui
-//         // let inventory_items: Vec<ItemAndWeight> = inventory.items.into_iter().filter(|item| item.is_some()).map().collect::<Vec<ItemAndWeight>>().clone();
-//             // .into_iter()
-//             // .filter(|ic| ic.item != ItemType::None)
-//             // .collect();
+    // get inventory items for ui
+    // let inventory_items: Vec<ItemAndWeight> = inventory.items.into_iter().filter(|item| item.is_some()).map().collect::<Vec<ItemAndWeight>>().clone();
+        // .into_iter()
+        // .filter(|ic| ic.item != ItemType::None)
+        // .collect();
 
-//         println!("SET INVENTORY UI");
+    // let vec_items: Vec<ItemAndWeight> = inventory.items.to_owned().into_iter().map(|(k, v)| {
+    //     ItemAndWeight {item: k.clone(), weight: v.clone()}
+    // }).collect();
 
-//         // update ui by updating binding object
-//         ui_items.set(UIItems {
-//             inventory_items: inventory.items
-//         });
-//     }
+    // update ui by updating binding object
+    ui_items.set(UIItems {
+        inventory_items: inventory_res.items.clone()
+    });
+
 // }
+    
+}
 
 #[widget]
 fn UIInventory() {
@@ -124,24 +128,19 @@ fn UIInventory() {
     //     ..Default::default()
     // };
 
-    let inventory = context.query_world::<Res<Binding<Inventory>>, _, _>(move |inventory| inventory.clone());
-    // let ui_items = context.query_world::<Res<Binding<UIItems>>, _, _>(move |ui_items| ui_items.clone());
-    context.bind(&inventory);
+    let ui_items = context.query_world::<Res<Binding<UIItems>>, _, _>(move |inventory| inventory.clone());
 
-    let inventory_items = inventory.get().items;
+    // let inventory = context.query_world::<Res<Binding<Inventory>>, _, _>(move |inventory| inventory.clone());
+    context.bind(&ui_items);
 
-    // info!("{:?}", inventory_items);
-
-
-    let data = vec![
-        "Text 1", "Text 2", "Text 3", "Text 4", "Text 5", "Text 6", "Text 7", "Text 8",
-        "Text 9", "Text 10",
-    ];
+    let inventory = ui_items.get().inventory_items;
+    // let inventory_iter = inventory.iter();
+    // let inventory_items: Vec<(AstroidMaterial, f32)> = inventory.items.into_iter().map(|(k, v)| {(k, v)}).collect();
     
     rsx! {
         <Window position={(1080.0, 0.0)} size={(200.0, 300.0)} title={"Inventory".to_string()}>
             <Element>
-                {VecTracker::from(inventory_items.iter().filter(|item| item.is_some()).map(|item| {
+                {VecTracker::from(inventory.iter().map(|item| {
                     constructor! {
                         <Text content={format!("{:?}", item.clone())} size={16.0} />
                     }
@@ -182,7 +181,7 @@ fn setup(
     HealthBarPlugin::attach_player_health_bar(&mut commands, game_camera);
     rapier_config.gravity = Vec2::new(0.0, 0.0);
 
-    commands.insert_resource(bind(Inventory {items: [None; 20]}));
+    commands.insert_resource(Inventory {items: [None; 20]});
 }
 
 fn camera_follows_player(

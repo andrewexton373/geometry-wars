@@ -1,4 +1,5 @@
 use bevy::reflect::FromReflect;
+use bevy::utils::HashMap;
 use bevy::{prelude::*};
 use bevy_prototype_lyon::shapes::{Polygon, RegularPolygon};
 use bevy_rapier2d::prelude::*;
@@ -19,9 +20,10 @@ pub struct PlayerPlugin;
 
 const INVENTORY_SIZE: usize = 20;
 
-#[derive(Component, Default, Debug, Inspectable, Clone, PartialEq)]
+#[derive(Component, Default, Debug, Clone, PartialEq)]
 pub struct Inventory {
-    pub items: [Option<ItemAndWeight>; INVENTORY_SIZE]
+    // pub items: HashMap<AstroidMaterial, f32>,
+    pub items: [Option<ItemAndWeight>; 20]
 }
 
 #[derive(Component, Default, Debug, Inspectable, Copy, Clone, PartialEq)]
@@ -64,35 +66,68 @@ impl Player {
     }
 
     // I'd rather have the inventory be a hashmap, but was struggling with bevy-inspector traits
-    pub fn add_to_inventory(&mut self, mut inventory: ResMut<Binding<Inventory>>, material: AstroidMaterial, weight: f32) {
-        let mut current_inventory = inventory.get();
+    pub fn add_to_inventory(&mut self, mut inventory: ResMut<Inventory>, material: AstroidMaterial, weight: f32) {
+        // let mut current_inventory = inventory.get();
+        let mut current_inventory = inventory.items;
+
+        let mut temp_hash_map = HashMap::new();
+
+        for item in current_inventory.into_iter() {
+            if item.is_some() {
+                temp_hash_map.insert(item.unwrap().item, item.unwrap().weight);
+            }
+        }
+
+        // let inventory_items = current_inventory.items.iter().map(|item|)
+
         println!("BEFORE: {:?}", current_inventory);
 
 
-        let mut item_found = false;
-        let mut ci = current_inventory.items;
-        for item in ci.iter_mut() {
-            if let Some(mut item) = item {
-                if item.item == material {
-                    item_found = true;
-                    item.weight += weight;
-                    break;
-                }
-            }
+        if let Some(value) = temp_hash_map.get_mut(&material) {
+            *value = *value + weight;
+        } else {
+            temp_hash_map.insert(material, weight);
         }
 
-        if !item_found {
-            for item in ci.iter_mut() {
-                if item.is_none() {
-                    *item = Some(ItemAndWeight{item: material, weight: weight});
-                    break;
-                }
-            }
+        let mut updated_inventory: Vec<Option<ItemAndWeight>> = temp_hash_map.into_iter().map(|(k, v)| Some(ItemAndWeight {item: k, weight: v})).collect();
+        println!("AFTER: {:?}", updated_inventory);
+
+        while updated_inventory.len() < 20
+        {
+            updated_inventory.push(None);
         }
 
-        inventory.set(Inventory{items: ci.clone()});
-        let mut current_inventory = inventory.get();
-        println!("AFTER: {:?}", current_inventory);
+        inventory.items = updated_inventory.try_into().unwrap_or_else(|v: Vec<Option<ItemAndWeight>>| panic!("Expected a Vec of length {} but it was {}", 4, v.len()));
+
+        // inventory.set(Inventory{items: updated_inventory.clone()});
+
+        // println!("BEFORE: {:?}", current_inventory);
+
+
+        // let mut item_found = false;
+        // let mut ci = current_inventory.items;
+        // for item in ci.iter_mut() {
+        //     if let Some(mut item) = item {
+        //         if item.item == material {
+        //             item_found = true;
+        //             item.weight += weight;
+        //             break;
+        //         }
+        //     }
+        // }
+
+        // if !item_found {
+        //     for item in ci.iter_mut() {
+        //         if item.is_none() {
+        //             *item = Some(ItemAndWeight{item: material, weight: weight});
+        //             break;
+        //         }
+        //     }
+        // }
+
+        // inventory.set(Inventory{items: ci.clone()});
+        // let mut current_inventory = inventory.get();
+        // println!("AFTER: {:?}", current_inventory);
 
 
         
