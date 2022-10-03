@@ -112,7 +112,7 @@ fn UIInventory() {
     rsx! {
         <Window position={(1080.0, 0.0)} size={(200.0, 300.0)} title={"Inventory".to_string()}>
             <Element>
-                {VecTracker::from(inventory.iter().map(|item| {
+                {VecTracker::from(inventory.iter().filter(|item| item.is_some()).map(|item| {
                     constructor! {
                         <Text content={format!("{:?}", item.clone())} size={16.0} />
                     }
@@ -121,7 +121,6 @@ fn UIInventory() {
         </Window>
     }
 }
-
 
 fn setup(
     mut commands: Commands,

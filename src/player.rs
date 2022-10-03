@@ -26,7 +26,7 @@ pub struct Inventory {
     pub items: [Option<ItemAndWeight>; 20]
 }
 
-#[derive(Component, Default, Debug, Inspectable, Copy, Clone, PartialEq)]
+#[derive(Component, Default, Debug, Inspectable, Copy, Clone, PartialEq, PartialOrd)]
 pub struct ItemAndWeight {
     pub item: AstroidMaterial,
     pub weight: f32
@@ -87,6 +87,11 @@ impl Player {
         }
 
         let mut updated_inventory: Vec<Option<ItemAndWeight>> = temp_hash_map.into_iter().map(|(k, v)| Some(ItemAndWeight {item: k, weight: v})).collect();
+        updated_inventory.sort_by(|a, b| {
+            let a = a.unwrap();
+            let b = b.unwrap();
+            a.item.partial_cmp(&b.item).unwrap()
+        });
         while updated_inventory.len() < 20
         {
             updated_inventory.push(None);

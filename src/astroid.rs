@@ -44,7 +44,7 @@ impl AstroidSize {
     }
 }
 
-#[derive(Component, Inspectable, Reflect, FromReflect, Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
+#[derive(Component, Inspectable, Reflect, FromReflect, Default, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd)]
 pub enum AstroidMaterial {
     #[default]
     Rock,
