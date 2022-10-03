@@ -8,7 +8,7 @@ use rand::seq::SliceRandom;
 use std::cmp::Ordering;
 use std::f32::consts::{PI};
 use std::fmt;
-use crate::player::Inventory;
+use crate::inventory::{Inventory, InventoryPlugin};
 use crate::{ Player, PIXELS_PER_METER };
 use crate::healthbar::Health;
 
@@ -231,7 +231,7 @@ impl AstroidPlugin {
         mut astroid_query: Query<(Entity, &Astroid, &ReadMassProperties), With<Astroid>>,
         mut player_query: Query<(Entity, &mut Player), With<Player>>,
         mut contact_events: EventReader<CollisionEvent>,
-        inventory_resource: ResMut<Inventory>,
+        mut inventory_resource: ResMut<Inventory>,
         mut commands: Commands
     ) {
         let (player_ent, mut player) = player_query.single_mut();
@@ -248,7 +248,7 @@ impl AstroidPlugin {
                                 println!("Hit ore chunk, let's collect it!");
                                 commands.entity(astroid_entity).despawn_recursive();
                                 let ore_chunk_mass = mass_properties.0.mass;
-                                player.add_to_inventory(inventory_resource, astroid.material, ore_chunk_mass);
+                                inventory_resource.add_to_inventory(astroid.material, ore_chunk_mass);
                             }
                             AstroidSize::Small => {
                                 println!("Hit small Astroid");

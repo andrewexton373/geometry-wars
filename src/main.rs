@@ -21,7 +21,7 @@ use kayak_ui::core::{
 use kayak_ui::widgets::{App as KayakApp, OnChange, SpinBox, SpinBoxStyle, Text, TextBox, Window, Element};
 
 mod player;
-use player::{ PlayerPlugin, Player, Inventory, ItemAndWeight };
+use player::{ PlayerPlugin, Player };
 
 mod astroid;
 use astroid::{AstroidPlugin, AstroidMaterial};
@@ -37,6 +37,9 @@ use healthbar::HealthBarPlugin;
 
 mod base_station;
 use base_station::BaseStationPlugin;
+
+mod inventory;
+use inventory::{InventoryPlugin , Inventory, ItemAndWeight};
 
 // Defines the amount of time that should elapse between each physics step.
 const TIME_STEP: f32 = 1.0 / 60.0;
@@ -61,6 +64,7 @@ fn main() {
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(ShapePlugin)
         .add_plugin(PlayerPlugin)
+        .add_plugin(InventoryPlugin)
         .add_plugin(BaseStationPlugin)
         .add_plugin(AstroidPlugin)
         .add_plugin(ProjectilePlugin)
@@ -89,10 +93,6 @@ pub struct UIItems {
 }
 
 fn update_inventory_ui(
-    // inventory_query: Query<
-    //     &Inventory,
-    //     Changed<Inventory>
-    // >,
     inventory_res: Res<Inventory>,
     ui_items: Res<Binding<UIItems>>,
 ) {
