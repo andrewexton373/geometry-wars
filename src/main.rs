@@ -32,9 +32,6 @@ use projectile::{ProjectilePlugin};
 mod crosshair;
 use crosshair::CrosshairPlugin;
 
-mod healthbar;
-use healthbar::HealthBarPlugin;
-
 mod player_stats_bar;
 use player_stats_bar::PlayerStatsBarPlugin;
 
@@ -75,7 +72,6 @@ fn main() {
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_startup_system(setup)
         .add_system(camera_follows_player)
-        .add_plugin(HealthBarPlugin)
         .add_plugin(PlayerStatsBarPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER))
         .add_plugin(RapierDebugRenderPlugin::default())

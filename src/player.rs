@@ -8,7 +8,6 @@ use std::f32::consts::PI;
 use crate::player_stats_bar::PlayerStatsBarPlugin;
 use crate::{PIXELS_PER_METER, GameCamera};
 use crate::astroid::{Collectible};
-use crate::healthbar::{HealthBarPlugin};
 use crate::projectile::{ProjectilePlugin};
 use crate::crosshair::Crosshair;
 use crate::astroid::AstroidMaterial;
