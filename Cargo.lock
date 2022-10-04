@@ -837,9 +837,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_stat_bars"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0c00ef9b740c8da87a353309d5be87f689811934f916db260e31fb11f84db9a"
+checksum = "c21b05c8fb6d154cf28b1f7e2432c3945d9720d26c657fcdc0de1bc5e63a622c"
 dependencies = [
  "bevy",
  "copyless",

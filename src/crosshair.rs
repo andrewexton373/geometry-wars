@@ -38,7 +38,8 @@ impl CrosshairPlugin {
                     scale: Vec3::new(1.0, 1.0, 1.0),
                     ..Default::default()
                 }
-            )).id();
+            ))
+            .insert(Name::new("Crosshair")).id();
     }
 
     fn draw_crasshair(

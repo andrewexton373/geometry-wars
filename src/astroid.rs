@@ -10,7 +10,7 @@ use std::f32::consts::{PI};
 use std::fmt;
 use crate::inventory::{Inventory, InventoryPlugin};
 use crate::{ Player, PIXELS_PER_METER };
-use crate::healthbar::Health;
+use crate::player::Health;
 
 pub struct AstroidPlugin;
 
@@ -43,6 +43,12 @@ impl AstroidSize {
         }
     }
 }
+
+// impl fmt::Display for AstroidSize {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         write!(f, "({})", self)
+//     }
+// }
 
 #[derive(Component, Inspectable, Reflect, FromReflect, Default, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd)]
 pub enum AstroidMaterial {
@@ -183,7 +189,9 @@ impl AstroidPlugin {
             .insert(Transform::from_xyz(position.x, position.y, 0.0))
             .insert(ActiveEvents::COLLISION_EVENTS)
             .insert(ReadMassProperties(MassProperties::default()))
-            .insert(Restitution::coefficient(0.01)).id();
+            .insert(Restitution::coefficient(0.01))
+            .insert(Name::new("Astroid"))
+            .id();
 
         // If the astroid is an ore chunk, add Collectible Tag
         if astroid.size == AstroidSize::OreChunk {

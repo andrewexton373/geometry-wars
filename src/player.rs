@@ -5,15 +5,22 @@ use bevy_prototype_lyon::prelude as lyon;
 use bevy::render::camera::RenderTarget;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use std::f32::consts::PI;
+use crate::player_stats_bar::PlayerStatsBarPlugin;
 use crate::{PIXELS_PER_METER, GameCamera};
 use crate::astroid::{Collectible};
-use crate::healthbar::Health;
+use crate::healthbar::{HealthBarPlugin};
 use crate::projectile::{ProjectilePlugin};
 use crate::crosshair::Crosshair;
 use crate::astroid::AstroidMaterial;
 use crate::inventory::{Inventory, ItemAndWeight};
 
 pub struct PlayerPlugin;
+
+#[derive(Component, Inspectable, Reflect, Default, Clone, Copy, Debug)]
+pub struct Health {
+    pub current: f32,
+    pub maximum: f32,
+}
 
 #[derive(Component, Inspectable, Default)]
 pub struct Player {
@@ -31,7 +38,6 @@ impl Player {
             delta_y: 0.0,
             delta_rotation: 0.0,
             health: Health { current: 100.0, maximum: 100.0 },
-            // inventory: Inventory { items: [None; INVENTORY_SIZE] }
         }
     }
 
@@ -73,7 +79,7 @@ impl PlayerPlugin {
             closed: true
         };
 
-        let _player = commands.spawn()
+        let player = commands.spawn()
             .insert(Player::new())
             .insert_bundle(lyon::GeometryBuilder::build_as(
                 &player_shape,
@@ -93,6 +99,10 @@ impl PlayerPlugin {
             .insert(Restitution::coefficient(1.0))
             .insert(Name::new("Player"))
             .id();
+
+        PlayerStatsBarPlugin::spawn_player_health_statbar(&mut commands, player);
+        PlayerStatsBarPlugin::spawn_ship_capacity_statbar(&mut commands, player);
+
     }
 
     fn player_movement(

@@ -35,11 +35,14 @@ use crosshair::CrosshairPlugin;
 mod healthbar;
 use healthbar::HealthBarPlugin;
 
+mod player_stats_bar;
+use player_stats_bar::PlayerStatsBarPlugin;
+
 mod base_station;
 use base_station::BaseStationPlugin;
 
 mod inventory;
-use inventory::{InventoryPlugin , Inventory, ItemAndWeight};
+use inventory::{InventoryPlugin , Inventory, ItemAndWeight, INVENTORY_SIZE};
 
 // Defines the amount of time that should elapse between each physics step.
 const TIME_STEP: f32 = 1.0 / 60.0;
@@ -69,17 +72,17 @@ fn main() {
         .add_plugin(AstroidPlugin)
         .add_plugin(ProjectilePlugin)
         .add_plugin(CrosshairPlugin)
-        .add_plugin(StatBarsPlugin)
-        .add_plugin(HealthBarPlugin)
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_startup_system(setup)
         .add_system(camera_follows_player)
+        .add_plugin(HealthBarPlugin)
+        .add_plugin(PlayerStatsBarPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER))
         .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(OverlayPlugin { font_size: 18.0, ..default() })
         .add_plugin(BevyKayakUIPlugin)
-        // .add_system(screen_print_debug_text)
+        .add_system(screen_print_debug_text)
         .add_system(update_inventory_ui)
         .run();
 }
@@ -89,7 +92,7 @@ pub struct InventoryText;
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct UIItems {
-    pub inventory_items: [Option<ItemAndWeight>; 20],
+    pub inventory_items: [Option<ItemAndWeight>; INVENTORY_SIZE],
 }
 
 fn update_inventory_ui(
@@ -110,11 +113,11 @@ fn UIInventory() {
     let inventory = ui_items.get().inventory_items;
     
     rsx! {
-        <Window position={(1080.0, 0.0)} size={(200.0, 300.0)} title={"Inventory".to_string()}>
+        <Window position={(900.0, 450.0)} size={(200.0, 300.0)} title={"Inventory".to_string()}>
             <Element>
                 {VecTracker::from(inventory.iter().filter(|item| item.is_some()).map(|item| {
                     constructor! {
-                        <Text content={format!("{:?}", item.clone())} size={16.0} />
+                        <Text content={format!("Material: {:?} \n| Net Weight: {}kgs", item.unwrap().item.clone(), item.unwrap().weight)} size={16.0} />
                     }
                 }))}
             </Element>
@@ -149,10 +152,8 @@ fn setup(
                             .insert(Name::new("GameCamera"))
                             .id();
 
-    HealthBarPlugin::attach_player_health_bar(&mut commands, game_camera);
     rapier_config.gravity = Vec2::new(0.0, 0.0);
 
-    commands.insert_resource(Inventory {items: [None; 20]});
 }
 
 fn camera_follows_player(
@@ -169,18 +170,14 @@ fn camera_follows_player(
         mut_trans.y -= player_to_camera.y;
 }
 
-// fn screen_print_debug_text(
-//     diagnostics: Res<Diagnostics>,
-//     player_query: Query<&Player>
-// ) {
-//     if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
-//         if let Some(average) = fps.average() {
-//             // Update the value of the second section
-//             screen_print!(col: Color::WHITE, "fps: {average}");
-//         }
-//     }
-
-//     let player = player_query.single();
-//     let inventory = &player.inventory;
-//     screen_print!(col: Color::LIME_GREEN, "inventory: {inventory:?}");
-// }
+fn screen_print_debug_text(
+    diagnostics: Res<Diagnostics>,
+    player_query: Query<&Player>
+) {
+    if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
+        if let Some(average) = fps.average() {
+            // Update the value of the second section
+            screen_print!(col: Color::WHITE, "fps: {average}");
+        }
+    }
+}

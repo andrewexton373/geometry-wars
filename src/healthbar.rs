@@ -3,10 +3,13 @@ use bevy_stat_bars::*;
 use bevy_inspector_egui::{Inspectable};
 use crate::{ Player };
 
-#[derive(Component, Inspectable, Reflect, Default, Clone, Copy, Debug)]
-pub struct Health {
-    pub current: f32,
-    pub maximum: f32,
+
+
+struct PlayerHealth(f32);
+impl StatbarObservable for PlayerHealth {
+    fn get_statbar_value(&self) -> f32 {
+        self.0
+    }
 }
 
 pub struct HealthBarPlugin;
@@ -14,40 +17,41 @@ pub struct HealthBarPlugin;
 impl Plugin for HealthBarPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_system(Self::update_player_heath_bar);
+            .insert_resource(PlayerHealth(1.0))
+            .add_statbar_resource_observer::<PlayerHealth>()
+            .add_system(Self::update_statbar_value);
     }
 }
 
 impl HealthBarPlugin {
 
-    pub fn attach_player_health_bar(
-        commands: &mut Commands,
-        camera: Entity
+    pub fn spawn_player_health_statbar(
+        mut commands: Commands,
+        player_ent: Entity
     ) {
-        commands.entity(camera)
-            .insert_bundle(StatBarBundle::new(
-                StatBar { 
-                    value: 1.0, 
-                    length: 80.0, 
-                    thickness: 4.0, 
-                    style: StatBarStyle {
-                        bar_color: BarColor::Fixed(Color::GREEN),
-                        empty_color: Color::RED,
-                        ..Default::default()
-                    },  
-                    translation: Vec2::new(0.0, 30.0),                   
+            commands.entity(player_ent)
+            .insert_bundle((
+                Statbar::<PlayerHealth> {
+                    color: Color::GREEN,
+                    empty_color: Color::RED,
+                    length: 80.,
+                    thickness: 8.,
+                    vertical: false,
+                    displacement: 50. * Vec2::Y,
                     ..Default::default()
-                }
-            ));
+                },
+                StatbarBorder::<PlayerHealth>::all(Color::WHITE, 2.0),
+            ))
+            .insert_bundle(SpatialBundle::default());        
     }
-
-    fn update_player_heath_bar(
+    
+    fn update_statbar_value(
         player_query: Query<&Player>,
-        mut camera_stat_bar_query: Query<&mut StatBar, With<Camera2d>>
+        mut player_health: ResMut<PlayerHealth>,
     ) {
         let player = player_query.single();
-        let mut stat_bar = camera_stat_bar_query.single_mut();
-
-        stat_bar.value = player.health.current / player.health.maximum;
+        player_health.0 = player.health.current / player.health.maximum;
+        player_health.0 = player_health.0.clamp(0.0, 1.0);
     }
+
 }

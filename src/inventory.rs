@@ -1,31 +1,49 @@
 use bevy::utils::HashMap;
 use bevy::{prelude::*};
-use bevy_rapier2d::prelude::*;
-use bevy_prototype_lyon::prelude as lyon;
-use bevy::render::camera::RenderTarget;
-use bevy_inspector_egui::{Inspectable, RegisterInspectable};
-use std::f32::consts::PI;
-use crate::{PIXELS_PER_METER, GameCamera};
-use crate::astroid::{Collectible};
-use crate::healthbar::Health;
-use crate::projectile::{ProjectilePlugin};
-use crate::crosshair::Crosshair;
+
+use bevy_inspector_egui::{Inspectable};
 use crate::astroid::AstroidMaterial;
 use std::fmt;
 
+#[derive(Component, Default, Debug, Clone, PartialEq)]
+pub struct Capacity {
+    pub maximum: f32
+}
 
-const INVENTORY_SIZE: usize = 20;
+pub const INVENTORY_SIZE: usize = 20;
 
 #[derive(Component, Default, Debug, Clone, PartialEq)]
 pub struct Inventory {
-    // pub items: HashMap<AstroidMaterial, f32>,
-    pub items: [Option<ItemAndWeight>; 20]
+    pub items: [Option<ItemAndWeight>; INVENTORY_SIZE],
+    pub capacity: Capacity
 }
 
 impl Inventory {
+
+    pub fn remaining_capacity(&self) -> f32 {
+        self.capacity.maximum - self.gross_material_weight()
+    }
+
+    /// Returns the current gross weight of materials in the inventory
+    pub fn gross_material_weight(&self) -> f32 {
+        let mut gross_weight = 0.0;
+        for material in self.items.iter() {
+            if let Some(material) = material {
+                gross_weight += material.weight;
+            }
+        }
+        gross_weight
+    }
+
     // I'd rather have the inventory be a hashmap, but was struggling with bevy-inspector traits
     pub fn add_to_inventory(&mut self, material: AstroidMaterial, weight: f32) {
-        let mut current_inventory = self.items;
+
+        if weight > self.remaining_capacity() {
+            println!("NOT ENOUGH SHIP CAPACITY! Remaining Capacity: {}", self.remaining_capacity());
+            return;
+        }
+
+        let current_inventory = self.items;
         let mut temp_hash_map = HashMap::new();
 
         // Fill temp hash map with current inventory items
@@ -76,12 +94,16 @@ pub struct InventoryPlugin;
 
 impl Plugin for InventoryPlugin {
     fn build(&self, app: &mut App) {
-
+        app.add_startup_system(Self::setup_inventory);
     }
 }
 
 impl InventoryPlugin {
 
-        
+        fn setup_inventory(mut commands: Commands) {
+            commands.insert_resource(Inventory {
+                                        items: [None; INVENTORY_SIZE],
+                                        capacity: Capacity { maximum: 1000.0 }});
+        }
 
 }
