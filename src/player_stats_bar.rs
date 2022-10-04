@@ -73,19 +73,20 @@ impl PlayerStatsBarPlugin {
     }
     
     fn update_statbar_values(
-        player_query: Query<&Player>,
-        inventory_res: Res<Inventory>,
-
+        player_query: Query<(&Player, &Inventory), With<Player>>,
+        // inventory_res: Res<Inventory>,
         mut player_health: ResMut<PlayerHealth>,
         mut player_ship_capacity: ResMut<PlayerShipCapacity>,
 
     ) {
-        let player = player_query.single();
+        let (player, inventory) = player_query.single();
 
         player_health.0 = player.health.current / player.health.maximum;
         player_health.0 = player_health.0.clamp(0.0, 1.0);
 
-        player_ship_capacity.0 = 1.0 - inventory_res.remaining_capacity() / inventory_res.capacity.maximum;
+        // player_ship_capacity.0 = 1.0 - inventory_res.remaining_capacity() / inventory_res.capacity.maximum;
+        player_ship_capacity.0 = 1.0 - inventory.remaining_capacity() / inventory.capacity.maximum;
+
         player_ship_capacity.0 = player_ship_capacity.0.clamp(0.0, 1.0);
     }
 

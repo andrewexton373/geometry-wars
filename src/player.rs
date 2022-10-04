@@ -5,14 +5,14 @@ use bevy_prototype_lyon::prelude as lyon;
 use bevy::render::camera::RenderTarget;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use std::f32::consts::PI;
-use crate::base_station::CanDeposit;
+use crate::base_station::{CanDeposit, BaseStation};
 use crate::player_stats_bar::PlayerStatsBarPlugin;
 use crate::{PIXELS_PER_METER, GameCamera};
 use crate::astroid::{Collectible};
 use crate::projectile::{ProjectilePlugin};
 use crate::crosshair::Crosshair;
 use crate::astroid::AstroidMaterial;
-use crate::inventory::{Inventory, ItemAndWeight};
+use crate::inventory::{Inventory, ItemAndWeight, InventoryPlugin, INVENTORY_SIZE, Capacity};
 
 pub struct PlayerPlugin;
 
@@ -72,7 +72,7 @@ impl PlayerPlugin {
         let points = vec![
             Vec2 {x: 0.0, y: 2.0 * crate::PIXELS_PER_METER},
             Vec2 {x: 1.0 * crate::PIXELS_PER_METER, y: -1.0 * crate::PIXELS_PER_METER},
-            Vec2{x: -1.0 * crate::PIXELS_PER_METER, y: -1.0 * crate::PIXELS_PER_METER}
+            Vec2 {x: -1.0 * crate::PIXELS_PER_METER, y: -1.0 * crate::PIXELS_PER_METER}
         ];
 
         let player_shape = lyon::shapes::Polygon {
@@ -103,6 +103,8 @@ impl PlayerPlugin {
             .insert(Restitution::coefficient(1.0))
             .insert(Name::new("Player"))
             .id();
+
+        InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: [None; INVENTORY_SIZE], capacity: Capacity {maximum: 200.0}}, player);
 
         PlayerStatsBarPlugin::spawn_player_health_statbar(&mut commands, player);
         PlayerStatsBarPlugin::spawn_ship_capacity_statbar(&mut commands, player);
@@ -239,12 +241,28 @@ impl PlayerPlugin {
 
     fn player_deposit_control(
         kb: Res<Input<KeyCode>>,
-        can_deposit: Res<CanDeposit>
+        can_deposit: Res<CanDeposit>,
+        mut player_query: Query<&mut Inventory, (With<Player>, Without<BaseStation>)>,
+        mut base_station_query: Query<&mut Inventory, (With<BaseStation>, Without<Player>)>
     ) {
         // If player pressed space and they're in depositing range
         if kb.just_pressed(KeyCode::Space) && can_deposit.0 {
-            // TODO: Deposit into Base Station
-            println!("Deposit the inventory!");
+            let mut player_inventory = player_query.single_mut();
+            let mut base_station_inventory = base_station_query.single_mut();
+
+            let mut removed = Vec::<AstroidMaterial>::new();
+
+            for item in player_inventory.items.iter() {
+                if let Some(item) = item {
+                    base_station_inventory.add_to_inventory(item.item, item.weight);
+                    removed.push(item.item);
+                }
+            }
+
+            for r in removed.iter() {
+                player_inventory.remove_from_inventory(*r);
+                println!("DEPOSITED: {:?}", r);
+            }
         }
     }
 

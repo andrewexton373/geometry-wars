@@ -93,13 +93,16 @@ pub struct UIItems {
 }
 
 fn update_ui_data(
-    inventory_res: Res<Inventory>,
+    player_inventory_query: Query<&Inventory, With<Player>>,
     can_deposit_res: Res<CanDeposit>,
     ui_items: Res<Binding<UIItems>>,
 ) {
+
+    let (player_inventory) = player_inventory_query.single();
+
     // update ui by updating binding object
     ui_items.set(UIItems {
-        inventory_items: inventory_res.items.clone(),
+        inventory_items: player_inventory.items.clone(),
         can_deposit: can_deposit_res.0
     });    
 }

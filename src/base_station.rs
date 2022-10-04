@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::{self as lyon};
 use bevy_rapier2d::prelude::{Velocity, Collider, Sleeping, Sensor, CollisionEvent, ActiveEvents, RapierContext};
 
-use crate::{astroid::{Astroid}, PIXELS_PER_METER, player::Player};
+use crate::{astroid::{Astroid}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin}};
 
 pub const BASE_STATION_SIZE: f32 = 20.0;
 
@@ -38,7 +38,7 @@ impl BaseStationPlugin {
             ..lyon::shapes::RegularPolygon::default()
         };
     
-        let _base_station = commands.spawn()
+        let base_station = commands.spawn()
             .insert_bundle(lyon::GeometryBuilder::build_as(
                 &base_shape,
                 lyon::DrawMode::Outlined {
@@ -58,6 +58,9 @@ impl BaseStationPlugin {
             .insert(BaseStation)
             .insert(Name::new("Base Station"))
             .id();
+
+        InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: [None; 20], capacity: Capacity {maximum: 200.0}}, base_station);
+
     }
 
 

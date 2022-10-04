@@ -3,6 +3,7 @@ use bevy::{prelude::*};
 
 use bevy_inspector_egui::{Inspectable};
 use crate::astroid::AstroidMaterial;
+use crate::player::Player;
 use std::fmt;
 
 #[derive(Component, Default, Debug, Clone, PartialEq)]
@@ -36,11 +37,11 @@ impl Inventory {
     }
 
     // I'd rather have the inventory be a hashmap, but was struggling with bevy-inspector traits
-    pub fn add_to_inventory(&mut self, material: AstroidMaterial, weight: f32) {
+    pub fn add_to_inventory(&mut self, material: AstroidMaterial, weight: f32) -> bool {
 
         if weight > self.remaining_capacity() {
             println!("NOT ENOUGH SHIP CAPACITY! Remaining Capacity: {}", self.remaining_capacity());
-            return;
+            false;
         }
 
         let current_inventory = self.items;
@@ -74,6 +75,39 @@ impl Inventory {
         }
 
         self.items = updated_inventory.try_into().unwrap_or_else(|v: Vec<Option<ItemAndWeight>>| panic!("Expected a Vec of length {} but it was {}", 20, v.len()));
+        
+        true
+    }
+
+    pub fn remove_from_inventory(&mut self, material: AstroidMaterial) -> Option<f32> {
+
+        let current_inventory = self.items;
+        let mut temp_hash_map = HashMap::new();
+
+        // Fill temp hash map with current inventory items
+        for item in current_inventory.into_iter() {
+            if item.is_some() {
+                temp_hash_map.insert(item.unwrap().item, item.unwrap().weight);
+            }
+        }
+
+        let result = temp_hash_map.remove(&material);
+
+        let mut updated_inventory: Vec<Option<ItemAndWeight>> = temp_hash_map.into_iter().map(|(k, v)| Some(ItemAndWeight {item: k, weight: v})).collect();
+        updated_inventory.sort_by(|a, b| {
+            let a = a.unwrap();
+            let b = b.unwrap();
+            a.item.partial_cmp(&b.item).unwrap()
+        });
+        while updated_inventory.len() < 20
+        {
+            updated_inventory.push(None);
+        }
+
+        self.items = updated_inventory.try_into().unwrap_or_else(|v: Vec<Option<ItemAndWeight>>| panic!("Expected a Vec of length {} but it was {}", 20, v.len()));
+
+
+        result
 
     }
 }
@@ -94,7 +128,8 @@ pub struct InventoryPlugin;
 
 impl Plugin for InventoryPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(Self::setup_inventory);
+        app
+            .add_startup_system(Self::setup_inventory);
     }
 }
 
@@ -104,6 +139,10 @@ impl InventoryPlugin {
             commands.insert_resource(Inventory {
                                         items: [None; INVENTORY_SIZE],
                                         capacity: Capacity { maximum: 1000.0 }});
+        }
+
+        pub fn attach_inventory_to_entity(mut commands: &mut Commands, inventory: Inventory, entity: Entity) {
+            commands.entity(entity).insert(inventory);
         }
 
 }

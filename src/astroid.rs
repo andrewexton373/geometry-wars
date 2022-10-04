@@ -8,7 +8,7 @@ use rand::seq::SliceRandom;
 use std::cmp::Ordering;
 use std::f32::consts::{PI};
 use std::fmt;
-use crate::inventory::{Inventory, InventoryPlugin};
+use crate::inventory::{Inventory, InventoryPlugin, self};
 use crate::{ Player, PIXELS_PER_METER };
 use crate::player::Health;
 
@@ -237,12 +237,12 @@ impl AstroidPlugin {
 
     fn handle_astroid_collision_event(
         mut astroid_query: Query<(Entity, &Astroid, &ReadMassProperties), With<Astroid>>,
-        mut player_query: Query<(Entity, &mut Player), With<Player>>,
+        mut player_query: Query<(Entity, &mut Player, &mut Inventory), With<Player>>,
         mut contact_events: EventReader<CollisionEvent>,
-        mut inventory_resource: ResMut<Inventory>,
+        // mut inventory_resource: ResMut<Inventory>,
         mut commands: Commands
     ) {
-        let (player_ent, mut player) = player_query.single_mut();
+        let (player_ent, mut player, mut inventory) = player_query.single_mut();
 
         for contact_event in contact_events.iter() {
             for (astroid_entity, astroid, mass_properties) in astroid_query.iter_mut() {
@@ -254,9 +254,13 @@ impl AstroidPlugin {
                         match astroid.size {
                             AstroidSize::OreChunk => {
                                 println!("Hit ore chunk, let's collect it!");
-                                commands.entity(astroid_entity).despawn_recursive();
+                                // commands.entity(astroid_entity).despawn_recursive();
                                 let ore_chunk_mass = mass_properties.0.mass;
-                                inventory_resource.add_to_inventory(astroid.material, ore_chunk_mass);
+                                // inventory_resource.add_to_inventory(astroid.material, ore_chunk_mass);
+
+                                if inventory.add_to_inventory(astroid.material, ore_chunk_mass) {
+                                    commands.entity(astroid_entity).despawn_recursive();
+                                }
                             }
                             AstroidSize::Small => {
                                 println!("Hit small Astroid");
