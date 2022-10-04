@@ -5,6 +5,7 @@ use bevy_prototype_lyon::prelude as lyon;
 use bevy::render::camera::RenderTarget;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use std::f32::consts::PI;
+use crate::base_station::CanDeposit;
 use crate::player_stats_bar::PlayerStatsBarPlugin;
 use crate::{PIXELS_PER_METER, GameCamera};
 use crate::astroid::{Collectible};
@@ -58,6 +59,7 @@ impl Plugin for PlayerPlugin {
             .add_system(Self::ship_rotate_towards_mouse)
             .add_system(Self::player_fire_weapon)
             .add_system(Self::player_camera_control)
+            .add_system(Self::player_deposit_control)
             .add_system(Self::gravitate_collectibles)
             .register_inspectable::<Player>();
     }
@@ -70,7 +72,7 @@ impl PlayerPlugin {
         let points = vec![
             Vec2 {x: 0.0, y: 2.0 * crate::PIXELS_PER_METER},
             Vec2 {x: 1.0 * crate::PIXELS_PER_METER, y: -1.0 * crate::PIXELS_PER_METER},
-            Vec2{x: -1.0 * crate::PIXELS_PER_METER, y: -1.0* crate::PIXELS_PER_METER}
+            Vec2{x: -1.0 * crate::PIXELS_PER_METER, y: -1.0 * crate::PIXELS_PER_METER}
         ];
 
         let player_shape = lyon::shapes::Polygon {
@@ -86,7 +88,10 @@ impl PlayerPlugin {
                     fill_mode: lyon::FillMode::color(Color::CYAN),
                     outline_mode: lyon::StrokeMode::new(Color::WHITE, 2.0),
                 },
-                Default::default()
+                Transform {
+                    translation: Vec3::new(0.0, 0.0, 100.0),
+                    ..Default::default()
+                }
             ))
             .insert(RigidBody::Dynamic)
             .insert(Velocity::zero())
@@ -229,6 +234,17 @@ impl PlayerPlugin {
             }
     
             projection.scale = log_scale.exp();
+        }
+    }
+
+    fn player_deposit_control(
+        kb: Res<Input<KeyCode>>,
+        can_deposit: Res<CanDeposit>
+    ) {
+        // If player pressed space and they're in depositing range
+        if kb.just_pressed(KeyCode::Space) && can_deposit.0 {
+            // TODO: Deposit into Base Station
+            println!("Deposit the inventory!");
         }
     }
 

@@ -8,7 +8,7 @@ use bevy_rapier2d::{prelude::*, parry::simba::scalar::SupersetOf};
 use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
 
-use kayak_ui::core::{Color as KayakColor, VecTracker, constructor, Binding, Bound, MutableBound};
+use kayak_ui::{core::{Color as KayakColor, VecTracker, constructor, Binding, Bound, MutableBound}, widgets::If};
 
 use kayak_ui::bevy::{BevyContext, BevyKayakUIPlugin, FontMapping, UICameraBundle};
 use kayak_ui::core::{
@@ -36,7 +36,7 @@ mod player_stats_bar;
 use player_stats_bar::PlayerStatsBarPlugin;
 
 mod base_station;
-use base_station::BaseStationPlugin;
+use base_station::{BaseStationPlugin, CanDeposit};
 
 mod inventory;
 use inventory::{InventoryPlugin , Inventory, ItemAndWeight, INVENTORY_SIZE};
@@ -79,7 +79,7 @@ fn main() {
         .add_plugin(OverlayPlugin { font_size: 18.0, ..default() })
         .add_plugin(BevyKayakUIPlugin)
         .add_system(screen_print_debug_text)
-        .add_system(update_inventory_ui)
+        .add_system(update_ui_data)
         .run();
 }
 
@@ -89,15 +89,18 @@ pub struct InventoryText;
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct UIItems {
     pub inventory_items: [Option<ItemAndWeight>; INVENTORY_SIZE],
+    pub can_deposit: bool
 }
 
-fn update_inventory_ui(
+fn update_ui_data(
     inventory_res: Res<Inventory>,
+    can_deposit_res: Res<CanDeposit>,
     ui_items: Res<Binding<UIItems>>,
 ) {
     // update ui by updating binding object
     ui_items.set(UIItems {
-        inventory_items: inventory_res.items.clone()
+        inventory_items: inventory_res.items.clone(),
+        can_deposit: can_deposit_res.0
     });    
 }
 
@@ -107,9 +110,15 @@ fn UIInventory() {
     context.bind(&ui_items);
 
     let inventory = ui_items.get().inventory_items;
+    let can_deposit = ui_items.get().can_deposit;
     
     rsx! {
         <Window position={(900.0, 450.0)} size={(200.0, 300.0)} title={"Inventory".to_string()}>
+
+            <If condition={can_deposit}>
+                <Text content={"Press SPACE to deposit ore.".to_string()} size={16.0} />
+            </If>
+
             <Element>
                 {VecTracker::from(inventory.iter().filter(|item| item.is_some()).map(|item| {
                     constructor! {

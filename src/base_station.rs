@@ -1,9 +1,10 @@
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
-use bevy_rapier2d::prelude::{Velocity, Collider, Sleeping};
+use bevy_prototype_lyon::prelude::{self as lyon};
+use bevy_rapier2d::prelude::{Velocity, Collider, Sleeping, Sensor, CollisionEvent, ActiveEvents, RapierContext};
 
-use crate::{astroid::{Astroid, self}, PIXELS_PER_METER, player::Player};
+use crate::{astroid::{Astroid}, PIXELS_PER_METER, player::Player};
 
+pub const BASE_STATION_SIZE: f32 = 20.0;
 
 #[derive(Component)]
 pub struct BaseStationDirectionIndicator;
@@ -13,13 +14,17 @@ pub struct BaseStationPlugin;
 #[derive(Component)]
 pub struct BaseStation;
 
+pub struct CanDeposit(pub bool);
+
 impl Plugin for BaseStationPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_startup_system(Self::spawn_base_station)
             .add_startup_system(Self::spawn_player_base_guide_arrow)
             .add_system(Self::guide_player_to_base_station)
-            .add_system(Self::repel_astroids_from_base_station);
+            .add_system(Self::repel_astroids_from_base_station)
+            .add_system(Self::handle_base_station_sensor_collision_event)
+            .insert_resource(CanDeposit(true));
     }
 }
 
@@ -29,7 +34,7 @@ impl BaseStationPlugin {
     ) {
         let base_shape = lyon::shapes::RegularPolygon {
             sides: 6,
-            feature: lyon::shapes::RegularPolygonFeature::Radius(crate::PIXELS_PER_METER * 20.0),
+            feature: lyon::shapes::RegularPolygonFeature::Radius(crate::PIXELS_PER_METER * BASE_STATION_SIZE),
             ..lyon::shapes::RegularPolygon::default()
         };
     
@@ -44,10 +49,12 @@ impl BaseStationPlugin {
             ))
             .insert(Sleeping::disabled())
             // .insert(Ccd::enabled())
+            .insert(Collider::ball(crate::PIXELS_PER_METER * BASE_STATION_SIZE))
+            .insert(Sensor)
             // .insert(Collider::triangle(player_shape.feature, b, c)) // Need points of triangle
             // .insert(Collider::ball(crate::PIXELS_PER_METER * 1.0))
             .insert(Transform::default())
-            // .insert(ActiveEvents::COLLISION_EVENTS)
+            .insert(ActiveEvents::COLLISION_EVENTS)
             .insert(BaseStation)
             .insert(Name::new("Base Station"))
             .id();
@@ -121,5 +128,22 @@ impl BaseStationPlugin {
                 astroid_velocity.linvel += repel_vector * distance_weight * REPEL_STRENGTH;
             }
         }
+    }
+
+    fn handle_base_station_sensor_collision_event(
+        rapier_context: Res<RapierContext>,
+        mut can_deposit_res: ResMut<CanDeposit>,
+        mut player_query: Query<(Entity, &mut Player), With<Player>>,
+        mut base_station_query: Query<(Entity, &BaseStation), With<BaseStation>>,
+    ) {
+        let (player_ent, player) = player_query.single();
+        let (base_station_ent, base_station) = base_station_query.single();
+
+        if rapier_context.intersection_pair(player_ent, base_station_ent) == Some(true) {
+            *can_deposit_res = CanDeposit(true);
+        } else {
+            *can_deposit_res = CanDeposit(false);
+        }
+
     }
 }
