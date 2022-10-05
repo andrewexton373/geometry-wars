@@ -28,11 +28,11 @@ impl Inventory {
     /// Returns the current gross weight of materials in the inventory
     pub fn gross_material_weight(&self) -> f32 {
         let mut gross_weight = 0.0;
-        for material in self.items.iter() {
-            if let Some(material) = material {
-                gross_weight += material.weight;
-            }
+
+        for material in self.items.iter().flatten() {
+            gross_weight += material.weight;
         }
+
         gross_weight
     }
 
@@ -41,22 +41,20 @@ impl Inventory {
 
         if weight > self.remaining_capacity() {
             println!("NOT ENOUGH SHIP CAPACITY! Remaining Capacity: {}", self.remaining_capacity());
-            false;
+            return false;
         }
 
         let current_inventory = self.items;
         let mut temp_hash_map = HashMap::new();
 
         // Fill temp hash map with current inventory items
-        for item in current_inventory.into_iter() {
-            if item.is_some() {
-                temp_hash_map.insert(item.unwrap().item, item.unwrap().weight);
-            }
+        for item in current_inventory.into_iter().flatten() {
+            temp_hash_map.insert(item.item, item.weight);
         }
 
         // If hasmap already contains the material, add weight to existing material's weight
         if let Some(value) = temp_hash_map.get_mut(&material) {
-            *value = *value + weight;
+            *value += weight;
         
         // Otherwise add material and it's respective weight as new entry
         } else {
@@ -85,10 +83,8 @@ impl Inventory {
         let mut temp_hash_map = HashMap::new();
 
         // Fill temp hash map with current inventory items
-        for item in current_inventory.into_iter() {
-            if item.is_some() {
-                temp_hash_map.insert(item.unwrap().item, item.unwrap().weight);
-            }
+        for item in current_inventory.into_iter().flatten() {
+            temp_hash_map.insert(item.item, item.weight);
         }
 
         let result = temp_hash_map.remove(&material);

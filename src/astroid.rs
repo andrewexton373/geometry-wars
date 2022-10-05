@@ -138,33 +138,32 @@ impl AstroidPlugin {
         position: Vec2
     ) {
     
-        let astroid_shape: lyon::shapes::Polygon;
-        match size {
+        let astroid_shape = match size {
             AstroidSize::OreChunk => {
-                astroid_shape = lyon::shapes::Polygon {
+                lyon::shapes::Polygon {
                     points: Self::make_valtr_convex_polygon_coords(5, 25.0),
                     closed: true
-                };
+                }
             },
             AstroidSize::Small => {
-                astroid_shape = lyon::shapes::Polygon {
+                lyon::shapes::Polygon {
                     points: Self::make_valtr_convex_polygon_coords(7, 45.0),
                     closed: true
-                };
+                }
             },
             AstroidSize::Medium => {
-                astroid_shape = lyon::shapes::Polygon {
+                lyon::shapes::Polygon {
                     points: Self::make_valtr_convex_polygon_coords(9, 85.0),
                     closed: true
-                };
+                }
             },
             AstroidSize::Large => {
-                astroid_shape = lyon::shapes::Polygon {
+                lyon::shapes::Polygon {
                     points: Self::make_valtr_convex_polygon_coords(11, 100.0),
                     closed: true
-                };
+                }
             }
-        }
+        };
 
         let astroid = Astroid {
             velocity: velocity,
@@ -301,9 +300,9 @@ impl AstroidPlugin {
                 fn random_ore_material() -> AstroidMaterial {
                     let mut rng = rand::thread_rng();
 
-                    let mut material: AstroidMaterial;
+                    // let mut material: AstroidMaterial;
 
-                    let material = match rng.gen::<u8>() % 3 {
+                   match rng.gen::<u8>() % 3 {
                         0 => {
                             AstroidMaterial::Iron
                         },
@@ -316,8 +315,7 @@ impl AstroidPlugin {
                         _ => {
                             AstroidMaterial::Rock
                         }
-                    };
-                    material
+                    }
                 }
 
                 AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, random_ore_material(), right_velocity, astroid_translation);
@@ -440,9 +438,9 @@ impl AstroidPlugin {
 
             signed_area *= 0.5;
 
-            // what...?
-            centroid.x = centroid.x / (6.0 * signed_area);
-            centroid.y = centroid.y / (6.0 * signed_area);
+            // what... why 6.0?
+            centroid.x /= 6.0 * signed_area;
+            centroid.y /= 6.0 * signed_area;
 
             centroid
         }

@@ -105,7 +105,7 @@ impl BaseStationPlugin {
         let rotation = Vec2::Y.angle_between(direction_to_base);
 
         dir_indicator_transform.rotation = Quat::from_rotation_z(rotation);
-        dir_indicator_transform.translation = (player_trans.translation().truncate() + direction_to_base * 100.0).extend(999.0).into();
+        dir_indicator_transform.translation = (player_trans.translation().truncate() + direction_to_base * 100.0).extend(999.0);
         dir_indicator_transform.scale = Vec3::new(0.3, 1.0, 1.0);
     }
     

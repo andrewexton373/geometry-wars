@@ -1,30 +1,20 @@
-#![feature(array_methods)]
+// #![feature(array_methods)]
 
-
-use bevy_stat_bars::*;
-use bevy::{prelude::*, diagnostic::{FrameTimeDiagnosticsPlugin, Diagnostics}, utils::HashMap};
+use bevy::{prelude::*, diagnostic::{FrameTimeDiagnosticsPlugin, Diagnostics}};
 use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
-use bevy_rapier2d::{prelude::*, parry::simba::scalar::SupersetOf};
+use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
 
-use kayak_ui::{core::{Color as KayakColor, VecTracker, constructor, Binding, Bound, MutableBound}, widgets::If};
-
-use kayak_ui::bevy::{BevyContext, BevyKayakUIPlugin, FontMapping, UICameraBundle};
-use kayak_ui::core::{
-    render, rsx,
-    styles::{Style as KayakStyle, StyleProp, Units},
-    widget,
-    use_state,
-    bind
-};
-use kayak_ui::widgets::{App as KayakApp, OnChange, SpinBox, SpinBoxStyle, Text, TextBox, Window, Element};
+mod game_ui;
+use game_ui::GameUIPlugin;
+mod game_ui_widgets;
 
 mod player;
 use player::{ PlayerPlugin, Player };
 
 mod astroid;
-use astroid::{AstroidPlugin, AstroidMaterial};
+use astroid::{AstroidPlugin};
 
 mod projectile;
 use projectile::{ProjectilePlugin};
@@ -36,10 +26,10 @@ mod player_stats_bar;
 use player_stats_bar::PlayerStatsBarPlugin;
 
 mod base_station;
-use base_station::{BaseStationPlugin, CanDeposit, BaseStation};
+use base_station::BaseStationPlugin;
 
 mod inventory;
-use inventory::{InventoryPlugin , Inventory, ItemAndWeight, INVENTORY_SIZE};
+use inventory::InventoryPlugin;
 
 // Defines the amount of time that should elapse between each physics step.
 const TIME_STEP: f32 = 1.0 / 60.0;
@@ -77,116 +67,18 @@ fn main() {
         .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(OverlayPlugin { font_size: 18.0, ..default() })
-        .add_plugin(BevyKayakUIPlugin)
+        .add_plugin(GameUIPlugin)
         .add_system(screen_print_debug_text)
-        .add_system(update_ui_data)
         .run();
-}
-
-#[derive(Component)]
-pub struct InventoryText;
-
-#[derive(Default, Debug, Clone, PartialEq)]
-pub struct UIItems {
-    pub ship_inventory_items: [Option<ItemAndWeight>; INVENTORY_SIZE],
-    pub station_inventory_items: [Option<ItemAndWeight>; INVENTORY_SIZE],
-
-    pub can_deposit: bool
-}
-
-fn update_ui_data(
-    player_inventory_query: Query<&Inventory, (With<Player>, Without<BaseStation>)>,
-    base_station_inventory_query: Query<&Inventory, (With<BaseStation>, Without<Player>)>,
-    can_deposit_res: Res<CanDeposit>,
-    ui_items: Res<Binding<UIItems>>,
-) {
-
-    let (ship_inventory) = player_inventory_query.single();
-    let (station_inventory) = base_station_inventory_query.single();
-
-    // update ui by updating binding object
-    ui_items.set(UIItems {
-        ship_inventory_items: ship_inventory.items.clone(),
-        station_inventory_items: station_inventory.items.clone(),
-        can_deposit: can_deposit_res.0
-    });    
-}
-
-#[widget]
-fn UIShipInventory() {
-    let ui_items = context.query_world::<Res<Binding<UIItems>>, _, _>(move |inventory| inventory.clone());
-    context.bind(&ui_items);
-
-    let inventory = ui_items.get().ship_inventory_items;
-    let can_deposit = ui_items.get().can_deposit;
-    
-    rsx! {
-        <Window position={(900.0, 450.0)} size={(200.0, 300.0)} title={"Ship Inventory".to_string()}>
-
-            <If condition={can_deposit}>
-                <Text content={"Press SPACE to deposit ore.".to_string()} size={16.0} />
-            </If>
-
-            <Element>
-                {VecTracker::from(inventory.iter().filter(|item| item.is_some()).map(|item| {
-                    constructor! {
-                        <Text content={format!("Material: {:?} \n| Net Weight: {}kgs", item.unwrap().item.clone(), item.unwrap().weight)} size={16.0} />
-                    }
-                }))}
-            </Element>
-        </Window>
-    }
-}
-
-
-#[widget]
-fn UIBaseInventory() {
-    let ui_items = context.query_world::<Res<Binding<UIItems>>, _, _>(move |inventory| inventory.clone());
-    context.bind(&ui_items);
-
-    let inventory = ui_items.get().station_inventory_items;
-    
-    rsx! {
-        <Window position={(1100.0, 450.0)} size={(200.0, 300.0)} title={"Station Inventory".to_string()}>
-
-            <Element>
-                {VecTracker::from(inventory.iter().filter(|item| item.is_some()).map(|item| {
-                    constructor! {
-                        <Text content={format!("Material: {:?} \n| Net Weight: {}kgs", item.unwrap().item.clone(), item.unwrap().weight)} size={16.0} />
-                    }
-                }))}
-            </Element>
-        </Window>
-    }
 }
 
 fn setup(
     mut commands: Commands,
     mut rapier_config: ResMut<RapierConfiguration>,
-    asset_server: Res<AssetServer>,
-    mut font_mapping: ResMut<FontMapping>,
 ) {
-    let ui_camera = commands.spawn_bundle(UICameraBundle::new())
-                                    .insert(Name::new("UICamera"));
-
-    font_mapping.set_default(asset_server.load("roboto.kayak_font"));
-    commands.insert_resource(bind(UIItems::default()));
-
-    let context = BevyContext::new(|context| {
-        render! {
-            <KayakApp>
-                <UIShipInventory />
-                <UIBaseInventory />
-            </KayakApp>
-        }
-    });
-
-    commands.insert_resource(context);
-    
-    let game_camera = commands.spawn_bundle(Camera2dBundle::default())
+    commands.spawn_bundle(Camera2dBundle::default())
                             .insert(GameCamera)
-                            .insert(Name::new("GameCamera"))
-                            .id();
+                            .insert(Name::new("GameCamera"));
 
     rapier_config.gravity = Vec2::new(0.0, 0.0);
 
@@ -196,7 +88,7 @@ fn camera_follows_player(
     mut camera_query: Query<(&Camera, &mut GlobalTransform), With<GameCamera>>,
     player_query: Query<&Transform, (With<Player>, Without<GameCamera>)>,
 ){
-    let (_camera, mut camera_trans) = camera_query.single_mut().into();
+    let (_camera, mut camera_trans) = camera_query.single_mut();
     let player_trans = player_query.single();
 
         // TODO: seems sloppy, is there another way?
