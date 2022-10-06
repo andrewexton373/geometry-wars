@@ -8,7 +8,7 @@ use rand::seq::SliceRandom;
 use std::cmp::Ordering;
 use std::f32::consts::{PI};
 use std::fmt;
-use crate::inventory::{Inventory, InventoryPlugin, self};
+use crate::inventory::{Inventory};
 use crate::{ Player, PIXELS_PER_METER };
 use crate::player::Health;
 
@@ -22,7 +22,7 @@ pub struct Astroid {
     pub health: Health
 }
 
-#[derive(Clone, Copy, Inspectable, Debug, PartialEq)]
+#[derive(Clone, Copy, Inspectable, Debug, PartialEq, Eq)]
 pub enum AstroidSize {
     OreChunk,
     Small,
@@ -55,13 +55,18 @@ pub enum AstroidMaterial {
     #[default]
     Rock,
     Iron,
+    Silver,
     Gold,
-    Silver
 }
 
 impl fmt::Display for AstroidMaterial {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({})", self)
+        match *self {
+            AstroidMaterial::Rock => write!(f, "Rock"),
+            AstroidMaterial::Iron => write!(f, "Iron"),
+            AstroidMaterial::Silver => write!(f, "Silver"),
+            AstroidMaterial::Gold => write!(f, "Gold"),
+        }
     }
 }
 
@@ -166,9 +171,9 @@ impl AstroidPlugin {
         };
 
         let astroid = Astroid {
-            velocity: velocity,
-            size: size,
-            material: material,
+            velocity,
+            size,
+            material,
             health: Health {current: 50.0, maximum: 100.0}
         };
     
@@ -206,30 +211,25 @@ impl AstroidPlugin {
 
         for (astroid, mut draw_mode) in astroid_query.iter_mut() {
 
-            match astroid.size {
-                AstroidSize::OreChunk => {
-                    if let DrawMode::Fill(ref mut fill_mode) = *draw_mode {
+            if astroid.size == AstroidSize::OreChunk {
+                if let DrawMode::Fill(ref mut fill_mode) = *draw_mode {
 
-                        match astroid.material {
-                            AstroidMaterial::Iron => {
-                                fill_mode.color = Color::GRAY;
-                            },
-                            AstroidMaterial::Silver => {
-                                fill_mode.color = Color::SILVER;
-                            },
-                            AstroidMaterial::Gold => {
-                                fill_mode.color = Color::GOLD;
-                            },
-                            _ => {}
-                        }
-
+                    match astroid.material {
+                        AstroidMaterial::Iron => {
+                            fill_mode.color = Color::GRAY;
+                        },
+                        AstroidMaterial::Silver => {
+                            fill_mode.color = Color::SILVER;
+                        },
+                        AstroidMaterial::Gold => {
+                            fill_mode.color = Color::GOLD;
+                        },
+                        _ => {}
                     }
-                },
-
-                _ => {
 
                 }
             }
+
         }
 
     }
@@ -392,7 +392,7 @@ impl AstroidPlugin {
         for vec in &vecs {
             x += vec.0 * 1.0;
             y += vec.1 * 1.0;
-            poly_coords.push(Vec2 { x: x, y: y })
+            poly_coords.push(Vec2 {x, y})
         }
 
         fn make_vector_chain(values_array: Vec<f32>, min_value: f32, max_value: f32) -> Vec<f32> {

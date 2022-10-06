@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::{self as lyon};
-use bevy_rapier2d::prelude::{Velocity, Collider, Sleeping, Sensor, CollisionEvent, ActiveEvents, RapierContext};
+use bevy_rapier2d::prelude::{Velocity, Collider, Sleeping, Sensor, ActiveEvents, RapierContext};
 
 use crate::{astroid::{Astroid}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin}};
 
@@ -94,7 +94,7 @@ impl BaseStationPlugin {
         player_query: Query<(&Player, &GlobalTransform), (With<Player>, Without<BaseStation>)>,
         base_query: Query<(&BaseStation, &GlobalTransform), (With<BaseStation>, Without<Player>)>
     ) {
-        let (mut dir_indicator_transform, mut dir_indicator_g_transform) = dir_indicator_query.single_mut();
+        let (mut dir_indicator_transform, dir_indicator_g_transform) = dir_indicator_query.single_mut();
         let (player, player_trans) = player_query.single();
         let (base_station, base_station_trans) = base_query.single();
 
@@ -136,8 +136,8 @@ impl BaseStationPlugin {
     fn handle_base_station_sensor_collision_event(
         rapier_context: Res<RapierContext>,
         mut can_deposit_res: ResMut<CanDeposit>,
-        mut player_query: Query<(Entity, &mut Player), With<Player>>,
-        mut base_station_query: Query<(Entity, &BaseStation), With<BaseStation>>,
+        player_query: Query<(Entity, &mut Player), With<Player>>,
+        base_station_query: Query<(Entity, &BaseStation), With<BaseStation>>,
     ) {
         let (player_ent, player) = player_query.single();
         let (base_station_ent, base_station) = base_station_query.single();

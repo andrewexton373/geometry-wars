@@ -71,8 +71,8 @@ impl GameUIPlugin {
     
         // update ui by updating binding object
         ui_items.set(UIItems {
-            ship_inventory_items: ship_inventory.items.clone(),
-            station_inventory_items: station_inventory.items.clone(),
+            ship_inventory_items: ship_inventory.items,
+            station_inventory_items: station_inventory.items,
             can_deposit: can_deposit_res.0
         });    
     }

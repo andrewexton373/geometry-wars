@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy_stat_bars::*;
-use bevy_inspector_egui::{Inspectable};
 use crate::{ Player, inventory::Inventory };
 
 struct PlayerHealth(f32);
@@ -33,7 +32,7 @@ impl Plugin for PlayerStatsBarPlugin {
 impl PlayerStatsBarPlugin {
 
     pub fn spawn_player_health_statbar(
-        mut commands: &mut Commands,
+        commands: &mut Commands,
         player_ent: Entity
     ) {
         commands.entity(player_ent)
@@ -53,7 +52,7 @@ impl PlayerStatsBarPlugin {
     }
 
     pub fn spawn_ship_capacity_statbar(
-        mut commands: &mut Commands,
+        commands: &mut Commands,
         player_ent: Entity
     ) {
         commands.entity(player_ent)
@@ -74,7 +73,6 @@ impl PlayerStatsBarPlugin {
     
     fn update_statbar_values(
         player_query: Query<(&Player, &Inventory), With<Player>>,
-        // inventory_res: Res<Inventory>,
         mut player_health: ResMut<PlayerHealth>,
         mut player_ship_capacity: ResMut<PlayerShipCapacity>,
 
@@ -84,7 +82,6 @@ impl PlayerStatsBarPlugin {
         player_health.0 = player.health.current / player.health.maximum;
         player_health.0 = player_health.0.clamp(0.0, 1.0);
 
-        // player_ship_capacity.0 = 1.0 - inventory_res.remaining_capacity() / inventory_res.capacity.maximum;
         player_ship_capacity.0 = 1.0 - inventory.remaining_capacity() / inventory.capacity.maximum;
 
         player_ship_capacity.0 = player_ship_capacity.0.clamp(0.0, 1.0);

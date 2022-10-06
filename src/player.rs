@@ -1,4 +1,3 @@
-use bevy::utils::HashMap;
 use bevy::{prelude::*};
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
@@ -12,7 +11,7 @@ use crate::astroid::{Collectible};
 use crate::projectile::{ProjectilePlugin};
 use crate::crosshair::Crosshair;
 use crate::astroid::AstroidMaterial;
-use crate::inventory::{Inventory, ItemAndWeight, InventoryPlugin, INVENTORY_SIZE, Capacity};
+use crate::inventory::{Inventory, InventoryPlugin, INVENTORY_SIZE, Capacity};
 
 pub struct PlayerPlugin;
 
@@ -76,7 +75,7 @@ impl PlayerPlugin {
         ];
 
         let player_shape = lyon::shapes::Polygon {
-            points: points,
+            points,
             closed: true
         };
 
@@ -190,9 +189,8 @@ impl PlayerPlugin {
             if ship_angle_difference > 0.0 {
                 // player.delta_rotation += SPIN_ACCELERATION * (2.0*PI - ship_angle_difference.abs());
                 velocity.angvel += SPIN_ACCELERATION * (2.0*PI - ship_angle_difference.abs());
-            } else
-    
-            if ship_angle_difference < 0.0 {
+            
+            } else if ship_angle_difference < 0.0 {
                 // player.delta_rotation += -SPIN_ACCELERATION * (2.0*PI - ship_angle_difference.abs());
                 velocity.angvel += -SPIN_ACCELERATION * (2.0*PI - ship_angle_difference.abs());
             }
@@ -252,11 +250,9 @@ impl PlayerPlugin {
 
             let mut removed = Vec::<AstroidMaterial>::new();
 
-            for item in player_inventory.items.iter() {
-                if let Some(item) = item {
-                    base_station_inventory.add_to_inventory(item.item, item.weight);
-                    removed.push(item.item);
-                }
+            for item in player_inventory.items.iter().flatten() {
+                base_station_inventory.add_to_inventory(item.item, item.weight);
+                removed.push(item.item);
             }
 
             for r in removed.iter() {

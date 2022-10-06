@@ -3,7 +3,6 @@ use bevy::{prelude::*};
 
 use bevy_inspector_egui::{Inspectable};
 use crate::astroid::AstroidMaterial;
-use crate::player::Player;
 use std::fmt;
 
 #[derive(Component, Default, Debug, Clone, PartialEq)]
@@ -130,15 +129,13 @@ impl Plugin for InventoryPlugin {
 }
 
 impl InventoryPlugin {
-
         fn setup_inventory(mut commands: Commands) {
             commands.insert_resource(Inventory {
                                         items: [None; INVENTORY_SIZE],
                                         capacity: Capacity { maximum: 1000.0 }});
         }
 
-        pub fn attach_inventory_to_entity(mut commands: &mut Commands, inventory: Inventory, entity: Entity) {
+        pub fn attach_inventory_to_entity(commands: &mut Commands, inventory: Inventory, entity: Entity) {
             commands.entity(entity).insert(inventory);
         }
-
 }

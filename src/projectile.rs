@@ -1,10 +1,7 @@
-use std::f32::consts::PI;
-
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
-use rand::Rng;
-use crate::{astroid::{AstroidPlugin, Astroid, AstroidSize, AstroidMaterial}};
+use crate::{astroid::{AstroidPlugin, Astroid}};
 
 const PROJECTILE_RADIUS: f32 = 0.5;
 

@@ -100,7 +100,6 @@ fn camera_follows_player(
 
 fn screen_print_debug_text(
     diagnostics: Res<Diagnostics>,
-    player_query: Query<&Player>
 ) {
     if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(average) = fps.average() {
