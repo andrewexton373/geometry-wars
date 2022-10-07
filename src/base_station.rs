@@ -109,7 +109,7 @@ impl BaseStationPlugin {
         commands.entity(base_station)
             .insert(Refinery::new());
 
-        InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: HashMap::new(), capacity: Capacity {maximum: 200.0}}, base_station);
+        InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: HashMap::new(), capacity: Capacity {maximum: 1000.0}}, base_station);
 
     }
 
@@ -202,8 +202,21 @@ impl BaseStationPlugin {
 
     /// Returns true if the inventory provided has the materials availible to smelt the recipe.
     fn have_materials_to_smelt(inventory: &Inventory, recipe: &RefineryRecipe) -> bool {
+
+        for material_needed in recipe.items_required.iter() {
+
+            println!("Material Needed: {:?}", material_needed);
+            if let Some(material_possessed) = inventory.items.get(material_needed.0) {
+                if material_needed.1 > material_possessed {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+
+        }
     
-        false
+        true
     }
 
     fn on_smelt_event(
@@ -217,7 +230,13 @@ impl BaseStationPlugin {
 
             let recipe = event.0.clone();
             println!("{:?}", recipe);
-            refinery.currently_processing = Some(recipe);
+
+            if Self::have_materials_to_smelt(inventory, &recipe) {
+                println!("We have the materials!");
+                refinery.currently_processing = Some(recipe);
+            } else {
+                println!("We do not have the materials!");
+            }
 
         }
     }
