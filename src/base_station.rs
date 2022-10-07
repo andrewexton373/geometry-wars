@@ -30,9 +30,13 @@ pub struct Refinery {
 impl Refinery {
     pub fn new() -> Self {
         let mut recipes = Vec::new();
+        let mut items_required = HashMap::new();
+
+        items_required.insert(AstroidMaterial::Iron, 100.0);
 
         let iron_recipe = RefineryRecipe {
-            items_required: [Some((AstroidMaterial::Iron, 100.0)), None],
+            items_required,
+            // items_required: [Some((AstroidMaterial::Iron, 100.0)), None],
             item_created: MetalIngot::IronIngot
         };
 
@@ -46,9 +50,9 @@ impl Refinery {
     }
 }
 
-#[derive(Default, Debug, Clone, Copy, PartialEq)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct RefineryRecipe {
-    pub items_required: [Option<(AstroidMaterial, f32)>; 2],
+    pub items_required: HashMap<AstroidMaterial, f32>,
     pub item_created: MetalIngot
 }
 
