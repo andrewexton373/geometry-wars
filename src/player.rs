@@ -1,3 +1,4 @@
+use bevy::utils::HashMap;
 use bevy::{prelude::*};
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
@@ -11,7 +12,7 @@ use crate::astroid::{Collectible};
 use crate::projectile::{ProjectilePlugin};
 use crate::crosshair::Crosshair;
 use crate::astroid::AstroidMaterial;
-use crate::inventory::{Inventory, InventoryPlugin, INVENTORY_SIZE, Capacity};
+use crate::inventory::{Inventory, InventoryPlugin, Capacity};
 
 pub struct PlayerPlugin;
 
@@ -103,7 +104,7 @@ impl PlayerPlugin {
             .insert(Name::new("Player"))
             .id();
 
-        InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: [None; INVENTORY_SIZE], capacity: Capacity {maximum: 200.0}}, player);
+        InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: HashMap::new(), capacity: Capacity {maximum: 200.0}}, player);
 
         PlayerStatsBarPlugin::spawn_player_health_statbar(&mut commands, player);
         PlayerStatsBarPlugin::spawn_ship_capacity_statbar(&mut commands, player);
@@ -248,17 +249,18 @@ impl PlayerPlugin {
             let mut player_inventory = player_query.single_mut();
             let mut base_station_inventory = base_station_query.single_mut();
 
-            let mut removed = Vec::<AstroidMaterial>::new();
+            // let mut removed = Vec::<AstroidMaterial>::new();
 
-            for item in player_inventory.items.iter().flatten() {
-                base_station_inventory.add_to_inventory(item.item, item.weight);
-                removed.push(item.item);
+            for item in player_inventory.clone().items.iter() {
+                base_station_inventory.add_to_inventory(*item.0, *item.1);
+                player_inventory.remove_from_inventory(*item.0);
+                // removed.push(*item.0);
             }
 
-            for r in removed.iter() {
-                player_inventory.remove_from_inventory(*r);
-                println!("DEPOSITED: {:?}", r);
-            }
+            // for r in removed.iter() {
+            //     player_inventory.remove_from_inventory(*r);
+            //     println!("DEPOSITED: {:?}", r);
+            // }
         }
     }
 

@@ -112,7 +112,7 @@ impl BaseStationPlugin {
         commands.entity(base_station)
             .insert(Refinery::new());
 
-        InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: [None; 20], capacity: Capacity {maximum: 200.0}}, base_station);
+        InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: HashMap::new(), capacity: Capacity {maximum: 200.0}}, base_station);
 
     }
 
@@ -203,9 +203,24 @@ impl BaseStationPlugin {
 
     }
 
-    fn on_smelt_event(mut reader: EventReader<SmeltEvent>) {
-        for _ in reader.iter() {
+    /// Returns true if the inventory provided has the materials availible to smelt the recipe.
+    fn have_materials_to_smelt(inventory: &Inventory, recipe: &RefineryRecipe) -> bool {
+    
+        false
+    }
+
+    fn on_smelt_event(
+        mut reader: EventReader<SmeltEvent>,
+        base_station_query: Query<(&BaseStation, &Inventory), With<BaseStation>>
+    ) {
+        let (base_station, inventory) = base_station_query.single();
+
+        for event in reader.iter() {
             println!("Smelt Event Detected!");
+
+            let recipe = event.0.clone();
+            println!("{:?}", recipe);
+
         }
     }
 }

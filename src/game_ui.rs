@@ -8,14 +8,14 @@ use kayak_ui::core::{
 use kayak_ui::widgets::{App as KayakApp};
 
 
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 
-use crate::{game_ui_widgets::{UIShipInventory, UIBaseInventory, UIRefineryView}, inventory::{Inventory, INVENTORY_SIZE, ItemAndWeight}, player::Player, base_station::{BaseStation, CanDeposit, Refinery}};
+use crate::{game_ui_widgets::{UIShipInventory, UIBaseInventory, UIRefineryView}, inventory::{Inventory, ItemAndWeight}, player::Player, base_station::{BaseStation, CanDeposit, Refinery}, astroid::AstroidMaterial};
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct UIItems {
-    pub ship_inventory_items: [Option<ItemAndWeight>; INVENTORY_SIZE],
-    pub station_inventory_items: [Option<ItemAndWeight>; INVENTORY_SIZE],
+    pub ship_inventory_items: HashMap<AstroidMaterial, f32>,
+    pub station_inventory_items: HashMap<AstroidMaterial, f32>,
     pub can_deposit: bool,
     pub refinery: Refinery
 }
@@ -72,11 +72,13 @@ impl GameUIPlugin {
     
         // update ui by updating binding object
         ui_items.set(UIItems {
-            ship_inventory_items: ship_inventory.items,
-            station_inventory_items: station_inventory.items,
+            ship_inventory_items: ship_inventory.items.clone(),
+            station_inventory_items: station_inventory.items.clone(),
             can_deposit: can_deposit_res.0,
             refinery: station_refinery.clone()
-        });    
+        });
+        
+        // println!("{:?}", ui_items);
     }
 
 }

@@ -1,7 +1,7 @@
 use bevy::utils::HashMap;
 use kayak_ui::core::{
     rsx,
-    widget, use_state, Handler,
+    widget, use_state, Handler, use_effect,
 };
 
 use kayak_ui::{core::{VecTracker, constructor, Binding, Bound}, widgets::If};
@@ -28,7 +28,7 @@ pub fn UIShipInventory() {
 
     let inventory = ui_items.get().ship_inventory_items;
     let can_deposit = ui_items.get().can_deposit;
-    
+
     rsx! {
         <Window position={(900.0, 450.0)} size={(200.0, 300.0)} title={"Ship Inventory".to_string()}>
 
@@ -36,17 +36,11 @@ pub fn UIShipInventory() {
                 <Text content={"Press SPACE to deposit ore.".to_string()} size={16.0} />
             </If>
 
-            <Element>
-                {VecTracker::from(inventory.iter().filter(|item| item.is_some()).map(|item| {
-                    constructor! {
-                        <Text content={format!("Material: {:?} \n| Net Weight: {}kgs", item.unwrap().item.clone(), item.unwrap().weight)} size={16.0} />
-                    }
-                }))}
-            </Element>
+            <InventoryItems items={inventory} />
+
         </Window>
     }
 }
-
 
 #[widget]
 pub fn UIBaseInventory() {
@@ -57,15 +51,59 @@ pub fn UIBaseInventory() {
     
     rsx! {
         <Window position={(1100.0, 450.0)} size={(200.0, 300.0)} title={"Station Inventory".to_string()}>
-
-            <Element>
-                {VecTracker::from(inventory.iter().filter(|item| item.is_some()).map(|item| {
-                    constructor! {
-                        <Text content={format!("Material: {:?} \n| Net Weight: {}kgs", item.unwrap().item.clone(), item.unwrap().weight)} size={16.0} />
-                    }
-                }))}
-            </Element>
+            <InventoryItems items={inventory} />
         </Window>
+    }
+}
+
+#[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
+pub struct InventoryItemsProps {
+    pub items: HashMap<AstroidMaterial, f32>
+}
+
+#[widget]
+pub fn InventoryItems(props: InventoryItemsProps) {
+    let InventoryItemsProps { items } = props.clone();
+
+    rsx! {
+        <Element>
+            {VecTracker::from(items.clone().into_iter().enumerate().map(|(index, item)| {
+                constructor! {
+                    // <Text content={format!("Material: {:?} \n| Net Weight: {}kgs", item.item.clone(), item.weight)} size={16.0} />
+                    <InventoryItem item_id={index} item_and_weight={item} />
+                }
+            }))}
+        </Element>
+    }
+}
+
+#[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
+pub struct InventoryItemProps {
+    pub item_id: usize,
+    pub item_and_weight: (AstroidMaterial, f32)
+}
+
+#[widget]
+pub fn InventoryItem(props: InventoryItemProps) {
+
+    let InventoryItemProps {
+        item_id,
+        item_and_weight
+    } = props.clone();
+
+    let background_styles = Style {
+        layout_type: StyleProp::Value(LayoutType::Row),
+        background_color: StyleProp::Value(Color::new(0.176, 0.196, 0.215, 1.0)),
+        height: StyleProp::Value(Units::Auto),
+        top: StyleProp::Value(Units::Pixels(10.0)),
+        padding: StyleProp::Value(Edge::all(Units::Pixels(5.0))),
+        ..Style::default()
+    };
+
+    rsx! {
+        <Background styles={Some(background_styles)}>
+            <Text content={format!("Material: {:?} \n| Net Weight: {}kgs", item_and_weight.0, item_and_weight.1)} size={16.0} />
+        </Background>
     }
 }
 
@@ -114,7 +152,7 @@ pub fn UIRefineryView() {
 
         // <If condition={refinery.currently_processing.is_none()}>
 
-            <Refineables refineables={refinery.recipes.clone().to_vec()} on_create={handle_create} />
+            <Refineables refineables={refinery.recipes.clone()} on_create={handle_create} />
 
         // </If>
 
@@ -152,7 +190,7 @@ pub struct RefineableProps {
     pub on_create: Handler<usize>,
 }
 
-pub struct SmeltEvent(RefineryRecipe);
+pub struct SmeltEvent(pub RefineryRecipe);
 
 #[widget]
 pub fn Refineable(props: RefineableProps) {
