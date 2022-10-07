@@ -98,11 +98,8 @@ impl BaseStationPlugin {
                 Transform { translation: Vec3::new(0.0, 0.0, -1.0), ..Default::default() }
             ))
             .insert(Sleeping::disabled())
-            // .insert(Ccd::enabled())
             .insert(Collider::ball(crate::PIXELS_PER_METER * BASE_STATION_SIZE))
             .insert(Sensor)
-            // .insert(Collider::triangle(player_shape.feature, b, c)) // Need points of triangle
-            // .insert(Collider::ball(crate::PIXELS_PER_METER * 1.0))
             .insert(Transform::default())
             .insert(ActiveEvents::COLLISION_EVENTS)
             .insert(BaseStation)
@@ -211,15 +208,16 @@ impl BaseStationPlugin {
 
     fn on_smelt_event(
         mut reader: EventReader<SmeltEvent>,
-        base_station_query: Query<(&BaseStation, &Inventory), With<BaseStation>>
+        mut base_station_query: Query<(&BaseStation, &Inventory, &mut Refinery), With<BaseStation>>
     ) {
-        let (base_station, inventory) = base_station_query.single();
+        let (base_station, inventory, mut refinery) = base_station_query.single_mut();
 
         for event in reader.iter() {
             println!("Smelt Event Detected!");
 
             let recipe = event.0.clone();
             println!("{:?}", recipe);
+            refinery.currently_processing = Some(recipe);
 
         }
     }

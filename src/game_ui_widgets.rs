@@ -137,7 +137,7 @@ pub fn UIRefineryView() {
     let ui_items = context.query_world::<Res<Binding<UIItems>>, _, _>(move |ui_items| ui_items.clone());
     context.bind(&ui_items);
 
-    let refinery = ui_items.get().refinery;
+    let refinery = ui_items.get().refinery.clone();
 
     let handle_create = Handler::new(move |refineable_id: usize| {
         println!("CRAFT REFINEABLE! {}", refineable_id);
@@ -146,17 +146,26 @@ pub fn UIRefineryView() {
     rsx! {
         <Window position={(0.0, 450.0)} size={(400.0, 300.0)} title={"Station Refinery".to_string()}>
 
-        // <If condition={refinery.currently_processing.is_some()}>
-        //     <Text content={format!("Currently Processing: {:?}\n Into BLANK Ingot", refinery.currently_processing.clone())} size={16.0} />
-        // </If>
-
-        // <If condition={refinery.currently_processing.is_none()}>
-
+            <CurrentlyProcessing currently_processing={refinery.currently_processing.clone()} />
             <Refineables refineables={refinery.recipes.clone()} on_create={handle_create} />
 
-        // </If>
-
         </Window>
+    }
+}
+
+#[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
+pub struct CurrentlyProcessingProps {
+    pub currently_processing: Option<RefineryRecipe>
+}
+
+#[widget]
+pub fn CurrentlyProcessing(props: CurrentlyProcessingProps) {
+    let CurrentlyProcessingProps { currently_processing } = props.clone();
+
+    rsx! {
+        <If condition={currently_processing.is_some()}>
+            <Text content={format!("Currently Processing: {:?}\n Into BLANK Ingot", currently_processing)} size={16.0} />
+        </If>
     }
 }
 
