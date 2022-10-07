@@ -30,7 +30,7 @@ pub fn UIShipInventory() {
     let can_deposit = ui_items.get().can_deposit;
 
     rsx! {
-        <Window position={(900.0, 450.0)} size={(200.0, 300.0)} title={"Ship Inventory".to_string()}>
+        <Window position={(900.0, 400.0)} size={(200.0, 400.0)} title={"Ship Inventory".to_string()}>
 
             <If condition={can_deposit}>
                 <Text content={"Press SPACE to deposit ore.".to_string()} size={16.0} />
@@ -50,7 +50,7 @@ pub fn UIBaseInventory() {
     let inventory = ui_items.get().station_inventory_items;
     
     rsx! {
-        <Window position={(1100.0, 450.0)} size={(200.0, 300.0)} title={"Station Inventory".to_string()}>
+        <Window position={(1100.0, 400.0)} size={(200.0, 400.0)} title={"Station Inventory".to_string()}>
             <InventoryItems items={inventory} />
         </Window>
     }
