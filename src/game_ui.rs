@@ -10,14 +10,14 @@ use kayak_ui::widgets::{App as KayakApp};
 
 use bevy::prelude::*;
 
-use crate::{game_ui_widgets::{UIShipInventory, UIBaseInventory}, inventory::{Inventory, INVENTORY_SIZE, ItemAndWeight}, player::Player, base_station::{BaseStation, CanDeposit}};
+use crate::{game_ui_widgets::{UIShipInventory, UIBaseInventory, UIRefineryView}, inventory::{Inventory, INVENTORY_SIZE, ItemAndWeight}, player::Player, base_station::{BaseStation, CanDeposit, Refinery}};
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct UIItems {
     pub ship_inventory_items: [Option<ItemAndWeight>; INVENTORY_SIZE],
     pub station_inventory_items: [Option<ItemAndWeight>; INVENTORY_SIZE],
-
-    pub can_deposit: bool
+    pub can_deposit: bool,
+    pub refinery: Refinery
 }
 
 
@@ -53,6 +53,7 @@ impl GameUIPlugin {
                 <KayakApp>
                     <UIShipInventory />
                     <UIBaseInventory />
+                    <UIRefineryView />
                 </KayakApp>
             }
         });
@@ -62,18 +63,19 @@ impl GameUIPlugin {
 
     fn update_ui_data(
         player_inventory_query: Query<&Inventory, (With<Player>, Without<BaseStation>)>,
-        base_station_inventory_query: Query<&Inventory, (With<BaseStation>, Without<Player>)>,
+        base_station_query: Query<(&Inventory, &Refinery), (With<BaseStation>, Without<Player>)>,
         can_deposit_res: Res<CanDeposit>,
         ui_items: Res<Binding<UIItems>>,
     ) {
         let ship_inventory = player_inventory_query.single();
-        let station_inventory = base_station_inventory_query.single();
+        let (station_inventory, station_refinery) = base_station_query.single();
     
         // update ui by updating binding object
         ui_items.set(UIItems {
             ship_inventory_items: ship_inventory.items,
             station_inventory_items: station_inventory.items,
-            can_deposit: can_deposit_res.0
+            can_deposit: can_deposit_res.0,
+            refinery: station_refinery.clone()
         });    
     }
 

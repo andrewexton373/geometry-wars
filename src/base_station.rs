@@ -1,8 +1,10 @@
-use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::{self as lyon};
-use bevy_rapier2d::prelude::{Velocity, Collider, Sleeping, Sensor, ActiveEvents, RapierContext};
+use std::default;
 
-use crate::{astroid::{Astroid}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin}};
+use bevy::{prelude::*, utils::{HashSet, HashMap}, time::Timer};
+use bevy_prototype_lyon::prelude::{self as lyon};
+use bevy_rapier2d::{prelude::{Velocity, Collider, Sleeping, Sensor, ActiveEvents, RapierContext}};
+
+use crate::{astroid::{Astroid, AstroidMaterial}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin}};
 
 pub const BASE_STATION_SIZE: f32 = 20.0;
 
@@ -15,6 +17,48 @@ pub struct BaseStationPlugin;
 pub struct BaseStation;
 
 pub struct CanDeposit(pub bool);
+
+
+// A component you can add to the base station in order to smelt ore.
+#[derive(Component, Default, Debug, Clone, PartialEq)]
+pub struct Refinery {
+    pub recipes: [RefineryRecipe; 1],
+    pub currently_processing: Option<RefineryRecipe>,
+    // refinery_timer: Option<Timer>
+}
+
+impl Refinery {
+    pub fn new() -> Self {
+        let mut recipes = Vec::new();
+
+        let iron_recipe = RefineryRecipe {
+            items_required: [Some((AstroidMaterial::Iron, 100.0)), None],
+            item_created: MetalIngot::IronIngot
+        };
+
+        recipes.push(iron_recipe);
+
+        Self {
+            recipes: recipes.try_into().unwrap(),
+            currently_processing: None,
+            // refinery_timer: None
+        }
+    }
+}
+
+#[derive(Default, Debug, Clone, Copy, PartialEq)]
+pub struct RefineryRecipe {
+    pub items_required: [Option<(AstroidMaterial, f32)>; 2],
+    pub item_created: MetalIngot
+}
+
+#[derive(Default, Debug, Clone, Copy, PartialEq)]
+pub enum MetalIngot {
+    #[default]
+    IronIngot,
+    SilverIngot,
+    GoldIngot
+}
 
 impl Plugin for BaseStationPlugin {
     fn build(&self, app: &mut App) {
@@ -58,6 +102,9 @@ impl BaseStationPlugin {
             .insert(BaseStation)
             .insert(Name::new("Base Station"))
             .id();
+
+        commands.entity(base_station)
+            .insert(Refinery::new());
 
         InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: [None; 20], capacity: Capacity {maximum: 200.0}}, base_station);
 
