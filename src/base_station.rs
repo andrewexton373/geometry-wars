@@ -4,7 +4,7 @@ use bevy::{prelude::*, utils::{HashSet, HashMap}, time::Timer};
 use bevy_prototype_lyon::prelude::{self as lyon};
 use bevy_rapier2d::{prelude::{Velocity, Collider, Sleeping, Sensor, ActiveEvents, RapierContext}};
 
-use crate::{astroid::{Astroid, AstroidMaterial}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin}};
+use crate::{astroid::{Astroid, AstroidMaterial}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin}, game_ui_widgets::SmeltEvent};
 
 pub const BASE_STATION_SIZE: f32 = 20.0;
 
@@ -22,7 +22,7 @@ pub struct CanDeposit(pub bool);
 // A component you can add to the base station in order to smelt ore.
 #[derive(Component, Default, Debug, Clone, PartialEq)]
 pub struct Refinery {
-    pub recipes: [RefineryRecipe; 1],
+    pub recipes: Vec<RefineryRecipe>,
     pub currently_processing: Option<RefineryRecipe>,
     // refinery_timer: Option<Timer>
 }
@@ -43,7 +43,7 @@ impl Refinery {
         recipes.push(iron_recipe);
 
         Self {
-            recipes: recipes.try_into().unwrap(),
+            recipes,
             currently_processing: None,
             // refinery_timer: None
         }
@@ -72,6 +72,8 @@ impl Plugin for BaseStationPlugin {
             .add_system(Self::guide_player_to_base_station)
             .add_system(Self::repel_astroids_from_base_station)
             .add_system(Self::handle_base_station_sensor_collision_event)
+            .add_event::<SmeltEvent>()
+            .add_system(Self::on_smelt_event)
             .insert_resource(CanDeposit(true));
     }
 }
@@ -199,5 +201,11 @@ impl BaseStationPlugin {
             *can_deposit_res = CanDeposit(false);
         }
 
+    }
+
+    fn on_smelt_event(mut reader: EventReader<SmeltEvent>) {
+        for _ in reader.iter() {
+            println!("Smelt Event Detected!");
+        }
     }
 }

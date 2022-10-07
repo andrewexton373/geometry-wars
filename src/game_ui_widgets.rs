@@ -136,7 +136,7 @@ pub fn Refineables(props: RefineablesProps) {
     <Element>
         {VecTracker::from(refineables.clone().into_iter().enumerate().map(|(index, recipe)| {
             constructor! {
-                <Refineable refineable_id={index} ore_required={recipe.items_required.clone()} ingot_produced={recipe.item_created.clone()} on_create={on_create.clone()}/>
+                <Refineable refineable_id={index} refinery_recipe={recipe.clone()} on_create={on_create.clone()}/>
             }
         }))}
 
@@ -148,19 +148,21 @@ pub fn Refineables(props: RefineablesProps) {
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct RefineableProps {
     pub refineable_id: usize,
-    pub ore_required: HashMap<AstroidMaterial, f32>,
-    pub ingot_produced: MetalIngot,
+    pub refinery_recipe: RefineryRecipe,
     pub on_create: Handler<usize>,
 }
+
+pub struct SmeltEvent(RefineryRecipe);
 
 #[widget]
 pub fn Refineable(props: RefineableProps) {
     let RefineableProps {
         refineable_id,
-        ore_required,
-        ingot_produced,
+        refinery_recipe,
         on_create,
     } = props.clone();
+
+    let clone = refinery_recipe.clone();
 
     let background_styles = Style {
         layout_type: StyleProp::Value(LayoutType::Row),
@@ -172,17 +174,21 @@ pub fn Refineable(props: RefineableProps) {
     };
 
     let on_create = on_create.clone();
-    let on_event = OnEvent::new(move |_, event| match event.event_type {
+    let on_event = OnEvent::new(move |ctx, event| match event.event_type {
         EventType::Click(..) => {
             println!("SMELT BUTTON CLICKED!");
-            on_create.call(refineable_id);
+            ctx.query_world::<EventWriter<SmeltEvent>, _, ()>(|mut writer| writer.send(SmeltEvent(clone.clone())));
+            // on_create.call(refineable_id);
         }
         _ => (),
     });
 
+    let item_created = refinery_recipe.clone().item_created;
+    let items_required = refinery_recipe.clone().items_required.clone();
+
     rsx! {
         <Background styles={Some(background_styles)}>
-            <Text line_height={Some(26.0)} size={14.0} content={format!("{:?}\n Materials Required: {:?}", ingot_produced.clone(), ore_required.clone())} />
+            <Text line_height={Some(26.0)} size={14.0} content={format!("{:?}\n Materials Required: {:?}", item_created, items_required)} />
             <SmeltButton on_event={Some(on_event)} />
         </Background>
     }
