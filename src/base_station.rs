@@ -219,25 +219,36 @@ impl BaseStationPlugin {
         true
     }
 
+    fn smelt_materials(mut inventory: Mut<Inventory>, recipe: &RefineryRecipe, mut refinery: Mut<Refinery>) {
+        if Self::have_materials_to_smelt(inventory.as_ref(), &recipe) {
+            println!("We have the materials!");
+            refinery.currently_processing = Some(recipe.clone());
+
+            for (material, weight) in recipe.items_required.iter() {
+                inventory.remove_from_inventory(material, *weight);
+            }
+
+            // TODO: add ingot to inventory
+            // inventory.add_to_inventory(, weight)
+
+        } else {
+            println!("We do not have the materials!");
+        }
+    }
+
     fn on_smelt_event(
         mut reader: EventReader<SmeltEvent>,
-        mut base_station_query: Query<(&BaseStation, &Inventory, &mut Refinery), With<BaseStation>>
+        mut base_station_query: Query<(&BaseStation, &mut Inventory, &mut Refinery), With<BaseStation>>
     ) {
-        let (base_station, inventory, mut refinery) = base_station_query.single_mut();
 
         for event in reader.iter() {
             println!("Smelt Event Detected!");
+            let (base_station, inventory, mut refinery) = base_station_query.single_mut();
 
             let recipe = event.0.clone();
             println!("{:?}", recipe);
 
-            if Self::have_materials_to_smelt(inventory, &recipe) {
-                println!("We have the materials!");
-                refinery.currently_processing = Some(recipe);
-            } else {
-                println!("We do not have the materials!");
-            }
-
+            Self::smelt_materials(inventory, &recipe, refinery);
         }
     }
 }

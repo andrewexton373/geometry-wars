@@ -55,12 +55,19 @@ impl Inventory {
         true
     }
 
-    pub fn remove_from_inventory(&mut self, material: AstroidMaterial) -> Option<f32> {
+    /// Remove weight from material in inventory, return amount removed. If there's not enough weight to remove, return None
+    pub fn remove_from_inventory(&mut self, material: &AstroidMaterial, weight: f32) -> Option<f32> {
 
-        // let current_inventory = self.items;
+        if let Some(current_weight) = self.items.get_mut(&material) {
+            if *current_weight >= weight {
+                *current_weight -= weight;
 
-        if self.items.contains_key(&material) {
-            return self.items.remove(&material);
+                if *current_weight <= 0.0 {
+                    self.items.remove(&material);
+                }
+            
+                return Some(weight);
+            }
         }
 
         None

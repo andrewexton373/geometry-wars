@@ -253,7 +253,7 @@ impl PlayerPlugin {
 
             for item in player_inventory.clone().items.iter() {
                 base_station_inventory.add_to_inventory(*item.0, *item.1);
-                player_inventory.remove_from_inventory(*item.0);
+                player_inventory.remove_from_inventory(item.0, *item.1);
                 // removed.push(*item.0);
             }
 
