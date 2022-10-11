@@ -17,10 +17,23 @@ pub struct Inventory {
     pub capacity: Capacity
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, PartialEq, PartialOrd)]
 pub enum Amount {
     Weight(f32),
     Quantity(u32)
+}
+
+impl fmt::Debug for Amount {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Weight(arg0) => {
+                write!(f, "{} Kgs", arg0)
+            },
+            Self::Quantity(arg0) => {
+                write!(f, "x{}", arg0)
+            },
+        }
+    }
 }
 
 impl AddAssign for Amount {
@@ -65,7 +78,7 @@ impl SubAssign for Amount {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 
 pub enum InventoryItem {
     Material(AstroidMaterial, Amount),
@@ -75,6 +88,19 @@ pub enum InventoryItem {
 impl Default for InventoryItem {
     fn default() -> Self {
         InventoryItem::Material(AstroidMaterial::Iron, Amount::Weight(0.0))
+    }
+}
+
+impl fmt::Debug for InventoryItem {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Material(arg0, arg1) => {
+                write!(f, "{:?}: {:?}", arg0, arg1)
+            },
+            Self::Ingot(arg0, arg1) => {
+                write!(f, "{:?}: {:?}", arg0, arg1)
+            },
+        }
     }
 }
 

@@ -18,7 +18,7 @@ use bevy::prelude::*;
 use crate::{HEIGHT, RESOLUTION};
 use crate::base_station::{RefineryRecipe};
 use crate::game_ui::UIItems;
-use crate::inventory::InventoryItem;
+use crate::inventory::{InventoryItem, Amount};
 
 
 #[widget]
@@ -97,7 +97,7 @@ pub fn UIInventoryItem(props: UIInventoryItemProps) {
     } = props.clone();
 
     let background_styles = Style {
-        layout_type: StyleProp::Value(LayoutType::Row),
+        layout_type: StyleProp::Value(LayoutType::Column),
         background_color: StyleProp::Value(Color::new(0.176, 0.196, 0.215, 1.0)),
         height: StyleProp::Value(Units::Auto),
         top: StyleProp::Value(Units::Pixels(10.0)),
@@ -106,20 +106,24 @@ pub fn UIInventoryItem(props: UIInventoryItemProps) {
     };
 
     match item {
-        InventoryItem::Material(material, amount) => {
+        InventoryItem::Material(material, Amount::Weight(weight)) => {
             rsx! {
                 <Background styles={Some(background_styles)}>
-                    <Text content={format!("Material: {:?} \n| Net Weight: {:?}kgs", material, amount)} size={16.0} />
+                    <Text content={format!("Material: {:?}", material)} size={16.0} />
+                    <Text content={format!("Net Mass: {:.2} Kgs", weight)} size={14.0} />
                 </Background>
             }
         },
-        InventoryItem::Ingot(ingot, amount) => {
+        InventoryItem::Ingot(ingot, Amount::Quantity(quantity)) => {
             rsx! {
                 <Background styles={Some(background_styles)}>
-                    <Text content={format!("Ingot: {:?} \n| Quantity: {:?}", ingot, amount)} size={16.0} />
+                    // <Text content={format!("Ingot: {:?} \n| Quantity: {:?}", ingot, amount)} size={16.0} />
+                    <Text content={format!("{:?}", ingot)} size={16.0} />
+                    <Text content={format!("x{}", quantity)} size={14.0} />
                 </Background>
             }
-        }
+        },
+        _ => {}
     }
 
     
