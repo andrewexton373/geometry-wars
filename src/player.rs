@@ -1,4 +1,3 @@
-use bevy::utils::HashMap;
 use bevy::{prelude::*};
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
@@ -11,7 +10,6 @@ use crate::{PIXELS_PER_METER, GameCamera};
 use crate::astroid::{Collectible};
 use crate::projectile::{ProjectilePlugin};
 use crate::crosshair::Crosshair;
-use crate::astroid::AstroidMaterial;
 use crate::inventory::{Inventory, InventoryPlugin, Capacity};
 
 pub struct PlayerPlugin;
@@ -249,22 +247,10 @@ impl PlayerPlugin {
             let mut player_inventory = player_query.single_mut();
             let mut base_station_inventory = base_station_query.single_mut();
 
-            // let mut removed = Vec::<AstroidMaterial>::new();
-
             for item in player_inventory.clone().items.iter() {
-
                 base_station_inventory.add_to_inventory(*item);
                 player_inventory.remove_from_inventory(*item);
-
-                // base_station_inventory.add_to_inventory(*item.0, *item.1);
-                // player_inventory.remove_from_inventory(item.0, *item.1);
-                // removed.push(*item.0);
             }
-
-            // for r in removed.iter() {
-            //     player_inventory.remove_from_inventory(*r);
-            //     println!("DEPOSITED: {:?}", r);
-            // }
         }
     }
 

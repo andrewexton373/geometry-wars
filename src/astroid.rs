@@ -44,12 +44,6 @@ impl AstroidSize {
     }
 }
 
-// impl fmt::Display for AstroidSize {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         write!(f, "({})", self)
-//     }
-// }
-
 #[derive(Component, Inspectable, Reflect, FromReflect, Default, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd)]
 pub enum AstroidMaterial {
     #[default]

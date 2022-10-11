@@ -8,9 +8,9 @@ use kayak_ui::core::{
 use kayak_ui::widgets::{App as KayakApp};
 
 
-use bevy::{prelude::*, utils::HashMap};
+use bevy::{prelude::*};
 
-use crate::{game_ui_widgets::{UIShipInventory, UIBaseInventory, UIRefineryView}, inventory::{Inventory, ItemAndWeight, InventoryItem}, player::Player, base_station::{BaseStation, CanDeposit, Refinery}, astroid::AstroidMaterial};
+use crate::{game_ui_widgets::{UIShipInventory, UIBaseInventory, UIRefineryView}, inventory::{Inventory, InventoryItem}, player::Player, base_station::{BaseStation, CanDeposit, Refinery}};
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct UIItems {
@@ -28,8 +28,6 @@ impl Plugin for GameUIPlugin {
         app.add_plugin(BevyKayakUIPlugin)
             .add_startup_system(Self::setup_game_ui)
             .add_system(Self::update_ui_data);
-            // .add_system_set(SystemSet::on_enter(GameState::Main).with_system(setup_game_ui))
-            // .add_event::<UIEvent>();
     }
 }
 
@@ -76,7 +74,6 @@ impl GameUIPlugin {
             refinery: station_refinery.clone()
         });
         
-        // println!("{:?}", ui_items);
     }
 
 }

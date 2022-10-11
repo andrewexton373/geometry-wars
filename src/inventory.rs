@@ -1,8 +1,7 @@
-use bevy::utils::HashMap;
 use bevy::{prelude::*};
 
 use bevy_inspector_egui::{Inspectable};
-use crate::astroid::{AstroidMaterial, Astroid};
+use crate::astroid::{AstroidMaterial};
 use crate::base_station::MetalIngot;
 use std::fmt;
 use std::ops::{AddAssign, SubAssign};
@@ -15,7 +14,6 @@ pub struct Capacity {
 #[derive(Component, Default, Debug, Clone)]
 pub struct Inventory {
     pub items: Vec<InventoryItem>,
-    // pub items: HashMap<AstroidMaterial, f32>,
     pub capacity: Capacity
 }
 

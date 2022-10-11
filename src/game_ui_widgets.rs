@@ -1,11 +1,10 @@
-use bevy::utils::HashMap;
 use kayak_ui::core::{
     rsx,
-    widget, use_state, Handler, use_effect,
+    widget, use_state, Handler,
 };
 
 use kayak_ui::{core::{VecTracker, constructor, Binding, Bound}, widgets::If};
-use kayak_ui::widgets::{Text, Window, Element, Button, Background};
+use kayak_ui::widgets::{Text, Window, Element, Background};
 use kayak_ui::core::{
     color::Color,
     render_command::RenderCommand,
@@ -16,8 +15,7 @@ use kayak_ui::core::{
 
 use bevy::prelude::*;
 
-use crate::astroid::AstroidMaterial;
-use crate::base_station::{RefineryRecipe, MetalIngot};
+use crate::base_station::{RefineryRecipe};
 use crate::game_ui::UIItems;
 use crate::inventory::InventoryItem;
 
@@ -70,7 +68,6 @@ pub fn InventoryItems(props: InventoryItemsProps) {
         <Element>
             {VecTracker::from(items.clone().into_iter().enumerate().map(|(index, item)| {
                 constructor! {
-                    // <Text content={format!("Material: {:?} \n| Net Weight: {}kgs", item.item.clone(), item.weight)} size={16.0} />
                     <UIInventoryItem item_id={index} item={item.clone()} />
                 }
             }))}
@@ -82,7 +79,6 @@ pub fn InventoryItems(props: InventoryItemsProps) {
 pub struct UIInventoryItemProps {
     pub item_id: usize,
     pub item: InventoryItem
-    // pub item_and_weight: (AstroidMaterial, f32)
 }
 
 #[widget]

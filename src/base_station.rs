@@ -34,8 +34,6 @@ impl Refinery {
 
         items_required.push(InventoryItem::Material(AstroidMaterial::Iron, Amount::Weight(100.0)));
 
-        // items_required.insert(AstroidMaterial::Iron, 100.0);
-
         let iron_recipe = RefineryRecipe {
             items_required,
             item_created: MetalIngot::IronIngot
@@ -54,7 +52,6 @@ impl Refinery {
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct RefineryRecipe {
     pub items_required: Vec<InventoryItem>,
-    // pub items_required: HashMap<AstroidMaterial, f32>,
     pub item_created: MetalIngot
 }
 
@@ -207,7 +204,7 @@ impl BaseStationPlugin {
 
         for material_needed in recipe.items_required.iter() {
 
-            // FIXME: this fells messy and error prone.. not even sure its right haha
+            // FIXME: this fells messy and error prone.. not even sure its right haha... maybe use the macro from discord
             match material_needed {
                 InventoryItem::Material(material_needed, weight_needed) => {
                     if let Some(inventory_material) = inventory.items.iter().find_map(|item| {
@@ -228,8 +225,6 @@ impl BaseStationPlugin {
                 },
                 _ => { return false },
             }
-
-            // println!("Material Needed: {:?}", material_needed);
 
         }
     
