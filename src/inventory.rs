@@ -88,24 +88,24 @@ impl InventoryItem {
         }
     }
 
-    pub fn add_amount(&self, to_add: Amount) {
+    pub fn add_amount(&mut self, to_add: Amount) {
         match self {
-            InventoryItem::Material(_, mut weight) => {
-                weight += to_add;
+            InventoryItem::Material(_, ref mut weight) => {
+                *weight += to_add;
             },
-            InventoryItem::Ingot(_, mut quantity) => {
-                 quantity += to_add;
+            InventoryItem::Ingot(_, ref mut quantity) => {
+                *quantity += to_add;
             },
         }
     }
 
-    pub fn remove_amount(&self, to_remove: Amount) {
+    pub fn remove_amount(&mut self, to_remove: Amount) {
         match self {
-            InventoryItem::Material(_, mut weight) => {
-                weight -= to_remove;
+            InventoryItem::Material(_, ref mut weight) => {
+                *weight -= to_remove;
             },
-            InventoryItem::Ingot(_, mut quantity) => {
-                quantity -= to_remove;
+            InventoryItem::Ingot(_, ref mut quantity) => {
+                *quantity -= to_remove;
             },
         }
     }
@@ -153,10 +153,39 @@ impl Inventory {
 
         if self.has_capacity_for(item_to_add) {
 
-            if let Some(found) = self.items.iter().find(|item| matches!(item, item_to_add)) {
-                found.add_amount(item_to_add.amount())
-            } else {
-                self.items.push(item_to_add);
+            match item_to_add {
+                InventoryItem::Material(material, weight) => {
+                    if let Some(found) = self.items.iter_mut().find_map(|item| {
+                        match item {
+                            InventoryItem::Material(m, _) if *m == material => {
+                                Some(item)
+                            },
+                            _ => {
+                                None
+                            }
+                        }
+                    }) {
+                        found.add_amount(item_to_add.amount());
+                    } else {
+                        self.items.push(item_to_add);
+                    }
+                },
+                InventoryItem::Ingot(ingot, quantity) => {
+                    if let Some(found) = self.items.iter_mut().find_map(|item| {
+                        match item {
+                            InventoryItem::Ingot(i, _) if *i == ingot => {
+                                Some(item)
+                            },
+                            _ => {
+                                None
+                            }
+                        }
+                    }) {
+                        found.add_amount(item_to_add.amount())
+                    } else {
+                        self.items.push(item_to_add);
+                    }
+                },
             }
 
         } else {
@@ -167,41 +196,47 @@ impl Inventory {
         true
     }
 
-    // I'd rather have the inventory be a hashmap, but was struggling with bevy-inspector traits
-    // pub fn add_to_inventory(&mut self, material: AstroidMaterial, weight: f32) -> bool {
-
-    //     if weight > self.remaining_capacity() {
-    //         println!("NOT ENOUGH SHIP CAPACITY! Remaining Capacity: {}", self.remaining_capacity());
-    //         return false;
-    //     }
-
-    //     if self.items.contains_key(&material) {
-    //         println!("subsequent pickup");
-    //         let item = self.items.get_key_value_mut(&material).unwrap();
-    //         *item.1 += weight;
-    //     } else {
-    //         println!("first pickup");
-    //         self.items.insert(material, weight);
-    //     }
-
-    //     println!("{:?}", self.items);
-        
-    //     true
-    // }
-
     pub fn remove_from_inventory(&mut self, item_to_remove: InventoryItem) -> bool {
 
         match item_to_remove {
             InventoryItem::Material(to_find, _) => {
-                if let Some(found_item) = self.items.iter().find(|item| matches!(item, InventoryItem::Material(to_find, _))) {
-                    found_item.remove_amount(item_to_remove.amount());
-                    return true;
+                if let Some((index, found_item)) = self.items.iter_mut().enumerate().find_map(|(index, item)| {
+                    match item {
+                        InventoryItem::Material(m, _) if *m == to_find => {
+                            Some((index, item))
+                        },
+                        _ => { None }
+                    }
+                }) {
+
+                    if found_item.amount() >= item_to_remove.amount() {
+                        found_item.remove_amount(item_to_remove.amount());
+                        if found_item.amount() == Amount::Weight(0.0) {
+                            self.items.remove(index);
+                        }
+                        return true;
+                    } else {
+                        return false;
+                    }
                 }
             },
             InventoryItem::Ingot(to_find, _) => {
-                if let Some(found_item) = self.items.iter().find(|item| matches!(item, InventoryItem::Ingot(to_find, _))) {
-                    found_item.remove_amount(item_to_remove.amount());
-                    return true;
+                if let Some((index, found_item)) = self.items.iter_mut().enumerate().find_map(|(index, item)| {
+                    match item {
+                        InventoryItem::Ingot(i, _) if *i == to_find => {
+                            Some((index, item))
+                        },
+                        _ => { None }
+                    }
+                }) {
+                    if found_item.amount() >= item_to_remove.amount() {
+                        if found_item.amount() == Amount::Quantity(0) {
+                            self.items.remove(index);
+                        }
+                        return true;
+                    } else {
+                        return false;
+                    }
                 }
             },
         }
@@ -210,24 +245,6 @@ impl Inventory {
 
     }
 
-    // Remove weight from material in inventory, return amount removed. If there's not enough weight to remove, return None
-    // pub fn remove_from_inventory(&mut self, material: &AstroidMaterial, weight: f32) -> Option<f32> {
-
-    //     if let Some(current_weight) = self.items.get_mut(&material) {
-    //         if *current_weight >= weight {
-    //             *current_weight -= weight;
-
-    //             if *current_weight <= 0.0 {
-    //                 self.items.remove(&material);
-    //             }
-            
-    //             return Some(weight);
-    //         }
-    //     }
-
-    //     None
-
-    // }
 }
 
 #[derive(Component, Default, Debug, Inspectable, Copy, Clone, PartialEq, PartialOrd)]

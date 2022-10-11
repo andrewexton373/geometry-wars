@@ -207,9 +207,17 @@ impl BaseStationPlugin {
 
         for material_needed in recipe.items_required.iter() {
 
+            // FIXME: this fells messy and error prone.. not even sure its right haha
             match material_needed {
                 InventoryItem::Material(material_needed, weight_needed) => {
-                    if let Some(inventory_material) = inventory.items.iter().find(|item| matches!(item, InventoryItem::Material(material_needed, _))) {
+                    if let Some(inventory_material) = inventory.items.iter().find_map(|item| {
+                        match item {
+                            InventoryItem::Material(m, _) if *m == *material_needed => {
+                                Some(item)
+                            },
+                            _ => { None }
+                        }
+                    }) {
                         if inventory_material.amount() < *weight_needed {
                             return false;
                         }
