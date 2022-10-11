@@ -1,6 +1,6 @@
-use std::{default, time::Duration};
+use std::{time::Duration};
 
-use bevy::{prelude::*, utils::{HashSet, HashMap}, time::Timer};
+use bevy::{prelude::*, time::Timer};
 use bevy_prototype_lyon::prelude::{self as lyon};
 use bevy_rapier2d::{prelude::{Velocity, Collider, Sleeping, Sensor, ActiveEvents, RapierContext}};
 
@@ -26,7 +26,6 @@ pub struct RefineryTimer(pub Option<Timer>);
 pub struct Refinery {
     pub recipes: Vec<RefineryRecipe>,
     pub currently_processing: Option<RefineryRecipe>,
-    // refinery_timer: Option<Timer>
 }
 
 impl Refinery {
@@ -46,7 +45,6 @@ impl Refinery {
         Self {
             recipes,
             currently_processing: None,
-            // refinery_timer: None
         }
     }
 }
@@ -136,7 +134,6 @@ impl BaseStationPlugin {
                 },
                 Default::default()
             ))
-            // .insert(Collider::triangle(player_shape.feature, b, c)) // Need points of triangle
             .insert(Name::new("BaseStationDirectionIndicator"))
             .id();
     }
