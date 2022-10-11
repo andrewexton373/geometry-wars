@@ -15,6 +15,7 @@ use kayak_ui::core::{
 
 use bevy::prelude::*;
 
+use crate::{HEIGHT, RESOLUTION};
 use crate::base_station::{RefineryRecipe};
 use crate::game_ui::UIItems;
 use crate::inventory::InventoryItem;
@@ -28,8 +29,11 @@ pub fn UIShipInventory() {
     let inventory = ui_items.get().ship_inventory_items;
     let can_deposit = ui_items.get().can_deposit;
 
+    let size = Vec2 { x: 200.0, y: 500.0 };
+    let ui_ship_inventory_pos = (HEIGHT * RESOLUTION - size.x, HEIGHT - size.y);
+
     rsx! {
-        <Window position={(900.0, 400.0)} size={(200.0, 400.0)} title={"Ship Inventory".to_string()}>
+        <Window position={ui_ship_inventory_pos} size={(size.x, size.y)} title={"Ship Inventory".to_string()}>
 
             <If condition={can_deposit}>
                 <Text content={"Press SPACE to deposit ore.".to_string()} size={16.0} />
@@ -48,8 +52,11 @@ pub fn UIBaseInventory() {
 
     let inventory = ui_items.get().station_inventory_items;
     
+    let size = Vec2 { x: 200.0, y: 500.0 };
+    let ui_base_inventory_pos = (0.0, HEIGHT - size.y);
+
     rsx! {
-        <Window position={(1100.0, 400.0)} size={(200.0, 400.0)} title={"Station Inventory".to_string()}>
+        <Window position={ui_base_inventory_pos} size={(size.x, size.y)} title={"Station Inventory".to_string()}>
             <InventoryItems items={inventory} />
         </Window>
     }
@@ -153,9 +160,13 @@ pub fn UIRefineryView() {
     let handle_create = Handler::new(move |refineable_id: usize| {
         println!("CRAFT REFINEABLE! {}", refineable_id);
     });
+
+    let size = Vec2 { x: 400.0, y: 400.0 };
+    let offset = 200.0; // width of station inventory
+    let ui_refinery_view_pos = (0.0 + offset, HEIGHT - size.y);
     
     rsx! {
-        <Window position={(0.0, 450.0)} size={(400.0, 300.0)} title={"Station Refinery".to_string()}>
+        <Window position={ui_refinery_view_pos} size={(size.x, size.y)} title={"Station Refinery".to_string()}>
 
             <CurrentlyProcessing currently_processing={refinery.currently_processing.clone()} />
             <Refineables refineables={refinery.recipes.clone()} on_create={handle_create} />

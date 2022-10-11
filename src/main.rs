@@ -1,6 +1,6 @@
 // #![feature(array_methods)]
 
-use bevy::{prelude::*, diagnostic::{FrameTimeDiagnosticsPlugin, Diagnostics}};
+use bevy::{prelude::*, diagnostic::{FrameTimeDiagnosticsPlugin, Diagnostics}, window::PresentMode};
 use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude::*;
@@ -38,6 +38,9 @@ pub const PIXELS_PER_METER : f32 = 10.0;
 
 const BACKGROUND_COLOR: Color = Color::rgb(0.0, 0.0, 0.0);
 
+pub const HEIGHT: f32 = 1080.0;
+pub const RESOLUTION: f32 = 16.0 / 9.0;
+
 #[derive(Component)]
 struct Collider;
 
@@ -50,6 +53,13 @@ pub struct GameCamera;
 
 fn main() {
     App::new()
+        .insert_resource(WindowDescriptor {
+            title: "ASTROID MINER".to_string(),
+            width: HEIGHT * RESOLUTION,
+            height: HEIGHT,
+            present_mode: PresentMode::AutoVsync,
+            ..default()
+        })
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(ShapePlugin)
