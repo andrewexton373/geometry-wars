@@ -19,6 +19,7 @@ use bevy::prelude::*;
 use crate::astroid::AstroidMaterial;
 use crate::base_station::{RefineryRecipe, MetalIngot};
 use crate::game_ui::UIItems;
+use crate::inventory::InventoryItem;
 
 
 #[widget]
@@ -58,7 +59,7 @@ pub fn UIBaseInventory() {
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct InventoryItemsProps {
-    pub items: HashMap<AstroidMaterial, f32>
+    pub items: Vec<InventoryItem>
 }
 
 #[widget]
@@ -70,7 +71,7 @@ pub fn InventoryItems(props: InventoryItemsProps) {
             {VecTracker::from(items.clone().into_iter().enumerate().map(|(index, item)| {
                 constructor! {
                     // <Text content={format!("Material: {:?} \n| Net Weight: {}kgs", item.item.clone(), item.weight)} size={16.0} />
-                    <InventoryItem item_id={index} item_and_weight={item} />
+                    <UIInventoryItem item_id={index} item={item.clone()} />
                 }
             }))}
         </Element>
@@ -78,17 +79,18 @@ pub fn InventoryItems(props: InventoryItemsProps) {
 }
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
-pub struct InventoryItemProps {
+pub struct UIInventoryItemProps {
     pub item_id: usize,
-    pub item_and_weight: (AstroidMaterial, f32)
+    pub item: InventoryItem
+    // pub item_and_weight: (AstroidMaterial, f32)
 }
 
 #[widget]
-pub fn InventoryItem(props: InventoryItemProps) {
+pub fn UIInventoryItem(props: UIInventoryItemProps) {
 
-    let InventoryItemProps {
+    let UIInventoryItemProps {
         item_id,
-        item_and_weight
+        item
     } = props.clone();
 
     let background_styles = Style {
@@ -100,11 +102,24 @@ pub fn InventoryItem(props: InventoryItemProps) {
         ..Style::default()
     };
 
-    rsx! {
-        <Background styles={Some(background_styles)}>
-            <Text content={format!("Material: {:?} \n| Net Weight: {}kgs", item_and_weight.0, item_and_weight.1)} size={16.0} />
-        </Background>
+    match item {
+        InventoryItem::Material(material, amount) => {
+            rsx! {
+                <Background styles={Some(background_styles)}>
+                    <Text content={format!("Material: {:?} \n| Net Weight: {:?}kgs", material, amount)} size={16.0} />
+                </Background>
+            }
+        },
+        InventoryItem::Ingot(ingot, amount) => {
+            rsx! {
+                <Background styles={Some(background_styles)}>
+                    <Text content={format!("Ingot: {:?} \n| Quantity: {:?}", ingot, amount)} size={16.0} />
+                </Background>
+            }
+        }
     }
+
+    
 }
 
 

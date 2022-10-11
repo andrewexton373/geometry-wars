@@ -104,7 +104,7 @@ impl PlayerPlugin {
             .insert(Name::new("Player"))
             .id();
 
-        InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: HashMap::new(), capacity: Capacity {maximum: 200.0}}, player);
+        InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: Vec::new(), capacity: Capacity {maximum: 200.0}}, player);
 
         PlayerStatsBarPlugin::spawn_player_health_statbar(&mut commands, player);
         PlayerStatsBarPlugin::spawn_ship_capacity_statbar(&mut commands, player);
@@ -252,8 +252,12 @@ impl PlayerPlugin {
             // let mut removed = Vec::<AstroidMaterial>::new();
 
             for item in player_inventory.clone().items.iter() {
-                base_station_inventory.add_to_inventory(*item.0, *item.1);
-                player_inventory.remove_from_inventory(item.0, *item.1);
+
+                base_station_inventory.add_to_inventory(*item);
+                player_inventory.remove_from_inventory(*item);
+
+                // base_station_inventory.add_to_inventory(*item.0, *item.1);
+                // player_inventory.remove_from_inventory(item.0, *item.1);
                 // removed.push(*item.0);
             }
 

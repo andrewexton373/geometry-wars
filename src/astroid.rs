@@ -8,7 +8,7 @@ use rand::seq::SliceRandom;
 use std::cmp::Ordering;
 use std::f32::consts::{PI};
 use std::fmt;
-use crate::inventory::{Inventory};
+use crate::inventory::{Inventory, InventoryItem, Amount};
 use crate::{ Player, PIXELS_PER_METER };
 use crate::player::Health;
 
@@ -257,7 +257,7 @@ impl AstroidPlugin {
                                 let ore_chunk_mass = mass_properties.0.mass;
                                 // inventory_resource.add_to_inventory(astroid.material, ore_chunk_mass);
 
-                                if inventory.add_to_inventory(astroid.material, ore_chunk_mass) {
+                                if inventory.add_to_inventory(InventoryItem::Material(astroid.material, Amount::Weight(ore_chunk_mass))) {
                                     commands.entity(astroid_entity).despawn_recursive();
                                 }
                             }

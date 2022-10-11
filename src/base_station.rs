@@ -4,7 +4,7 @@ use bevy::{prelude::*, utils::{HashSet, HashMap}, time::Timer};
 use bevy_prototype_lyon::prelude::{self as lyon};
 use bevy_rapier2d::{prelude::{Velocity, Collider, Sleeping, Sensor, ActiveEvents, RapierContext}};
 
-use crate::{astroid::{Astroid, AstroidMaterial}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin}, game_ui_widgets::SmeltEvent};
+use crate::{astroid::{Astroid, AstroidMaterial}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin, InventoryItem, Amount}, game_ui_widgets::SmeltEvent};
 
 pub const BASE_STATION_SIZE: f32 = 20.0;
 
@@ -30,13 +30,14 @@ pub struct Refinery {
 impl Refinery {
     pub fn new() -> Self {
         let mut recipes = Vec::new();
-        let mut items_required = HashMap::new();
+        let mut items_required = Vec::new();
 
-        items_required.insert(AstroidMaterial::Iron, 100.0);
+        items_required.push(InventoryItem::Material(AstroidMaterial::Iron, Amount::Weight(100.0)));
+
+        // items_required.insert(AstroidMaterial::Iron, 100.0);
 
         let iron_recipe = RefineryRecipe {
             items_required,
-            // items_required: [Some((AstroidMaterial::Iron, 100.0)), None],
             item_created: MetalIngot::IronIngot
         };
 
@@ -52,7 +53,8 @@ impl Refinery {
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct RefineryRecipe {
-    pub items_required: HashMap<AstroidMaterial, f32>,
+    pub items_required: Vec<InventoryItem>,
+    // pub items_required: HashMap<AstroidMaterial, f32>,
     pub item_created: MetalIngot
 }
 
@@ -109,7 +111,7 @@ impl BaseStationPlugin {
         commands.entity(base_station)
             .insert(Refinery::new());
 
-        InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: HashMap::new(), capacity: Capacity {maximum: 1000.0}}, base_station);
+        InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: Vec::new(), capacity: Capacity {maximum: 1000.0}}, base_station);
 
     }
 
@@ -205,14 +207,21 @@ impl BaseStationPlugin {
 
         for material_needed in recipe.items_required.iter() {
 
-            println!("Material Needed: {:?}", material_needed);
-            if let Some(material_possessed) = inventory.items.get(material_needed.0) {
-                if material_needed.1 > material_possessed {
-                    return false;
-                }
-            } else {
-                return false;
+            match material_needed {
+                InventoryItem::Material(material_needed, weight_needed) => {
+                    if let Some(inventory_material) = inventory.items.iter().find(|item| matches!(item, InventoryItem::Material(material_needed, _))) {
+                        if inventory_material.amount() < *weight_needed {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+
+                },
+                _ => { return false },
             }
+
+            // println!("Material Needed: {:?}", material_needed);
 
         }
     
@@ -224,12 +233,11 @@ impl BaseStationPlugin {
             println!("We have the materials!");
             refinery.currently_processing = Some(recipe.clone());
 
-            for (material, weight) in recipe.items_required.iter() {
-                inventory.remove_from_inventory(material, *weight);
+            for required_item in recipe.items_required.iter() {
+                inventory.remove_from_inventory(*required_item);
             }
 
-            // TODO: add ingot to inventory
-            // inventory.add_to_inventory(, weight)
+            inventory.add_to_inventory(InventoryItem::Ingot(recipe.item_created, Amount::Quantity(1)));
 
         } else {
             println!("We do not have the materials!");

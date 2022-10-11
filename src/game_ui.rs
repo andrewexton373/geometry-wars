@@ -10,17 +10,15 @@ use kayak_ui::widgets::{App as KayakApp};
 
 use bevy::{prelude::*, utils::HashMap};
 
-use crate::{game_ui_widgets::{UIShipInventory, UIBaseInventory, UIRefineryView}, inventory::{Inventory, ItemAndWeight}, player::Player, base_station::{BaseStation, CanDeposit, Refinery}, astroid::AstroidMaterial};
+use crate::{game_ui_widgets::{UIShipInventory, UIBaseInventory, UIRefineryView}, inventory::{Inventory, ItemAndWeight, InventoryItem}, player::Player, base_station::{BaseStation, CanDeposit, Refinery}, astroid::AstroidMaterial};
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct UIItems {
-    pub ship_inventory_items: HashMap<AstroidMaterial, f32>,
-    pub station_inventory_items: HashMap<AstroidMaterial, f32>,
+    pub ship_inventory_items: Vec<InventoryItem>,
+    pub station_inventory_items: Vec<InventoryItem>,
     pub can_deposit: bool,
     pub refinery: Refinery
 }
-
-
 
 pub struct GameUIPlugin;
 
