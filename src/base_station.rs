@@ -1,4 +1,4 @@
-use std::default;
+use std::{default, time::Duration};
 
 use bevy::{prelude::*, utils::{HashSet, HashMap}, time::Timer};
 use bevy_prototype_lyon::prelude::{self as lyon};
@@ -18,6 +18,8 @@ pub struct BaseStation;
 
 pub struct CanDeposit(pub bool);
 
+pub struct RefineryTimer(pub Option<Timer>);
+
 
 // A component you can add to the base station in order to smelt ore.
 #[derive(Component, Default, Debug, Clone, PartialEq)]
@@ -32,7 +34,7 @@ impl Refinery {
         let mut recipes = Vec::new();
         let mut items_required = Vec::new();
 
-        items_required.push(InventoryItem::Material(AstroidMaterial::Iron, Amount::Weight(100.0)));
+        items_required.push(InventoryItem::Material(AstroidMaterial::Iron, Amount::Weight(20.0)));
 
         let iron_recipe = RefineryRecipe {
             items_required,
@@ -73,7 +75,9 @@ impl Plugin for BaseStationPlugin {
             .add_system(Self::handle_base_station_sensor_collision_event)
             .add_event::<SmeltEvent>()
             .add_system(Self::on_smelt_event)
-            .insert_resource(CanDeposit(true));
+            .add_system(Self::update_refinery_processing)
+            .insert_resource(CanDeposit(true))
+            .insert_resource(RefineryTimer(None));
     }
 }
 
@@ -231,25 +235,55 @@ impl BaseStationPlugin {
         true
     }
 
-    fn smelt_materials(mut inventory: Mut<Inventory>, recipe: &RefineryRecipe, mut refinery: Mut<Refinery>) {
+    fn smelt_materials(mut inventory: Mut<Inventory>, recipe: &RefineryRecipe, mut refinery: Mut<Refinery>, mut timer: &mut ResMut<RefineryTimer>) {
         if Self::have_materials_to_smelt(inventory.as_ref(), &recipe) {
             println!("We have the materials!");
             refinery.currently_processing = Some(recipe.clone());
+            timer.0 = Some(Timer::new(Duration::from_secs(5), false));
 
-            for required_item in recipe.items_required.iter() {
-                inventory.remove_from_inventory(*required_item);
-            }
+            // for required_item in recipe.items_required.iter() {
+            //     inventory.remove_from_inventory(*required_item);
+            // }
 
-            inventory.add_to_inventory(InventoryItem::Ingot(recipe.item_created, Amount::Quantity(1)));
+            // inventory.add_to_inventory(InventoryItem::Ingot(recipe.item_created, Amount::Quantity(1)));
 
         } else {
             println!("We do not have the materials!");
         }
     }
 
+    fn update_refinery_processing(
+        mut base_station_query: Query<(&BaseStation, &mut Inventory, &mut Refinery), With<BaseStation>>,
+        mut timer: ResMut<RefineryTimer>,
+        time: Res<Time>
+    ) {
+        if let Some(mut timer) = timer.0.as_mut() {
+            timer.tick(time.delta());
+
+            if timer.just_finished() {
+
+                let (base_station, mut inventory, mut refinery) = base_station_query.single_mut();
+
+                if let Some(currently_processing) = refinery.currently_processing.clone() {
+                    for required_item in currently_processing.items_required.iter() {
+                        inventory.remove_from_inventory(*required_item);
+                    }
+        
+                    inventory.add_to_inventory(InventoryItem::Ingot(currently_processing.item_created, Amount::Quantity(1)));
+                }
+
+                refinery.currently_processing = None;
+
+            }
+
+        }
+    }
+
     fn on_smelt_event(
         mut reader: EventReader<SmeltEvent>,
-        mut base_station_query: Query<(&BaseStation, &mut Inventory, &mut Refinery), With<BaseStation>>
+        mut base_station_query: Query<(&BaseStation, &mut Inventory, &mut Refinery), With<BaseStation>>,
+        mut refinery_timer: ResMut<RefineryTimer>,
+        mut time: Res<Time>
     ) {
 
         for event in reader.iter() {
@@ -259,7 +293,7 @@ impl BaseStationPlugin {
             let recipe = event.0.clone();
             println!("{:?}", recipe);
 
-            Self::smelt_materials(inventory, &recipe, refinery);
+            Self::smelt_materials(inventory, &recipe, refinery, &mut refinery_timer);
         }
     }
 }
