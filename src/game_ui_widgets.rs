@@ -172,7 +172,7 @@ pub fn UIRefineryView() {
     rsx! {
         <Window position={ui_refinery_view_pos} size={(size.x, size.y)} title={"Station Refinery".to_string()}>
 
-            <CurrentlyProcessing currently_processing={refinery.currently_processing.clone()} />
+            <CurrentlyProcessing currently_processing={refinery.currently_processing.clone()} time_remaining={refinery.remaining_processing_time} />
             <Refineables refineables={refinery.recipes.clone()} on_create={handle_create} />
 
         </Window>
@@ -181,12 +181,13 @@ pub fn UIRefineryView() {
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct CurrentlyProcessingProps {
-    pub currently_processing: Option<RefineryRecipe>
+    pub currently_processing: Option<RefineryRecipe>,
+    pub time_remaining: f32
 }
 
 #[widget]
 pub fn CurrentlyProcessing(props: CurrentlyProcessingProps) {
-    let CurrentlyProcessingProps { currently_processing } = props.clone();
+    let CurrentlyProcessingProps { currently_processing, time_remaining } = props.clone();
 
     let background_styles = Style {
         layout_type: StyleProp::Value(LayoutType::Row),
@@ -202,6 +203,8 @@ pub fn CurrentlyProcessing(props: CurrentlyProcessingProps) {
             // <Background styles={Some(background_styles)}>
                 <Text content={"Currently Processing:".to_string()} size={14.0} />
                 <Text content={format!("{:?}\n Into {:?}", currently_processing.clone().unwrap().items_required, currently_processing.clone().unwrap().item_created)} size={16.0} />
+                <Text content={format!("{:.1} Seconds Remaining", time_remaining)} size={16.0} />
+
             // </Background>
         </If>
     }

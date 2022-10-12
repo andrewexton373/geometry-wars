@@ -17,7 +17,8 @@ pub struct UIItems {
     pub ship_inventory_items: Vec<InventoryItem>,
     pub station_inventory_items: Vec<InventoryItem>,
     pub can_deposit: bool,
-    pub refinery: Refinery
+    pub refinery: Refinery,
+    pub remaining_refinery_time: f32
 }
 
 pub struct GameUIPlugin;
@@ -71,7 +72,8 @@ impl GameUIPlugin {
             ship_inventory_items: ship_inventory.items.clone(),
             station_inventory_items: station_inventory.items.clone(),
             can_deposit: can_deposit_res.0,
-            refinery: station_refinery.clone()
+            refinery: station_refinery.clone(),
+            remaining_refinery_time: 0.0
         });
         
     }

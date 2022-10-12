@@ -11,6 +11,7 @@ pub struct RefineryTimer(pub Option<Timer>);
 pub struct Refinery {
     pub recipes: Vec<RefineryRecipe>,
     pub currently_processing: Option<RefineryRecipe>,
+    pub remaining_processing_time: f32
 }
 
 impl Refinery {
@@ -54,6 +55,7 @@ impl Refinery {
         Self {
             recipes,
             currently_processing: None,
+            remaining_processing_time: 0.0
         }
     }
 }
@@ -142,11 +144,18 @@ impl RefineryPlugin {
         time: Res<Time>
     ) {
         if let Some(mut timer) = timer.0.as_mut() {
+
+            let (base_station, mut inventory, mut refinery) = base_station_query.single_mut();
+
             timer.tick(time.delta());
 
-            if timer.just_finished() {
+            // update processing_time_remaining
+            if let Some(currently_processing) = refinery.currently_processing.clone() {
+                let remaining_time = currently_processing.time_required - timer.elapsed_secs();
+                refinery.remaining_processing_time = remaining_time;
+            }
 
-                let (base_station, mut inventory, mut refinery) = base_station_query.single_mut();
+            if timer.just_finished() {
 
                 if let Some(currently_processing) = refinery.currently_processing.clone() {
                     for required_item in currently_processing.items_required.iter() {
