@@ -22,7 +22,8 @@ impl Refinery {
 
         let iron_recipe = RefineryRecipe {
             items_required,
-            item_created: MetalIngot::IronIngot
+            item_created: MetalIngot::IronIngot,
+            time_required: 2.0
         };
 
         let mut items_required = Vec::new();
@@ -31,7 +32,8 @@ impl Refinery {
 
         let silver_recipe = RefineryRecipe {
             items_required,
-            item_created: MetalIngot::SilverIngot
+            item_created: MetalIngot::SilverIngot,
+            time_required: 5.0
         };
 
         let mut items_required = Vec::new();
@@ -40,7 +42,8 @@ impl Refinery {
 
         let gold_recipe = RefineryRecipe {
             items_required,
-            item_created: MetalIngot::GoldIngot
+            item_created: MetalIngot::GoldIngot,
+            time_required: 10.0
         };
 
         recipes.push(iron_recipe);
@@ -58,7 +61,8 @@ impl Refinery {
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct RefineryRecipe {
     pub items_required: Vec<InventoryItem>,
-    pub item_created: MetalIngot
+    pub item_created: MetalIngot,
+    pub time_required: f32
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
@@ -123,7 +127,8 @@ impl RefineryPlugin {
 
             // Set currently processing to the recipe, finish processing after the timer.
             refinery.currently_processing = Some(recipe.clone());
-            timer.0 = Some(Timer::new(Duration::from_secs(5), false));
+            timer.0 = Some(Timer::new(Duration::from_secs_f32(recipe.time_required), false));
+
         } else {
             println!("We do not have the materials!");
         }
