@@ -3,6 +3,12 @@
 
 This is a game where the player controls an astroid mining spaceship. Taking inspiration from the familiar Astroids arcade game, shooting astroids causes them to split. Splitting astroids into smaller ore chunks allows the player to then collect these chunks in order to mine them.
 
+
+## Gameplay
+
+![](https://github.com/andrewexton373/geometry-wars/blob/main/resources/geometry-wars-gameplay.gif)
+
+
 ## Controls
 W - Move Up
 
