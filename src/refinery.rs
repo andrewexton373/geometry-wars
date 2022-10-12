@@ -16,8 +16,8 @@ pub struct Refinery {
 impl Refinery {
     pub fn new() -> Self {
         let mut recipes = Vec::new();
+        
         let mut items_required = Vec::new();
-
         items_required.push(InventoryItem::Material(AstroidMaterial::Iron, Amount::Weight(20.0)));
 
         let iron_recipe = RefineryRecipe {
@@ -25,7 +25,28 @@ impl Refinery {
             item_created: MetalIngot::IronIngot
         };
 
+        let mut items_required = Vec::new();
+        items_required.push(InventoryItem::Material(AstroidMaterial::Silver, Amount::Weight(50.0)));
+
+
+        let silver_recipe = RefineryRecipe {
+            items_required,
+            item_created: MetalIngot::SilverIngot
+        };
+
+        let mut items_required = Vec::new();
+        items_required.push(InventoryItem::Material(AstroidMaterial::Gold, Amount::Weight(100.0)));
+
+
+        let gold_recipe = RefineryRecipe {
+            items_required,
+            item_created: MetalIngot::GoldIngot
+        };
+
         recipes.push(iron_recipe);
+        recipes.push(silver_recipe);
+        recipes.push(gold_recipe);
+
 
         Self {
             recipes,
