@@ -7,6 +7,7 @@ use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
 
 mod game_ui;
+mod refinery;
 use game_ui::GameUIPlugin;
 mod game_ui_widgets;
 
@@ -30,6 +31,7 @@ use base_station::BaseStationPlugin;
 
 mod inventory;
 use inventory::InventoryPlugin;
+use refinery::RefineryPlugin;
 
 // Defines the amount of time that should elapse between each physics step.
 const TIME_STEP: f32 = 1.0 / 60.0;
@@ -66,6 +68,7 @@ fn main() {
         .add_plugin(PlayerPlugin)
         .add_plugin(InventoryPlugin)
         .add_plugin(BaseStationPlugin)
+        .add_plugin(RefineryPlugin)
         .add_plugin(AstroidPlugin)
         .add_plugin(ProjectilePlugin)
         .add_plugin(CrosshairPlugin)

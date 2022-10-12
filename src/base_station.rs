@@ -4,7 +4,7 @@ use bevy::{prelude::*, time::Timer};
 use bevy_prototype_lyon::prelude::{self as lyon};
 use bevy_rapier2d::{prelude::{Velocity, Collider, Sleeping, Sensor, ActiveEvents, RapierContext}};
 
-use crate::{astroid::{Astroid, AstroidMaterial}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin, InventoryItem, Amount}, game_ui_widgets::SmeltEvent};
+use crate::{astroid::{Astroid, AstroidMaterial}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin, InventoryItem, Amount}, game_ui_widgets::SmeltEvent, refinery::{Refinery, RefineryPlugin}};
 
 pub const BASE_STATION_SIZE: f32 = 20.0;
 
@@ -18,51 +18,6 @@ pub struct BaseStation;
 
 pub struct CanDeposit(pub bool);
 
-pub struct RefineryTimer(pub Option<Timer>);
-
-
-// A component you can add to the base station in order to smelt ore.
-#[derive(Component, Default, Debug, Clone, PartialEq)]
-pub struct Refinery {
-    pub recipes: Vec<RefineryRecipe>,
-    pub currently_processing: Option<RefineryRecipe>,
-}
-
-impl Refinery {
-    pub fn new() -> Self {
-        let mut recipes = Vec::new();
-        let mut items_required = Vec::new();
-
-        items_required.push(InventoryItem::Material(AstroidMaterial::Iron, Amount::Weight(20.0)));
-
-        let iron_recipe = RefineryRecipe {
-            items_required,
-            item_created: MetalIngot::IronIngot
-        };
-
-        recipes.push(iron_recipe);
-
-        Self {
-            recipes,
-            currently_processing: None,
-        }
-    }
-}
-
-#[derive(Default, Debug, Clone, PartialEq)]
-pub struct RefineryRecipe {
-    pub items_required: Vec<InventoryItem>,
-    pub item_created: MetalIngot
-}
-
-#[derive(Default, Debug, Clone, Copy, PartialEq)]
-pub enum MetalIngot {
-    #[default]
-    IronIngot,
-    SilverIngot,
-    GoldIngot
-}
-
 impl Plugin for BaseStationPlugin {
     fn build(&self, app: &mut App) {
         app
@@ -71,11 +26,7 @@ impl Plugin for BaseStationPlugin {
             .add_system(Self::guide_player_to_base_station)
             .add_system(Self::repel_astroids_from_base_station)
             .add_system(Self::handle_base_station_sensor_collision_event)
-            .add_event::<SmeltEvent>()
-            .add_system(Self::on_smelt_event)
-            .add_system(Self::update_refinery_processing)
-            .insert_resource(CanDeposit(true))
-            .insert_resource(RefineryTimer(None));
+            .insert_resource(CanDeposit(true));
     }
 }
 
@@ -107,10 +58,8 @@ impl BaseStationPlugin {
             .insert(Name::new("Base Station"))
             .id();
 
-        commands.entity(base_station)
-            .insert(Refinery::new());
-
         InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: Vec::new(), capacity: Capacity {maximum: 1000.0}}, base_station);
+        RefineryPlugin::attach_refinery_to_entity(&mut commands, Refinery::new(), base_station);
 
     }
 
@@ -200,97 +149,4 @@ impl BaseStationPlugin {
 
     }
 
-    /// Returns true if the inventory provided has the materials availible to smelt the recipe.
-    fn have_materials_to_smelt(inventory: &Inventory, recipe: &RefineryRecipe) -> bool {
-
-        for material_needed in recipe.items_required.iter() {
-
-            // FIXME: this fells messy and error prone.. not even sure its right haha... maybe use the macro from discord
-            match material_needed {
-                InventoryItem::Material(material_needed, weight_needed) => {
-                    if let Some(inventory_material) = inventory.items.iter().find_map(|item| {
-                        match item {
-                            InventoryItem::Material(m, _) if *m == *material_needed => {
-                                Some(item)
-                            },
-                            _ => { None }
-                        }
-                    }) {
-                        if inventory_material.amount() < *weight_needed {
-                            return false;
-                        }
-                    } else {
-                        return false;
-                    }
-
-                },
-                _ => { return false },
-            }
-
-        }
-    
-        true
-    }
-
-    fn smelt_materials(mut inventory: Mut<Inventory>, recipe: &RefineryRecipe, mut refinery: Mut<Refinery>, mut timer: &mut ResMut<RefineryTimer>) {
-        if Self::have_materials_to_smelt(inventory.as_ref(), &recipe) {
-            println!("We have the materials!");
-            refinery.currently_processing = Some(recipe.clone());
-            timer.0 = Some(Timer::new(Duration::from_secs(5), false));
-
-            // for required_item in recipe.items_required.iter() {
-            //     inventory.remove_from_inventory(*required_item);
-            // }
-
-            // inventory.add_to_inventory(InventoryItem::Ingot(recipe.item_created, Amount::Quantity(1)));
-
-        } else {
-            println!("We do not have the materials!");
-        }
-    }
-
-    fn update_refinery_processing(
-        mut base_station_query: Query<(&BaseStation, &mut Inventory, &mut Refinery), With<BaseStation>>,
-        mut timer: ResMut<RefineryTimer>,
-        time: Res<Time>
-    ) {
-        if let Some(mut timer) = timer.0.as_mut() {
-            timer.tick(time.delta());
-
-            if timer.just_finished() {
-
-                let (base_station, mut inventory, mut refinery) = base_station_query.single_mut();
-
-                if let Some(currently_processing) = refinery.currently_processing.clone() {
-                    for required_item in currently_processing.items_required.iter() {
-                        inventory.remove_from_inventory(*required_item);
-                    }
-        
-                    inventory.add_to_inventory(InventoryItem::Ingot(currently_processing.item_created, Amount::Quantity(1)));
-                }
-
-                refinery.currently_processing = None;
-
-            }
-
-        }
-    }
-
-    fn on_smelt_event(
-        mut reader: EventReader<SmeltEvent>,
-        mut base_station_query: Query<(&BaseStation, &mut Inventory, &mut Refinery), With<BaseStation>>,
-        mut refinery_timer: ResMut<RefineryTimer>,
-        mut time: Res<Time>
-    ) {
-
-        for event in reader.iter() {
-            println!("Smelt Event Detected!");
-            let (base_station, inventory, mut refinery) = base_station_query.single_mut();
-
-            let recipe = event.0.clone();
-            println!("{:?}", recipe);
-
-            Self::smelt_materials(inventory, &recipe, refinery, &mut refinery_timer);
-        }
-    }
 }

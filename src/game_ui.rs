@@ -10,7 +10,7 @@ use kayak_ui::widgets::{App as KayakApp};
 
 use bevy::{prelude::*};
 
-use crate::{game_ui_widgets::{UIShipInventory, UIBaseInventory, UIRefineryView}, inventory::{Inventory, InventoryItem}, player::Player, base_station::{BaseStation, CanDeposit, Refinery}};
+use crate::{game_ui_widgets::{UIShipInventory, UIBaseInventory, UIRefineryView}, inventory::{Inventory, InventoryItem}, player::Player, base_station::{BaseStation, CanDeposit}, refinery::Refinery};
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct UIItems {

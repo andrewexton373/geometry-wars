@@ -2,7 +2,7 @@ use bevy::{prelude::*};
 
 use bevy_inspector_egui::{Inspectable};
 use crate::astroid::{AstroidMaterial};
-use crate::base_station::MetalIngot;
+use crate::refinery::MetalIngot;
 use std::fmt;
 use std::ops::{AddAssign, SubAssign};
 
