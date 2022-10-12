@@ -17,7 +17,7 @@ use bevy::prelude::*;
 
 use crate::refinery::RefineryRecipe;
 use crate::{HEIGHT, RESOLUTION};
-use crate::game_ui::UIItems;
+use crate::game_ui::{UIItems};
 use crate::inventory::{InventoryItem, Amount};
 
 
@@ -27,20 +27,13 @@ pub fn UIShipInventory() {
     context.bind(&ui_items);
 
     let inventory = ui_items.get().ship_inventory_items;
-    let can_deposit = ui_items.get().can_deposit;
 
     let size = Vec2 { x: 200.0, y: 500.0 };
     let ui_ship_inventory_pos = (HEIGHT * RESOLUTION - size.x, HEIGHT - size.y);
 
     rsx! {
         <Window position={ui_ship_inventory_pos} size={(size.x, size.y)} title={"Ship Inventory".to_string()}>
-
-            <If condition={can_deposit}>
-                <Text content={"Press SPACE to deposit ore.".to_string()} size={16.0} />
-            </If>
-
             <InventoryItems items={inventory} />
-
         </Window>
     }
 }
@@ -117,7 +110,6 @@ pub fn UIInventoryItem(props: UIInventoryItemProps) {
         InventoryItem::Ingot(ingot, Amount::Quantity(quantity)) => {
             rsx! {
                 <Background styles={Some(background_styles)}>
-                    // <Text content={format!("Ingot: {:?} \n| Quantity: {:?}", ingot, amount)} size={16.0} />
                     <Text content={format!("{:?}", ingot)} size={16.0} />
                     <Text content={format!("x{}", quantity)} size={14.0} />
                 </Background>
@@ -332,4 +324,65 @@ pub fn SmeltButton(props: SmeltButtonProps) {
             <Text content={"SMELT".to_string()} size={16.0} styles={text_styles} />
         </Background>
     }
+}
+
+
+
+#[widget]
+pub fn UIContextClueView(props: UIContextClueProps) {
+
+    let ui_items = context.query_world::<Res<Binding<UIItems>>, _, _>(move |ui_items| ui_items.clone());
+    context.bind(&ui_items);
+
+    let context_clue = ui_items.get().context_clue.clone();
+
+    let size = Vec2 { x: 400.0, y: 100.0 };
+    let offset = 200.0; // width of station inventory
+    let ui_context_clue_pos = (HEIGHT * RESOLUTION / 2. + size.x / 2.0, HEIGHT - size.y);
+
+    match context_clue {
+        None => {},
+        Some(context_clue) => {
+
+            rsx! {
+                <Window position={ui_context_clue_pos} size={(size.x, size.y)} title={"Context Clue".to_string()}>
+                    <UIContextClue context_clue={context_clue.text()} />
+                </Window>
+            }
+        }
+
+    }
+
+}
+
+#[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
+pub struct UIContextClueProps {
+    context_clue: String
+}
+
+#[widget]
+pub fn UIContextClue(props: UIContextClueProps) {
+
+    let UIContextClueProps { context_clue } = props.clone();
+
+    // let background_styles = Some(Style {
+    //     border_radius: StyleProp::Value(Corner::all(5.0)),
+    //     background_color: StyleProp::Value(Color::WHITE),
+    //     cursor: CursorIcon::Hand.into(),
+    //     padding_left: StyleProp::Value(Units::Pixels(8.0)),
+    //     ..Style::default()
+    // });
+
+    let text_styles = Some(Style {
+        cursor: StyleProp::Inherit,
+        ..Style::default()
+    });
+
+    rsx! {
+        // <Background styles={background_styles}>
+        <Background>
+            <Text content={context_clue} size={16.0} styles={text_styles} />
+        </Background>
+    }
+
 }

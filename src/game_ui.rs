@@ -10,24 +10,40 @@ use kayak_ui::widgets::{App as KayakApp};
 
 use bevy::{prelude::*};
 
-use crate::{game_ui_widgets::{UIShipInventory, UIBaseInventory, UIRefineryView}, inventory::{Inventory, InventoryItem}, player::Player, base_station::{BaseStation, CanDeposit}, refinery::Refinery};
+use crate::{game_ui_widgets::{UIShipInventory, UIBaseInventory, UIRefineryView, UIContextClueView}, inventory::{Inventory, InventoryItem}, player::Player, base_station::{BaseStation, CanDeposit}, refinery::Refinery};
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct UIItems {
     pub ship_inventory_items: Vec<InventoryItem>,
     pub station_inventory_items: Vec<InventoryItem>,
-    pub can_deposit: bool,
     pub refinery: Refinery,
-    pub remaining_refinery_time: f32
+    pub remaining_refinery_time: f32,
+    pub context_clue: Option<ContextClue>
 }
 
-pub struct GameUIPlugin;
+#[derive(Default, Debug, Clone, Copy, PartialEq)]
+pub enum ContextClue {
+    #[default]
+    NearBaseStation
+}
 
+impl ContextClue {
+    pub fn text(&self) -> String {
+        match *self {
+            ContextClue::NearBaseStation => "Near Base Station, Deposit Collected Ore with SPACE.",
+        }.to_string()
+    }
+}
+
+pub struct Clue(pub Option<ContextClue>);
+
+pub struct GameUIPlugin;
 
 impl Plugin for GameUIPlugin {
     fn build(&self, app: &mut bevy::app::App) {
         app.add_plugin(BevyKayakUIPlugin)
             .add_startup_system(Self::setup_game_ui)
+            .insert_resource(Clue(None))
             .add_system(Self::update_ui_data);
     }
 }
@@ -51,6 +67,7 @@ impl GameUIPlugin {
                     <UIShipInventory />
                     <UIBaseInventory />
                     <UIRefineryView />
+                    <UIContextClueView />
                 </KayakApp>
             }
         });
@@ -61,19 +78,24 @@ impl GameUIPlugin {
     fn update_ui_data(
         player_inventory_query: Query<&Inventory, (With<Player>, Without<BaseStation>)>,
         base_station_query: Query<(&Inventory, &Refinery), (With<BaseStation>, Without<Player>)>,
-        can_deposit_res: Res<CanDeposit>,
+        context_clue_res: Res<Clue>,
         ui_items: Res<Binding<UIItems>>,
     ) {
         let ship_inventory = player_inventory_query.single();
         let (station_inventory, station_refinery) = base_station_query.single();
+
+        let mut clue = None;
+        if let Clue(Some(context_clue)) = context_clue_res.into_inner() {
+            clue = Some(context_clue.clone());
+        }
     
         // update ui by updating binding object
         ui_items.set(UIItems {
             ship_inventory_items: ship_inventory.items.clone(),
             station_inventory_items: station_inventory.items.clone(),
-            can_deposit: can_deposit_res.0,
             refinery: station_refinery.clone(),
-            remaining_refinery_time: 0.0
+            remaining_refinery_time: 0.0,
+            context_clue: clue
         });
         
     }
