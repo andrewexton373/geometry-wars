@@ -57,9 +57,40 @@ LMB - Fire Projectile in direction of ship
 <!-- ROADMAP -->
 ## Roadmap
 
-Coming Soon!
+- [ ] **Ship Fuel System**  
+	Ship has limited fuel capacity that can be upgraded (more efficent engine/larger fuel tank)	
+- [ ] **Refueling System**  
 
-<!--
+- [ ] **Ship Handling Characteristics?**  
+change with added cargo weight? (can mitigate with stronger engines?)  
+	
+- [ ] **Upgrade System**
+	- [ ] *Ship Upgrade System*
+		- [ ] Cargo Bay Size
+		- [ ] Fuel Tank Size
+		- [ ] Engine Fuel Efficency
+		- [ ] Ore Attractor Strength
+		- [ ] Weapon Strength/Rate of Fire  
+	- [ ] *Refinery Upgrade System*
+		- [ ] Processing Speed
+		- [ ] Less ore losses from processing? (ore losses are not implemented yet)
+	- [ ] *Base Station Upgrade System*
+		- [ ] Cargo Bay Size
+		- [ ] Refueling Speed
+		- [ ] Astroid Repel Strength?
+		
+- [ ] **Astroid Ore Rarity**
+	- [ ] Astroids further from the base station have a higher chance of spawning rarer ores.
+	- [ ] ? OR use noise function to generate pockets with higher rarity ores.
+	
+- [ ] **Components Crafting System**
+	- [ ] Factory to turn metal ingots into components used for upgrades.
+	
+	
+**Is this a good 0.1 release?**
+
+
+<!-- 
 - [x] Add Changelog
 - [x] Add back to top links
 - [ ] Add Additional Templates w/ Examples
@@ -68,8 +99,8 @@ Coming Soon!
     - [ ] Chinese
     - [ ] Spanish
 
-See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a full list of proposed features (and known issues).
--->
+See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a full list of proposed features (and known issues). -->
+
 
 <!-- CONTRIBUTING -->
 ## Contributing
