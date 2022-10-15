@@ -2,6 +2,7 @@ use bevy::{prelude::*};
 
 use bevy_inspector_egui::{Inspectable};
 use crate::astroid::{AstroidMaterial};
+use crate::factory::UpgradeComponent;
 use crate::refinery::MetalIngot;
 use std::fmt;
 use std::ops::{AddAssign, SubAssign};
@@ -82,7 +83,8 @@ impl SubAssign for Amount {
 
 pub enum InventoryItem {
     Material(AstroidMaterial, Amount),
-    Ingot(MetalIngot, Amount)
+    Ingot(MetalIngot, Amount),
+    Component(UpgradeComponent, Amount)
 }
 
 impl Default for InventoryItem {
@@ -100,6 +102,9 @@ impl fmt::Debug for InventoryItem {
             Self::Ingot(arg0, arg1) => {
                 write!(f, "{:?}: {:?}", arg0, arg1)
             },
+            Self::Component(arg0, arg1) => {
+                write!(f, "{:?}: {:?}", arg0, arg1)
+            },
         }
     }
 }
@@ -109,6 +114,7 @@ impl InventoryItem {
         match self {
             InventoryItem::Material(_, weight) => *weight,
             InventoryItem::Ingot(_, quantity) => *quantity,
+            InventoryItem::Component(_, quantity) => *quantity
         }
     }
 
@@ -120,6 +126,9 @@ impl InventoryItem {
             InventoryItem::Ingot(_, ref mut quantity) => {
                 *quantity += to_add;
             },
+            InventoryItem::Component(_, ref mut quantity) => {
+                *quantity += to_add;
+            },
         }
     }
 
@@ -129,6 +138,9 @@ impl InventoryItem {
                 *weight -= to_remove;
             },
             InventoryItem::Ingot(_, ref mut quantity) => {
+                *quantity -= to_remove;
+            },
+            InventoryItem::Component(_, ref mut quantity) => {
                 *quantity -= to_remove;
             },
         }
@@ -210,6 +222,22 @@ impl Inventory {
                         self.items.push(item_to_add);
                     }
                 },
+                InventoryItem::Component(component, quantity) => {
+                    if let Some(found) = self.items.iter_mut().find_map(|item| {
+                        match item {
+                            InventoryItem::Component(i, _) if *i == component => {
+                                Some(item)
+                            },
+                            _ => {
+                                None
+                            }
+                        }
+                    }) {
+                        found.add_amount(item_to_add.amount())
+                    } else {
+                        self.items.push(item_to_add);
+                    }
+                },
             }
 
         } else {
@@ -248,6 +276,25 @@ impl Inventory {
                 if let Some((index, found_item)) = self.items.iter_mut().enumerate().find_map(|(index, item)| {
                     match item {
                         InventoryItem::Ingot(i, _) if *i == to_find => {
+                            Some((index, item))
+                        },
+                        _ => { None }
+                    }
+                }) {
+                    if found_item.amount() >= item_to_remove.amount() {
+                        if found_item.amount() == Amount::Quantity(0) {
+                            self.items.remove(index);
+                        }
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            },
+            InventoryItem::Component(to_find, _) => {
+                if let Some((index, found_item)) = self.items.iter_mut().enumerate().find_map(|(index, item)| {
+                    match item {
+                        InventoryItem::Component(i, _) if *i == to_find => {
                             Some((index, item))
                         },
                         _ => { None }

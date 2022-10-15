@@ -10,13 +10,14 @@ use kayak_ui::widgets::{App as KayakApp};
 
 use bevy::{prelude::*};
 
-use crate::{game_ui_widgets::{UIShipInventory, UIBaseInventory, UIRefineryView, UIContextClueView}, inventory::{Inventory, InventoryItem}, player::Player, base_station::{BaseStation, CanDeposit}, refinery::Refinery};
+use crate::{inventory::{Inventory, InventoryItem}, player::Player, base_station::{BaseStation, CanDeposit}, refinery::Refinery, widgets::{refinery::UIRefineryView, context_clue::UIContextClueView, inventory::{UIShipInventory, UIBaseInventory}, factory::UIFactoryView}, factory::Factory};
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct UIItems {
     pub ship_inventory_items: Vec<InventoryItem>,
     pub station_inventory_items: Vec<InventoryItem>,
     pub refinery: Refinery,
+    pub factory: Factory,
     pub remaining_refinery_time: f32,
     pub context_clue: Option<ContextClue>
 }
@@ -67,6 +68,7 @@ impl GameUIPlugin {
                     <UIShipInventory />
                     <UIBaseInventory />
                     <UIRefineryView />
+                    <UIFactoryView />
                     <UIContextClueView />
                 </KayakApp>
             }
@@ -77,12 +79,12 @@ impl GameUIPlugin {
 
     fn update_ui_data(
         player_inventory_query: Query<&Inventory, (With<Player>, Without<BaseStation>)>,
-        base_station_query: Query<(&Inventory, &Refinery), (With<BaseStation>, Without<Player>)>,
+        base_station_query: Query<(&Inventory, &Refinery, &Factory), (With<BaseStation>, Without<Player>)>,
         context_clue_res: Res<Clue>,
         ui_items: Res<Binding<UIItems>>,
     ) {
         let ship_inventory = player_inventory_query.single();
-        let (station_inventory, station_refinery) = base_station_query.single();
+        let (station_inventory, station_refinery, station_factory) = base_station_query.single();
 
         let mut clue = None;
         if let Clue(Some(context_clue)) = context_clue_res.into_inner() {
@@ -94,6 +96,7 @@ impl GameUIPlugin {
             ship_inventory_items: ship_inventory.items.clone(),
             station_inventory_items: station_inventory.items.clone(),
             refinery: station_refinery.clone(),
+            factory: station_factory.clone(),
             remaining_refinery_time: 0.0,
             context_clue: clue
         });

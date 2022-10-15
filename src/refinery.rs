@@ -2,15 +2,15 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use crate::{base_station::BaseStation, game_ui_widgets::SmeltEvent, inventory::{Inventory, InventoryItem, Amount}, astroid::AstroidMaterial};
+use crate::{base_station::BaseStation, inventory::{Inventory, InventoryItem, Amount}, astroid::AstroidMaterial, widgets::refinery::SmeltEvent};
 
 pub struct RefineryTimer(pub Option<Timer>);
 
 // A component you can add to the base station in order to smelt ore.
 #[derive(Component, Default, Debug, Clone, PartialEq)]
 pub struct Refinery {
-    pub recipes: Vec<RefineryRecipe>,
-    pub currently_processing: Option<RefineryRecipe>,
+    pub recipes: Vec<Recipe>,
+    pub currently_processing: Option<Recipe>,
     pub remaining_processing_time: f32
 }
 
@@ -21,9 +21,9 @@ impl Refinery {
         let mut items_required = Vec::new();
         items_required.push(InventoryItem::Material(AstroidMaterial::Iron, Amount::Weight(20.0)));
 
-        let iron_recipe = RefineryRecipe {
+        let iron_recipe = Recipe {
             items_required,
-            item_created: MetalIngot::IronIngot,
+            item_created: InventoryItem::Ingot(MetalIngot::IronIngot, Amount::Quantity(1)),
             time_required: 2.0
         };
 
@@ -31,9 +31,9 @@ impl Refinery {
         items_required.push(InventoryItem::Material(AstroidMaterial::Silver, Amount::Weight(50.0)));
 
 
-        let silver_recipe = RefineryRecipe {
+        let silver_recipe = Recipe {
             items_required,
-            item_created: MetalIngot::SilverIngot,
+            item_created: InventoryItem::Ingot(MetalIngot::SilverIngot, Amount::Quantity(1)),
             time_required: 5.0
         };
 
@@ -41,9 +41,9 @@ impl Refinery {
         items_required.push(InventoryItem::Material(AstroidMaterial::Gold, Amount::Weight(100.0)));
 
 
-        let gold_recipe = RefineryRecipe {
+        let gold_recipe = Recipe {
             items_required,
-            item_created: MetalIngot::GoldIngot,
+            item_created: InventoryItem::Ingot(MetalIngot::GoldIngot, Amount::Quantity(1)),
             time_required: 10.0
         };
 
@@ -61,9 +61,9 @@ impl Refinery {
 }
 
 #[derive(Default, Debug, Clone, PartialEq)]
-pub struct RefineryRecipe {
+pub struct Recipe {
     pub items_required: Vec<InventoryItem>,
-    pub item_created: MetalIngot,
+    pub item_created: InventoryItem,
     pub time_required: f32
 }
 
@@ -89,7 +89,7 @@ impl Plugin for RefineryPlugin {
 impl RefineryPlugin {
 
      /// Returns true if the inventory provided has the materials availible to smelt the recipe.
-     fn have_materials_to_smelt(inventory: &Inventory, recipe: &RefineryRecipe) -> bool {
+     fn have_materials_to_smelt(inventory: &Inventory, recipe: &Recipe) -> bool {
 
         for material_needed in recipe.items_required.iter() {
 
@@ -123,7 +123,7 @@ impl RefineryPlugin {
     /// If the base_station inventory has the required materials for the recipe,
     /// Start processing the recipe by setting currently processing to the recipe,
     /// and starting a timer.
-    fn smelt_materials(mut inventory: Mut<Inventory>, recipe: &RefineryRecipe, mut refinery: Mut<Refinery>, mut timer: &mut ResMut<RefineryTimer>) {
+    fn smelt_materials(mut inventory: Mut<Inventory>, recipe: &Recipe, mut refinery: Mut<Refinery>, mut timer: &mut ResMut<RefineryTimer>) {
         if Self::have_materials_to_smelt(inventory.as_ref(), &recipe) {
             println!("We have the materials!");
 
@@ -162,7 +162,7 @@ impl RefineryPlugin {
                         inventory.remove_from_inventory(*required_item);
                     }
         
-                    inventory.add_to_inventory(InventoryItem::Ingot(currently_processing.item_created, Amount::Quantity(1)));
+                    inventory.add_to_inventory(currently_processing.item_created);
                 }
 
                 refinery.currently_processing = None;

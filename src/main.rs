@@ -7,9 +7,11 @@ use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
 
 mod game_ui;
+mod widgets;
 mod refinery;
+mod factory;
+use factory::FactoryPlugin;
 use game_ui::GameUIPlugin;
-mod game_ui_widgets;
 
 mod player;
 use player::{ PlayerPlugin, Player };
@@ -69,6 +71,7 @@ fn main() {
         .add_plugin(InventoryPlugin)
         .add_plugin(BaseStationPlugin)
         .add_plugin(RefineryPlugin)
+        .add_plugin(FactoryPlugin)
         .add_plugin(AstroidPlugin)
         .add_plugin(ProjectilePlugin)
         .add_plugin(CrosshairPlugin)

@@ -4,7 +4,7 @@ use bevy::{prelude::*, time::Timer};
 use bevy_prototype_lyon::prelude::{self as lyon};
 use bevy_rapier2d::{prelude::{Velocity, Collider, Sleeping, Sensor, ActiveEvents, RapierContext}};
 
-use crate::{astroid::{Astroid, AstroidMaterial}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin, InventoryItem, Amount}, game_ui_widgets::SmeltEvent, refinery::{Refinery, RefineryPlugin}, game_ui::{Clue, ContextClue}};
+use crate::{astroid::{Astroid, AstroidMaterial}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin, InventoryItem, Amount}, refinery::{Refinery, RefineryPlugin}, game_ui::{Clue, ContextClue}, factory::{FactoryPlugin, Factory}};
 
 pub const BASE_STATION_SIZE: f32 = 20.0;
 
@@ -60,6 +60,7 @@ impl BaseStationPlugin {
 
         InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: Vec::new(), capacity: Capacity {maximum: 1000.0}}, base_station);
         RefineryPlugin::attach_refinery_to_entity(&mut commands, Refinery::new(), base_station);
+        FactoryPlugin::attach_factory_to_entity(&mut commands, Factory::new(), base_station);
 
     }
 
