@@ -83,8 +83,8 @@ change with added cargo weight? (can mitigate with stronger engines?)
 	- [ ] Astroids further from the base station have a higher chance of spawning rarer ores.
 	- [ ] ? OR use noise function to generate pockets with higher rarity ores.
 	
-- [ ] **Components Crafting System**
-	- [ ] Factory to turn metal ingots into components used for upgrades.
+- [x] **Components Crafting System**
+	- [x] Factory to turn metal ingots into components used for upgrades.
 	
 	
 **Is this a good 0.1 release?**
