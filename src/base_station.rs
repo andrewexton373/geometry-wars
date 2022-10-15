@@ -47,7 +47,7 @@ impl BaseStationPlugin {
                     fill_mode: lyon::FillMode::color(Color::MIDNIGHT_BLUE),
                     outline_mode: lyon::StrokeMode::new(Color::WHITE, 5.0),
                 },
-                Transform { translation: Vec3::new(0.0, 0.0, -1.0), ..Default::default() }
+                Transform { translation: Vec3::new(0.0, 0.0, -100.0), ..Default::default() }
             ))
             .insert(Sleeping::disabled())
             .insert(Collider::ball(crate::PIXELS_PER_METER * BASE_STATION_SIZE))

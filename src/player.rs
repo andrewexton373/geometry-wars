@@ -92,6 +92,11 @@ impl PlayerPlugin {
                 }
             ))
             .insert(RigidBody::Dynamic)
+            .insert(ExternalForce {
+                force: Vec2::new(0.0, 0.0),
+                torque: 0.0,
+            })
+            .insert(Damping { linear_damping: 0.8, angular_damping: 0.0 })
             .insert(Velocity::zero())
             .insert(Sleeping::disabled())
             .insert(Ccd::enabled())
@@ -111,30 +116,34 @@ impl PlayerPlugin {
 
     fn player_movement(
         keyboard_input: Res<Input<KeyCode>>,
-        mut player_query: Query<(&mut Transform, &mut Velocity), (With<Player>, Without<Crosshair>)>,
+        mut player_query: Query<(&mut Transform, &mut Velocity, &mut ExternalForce), (With<Player>, Without<Crosshair>)>,
     ) {
-        const ACCELERATION: f32 =  3.0 * PIXELS_PER_METER;
-        const DECLERATION: f32 = 0.95;
+        const ACCELERATION: f32 =  400.0 * PIXELS_PER_METER;
 
-            let (mut transform, mut velocity) = player_query.single_mut();
+            let (mut transform, mut velocity, mut ext_force) = player_query.single_mut();
     
+            let mut movement = Vec2::ZERO;
+
             if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
-                velocity.linvel += Vec2 {x: -ACCELERATION, y: 0.0 };
+                movement += Vec2 {x: -ACCELERATION, y: 0.0 };
+
             }
         
             if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
-                velocity.linvel += Vec2 {x: ACCELERATION, y: 0.0 };
+                movement += Vec2 {x: ACCELERATION, y: 0.0 };
+
             }
         
             if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
-                velocity.linvel += Vec2 {x: 0.0, y: ACCELERATION };
+                movement += Vec2{ x: 0.0, y: ACCELERATION };
             }
         
             if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
-                velocity.linvel += Vec2 {x: 0.0, y: -ACCELERATION };
+                movement += Vec2 {x: 0.0, y: -ACCELERATION };
             }
-        
-            velocity.linvel *= DECLERATION;
+
+            ext_force.force = movement;
+
             velocity.angvel = 0.0; // Prevents spin on astrid impact
 
             // TODO: is there a better place to do this?

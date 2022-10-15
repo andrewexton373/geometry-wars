@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use crate::{base_station::BaseStation, inventory::{Inventory, InventoryItem, Amount}, astroid::AstroidMaterial, refinery::{MetalIngot, Recipe}, widgets::factory::CraftEvent};
+use crate::{base_station::BaseStation, refinery::{MetalIngot, Recipe}, inventory::{Inventory, InventoryItem, Amount}, widgets::factory::CraftEvent};
 
 pub struct FactoryTimer(pub Option<Timer>);
 
