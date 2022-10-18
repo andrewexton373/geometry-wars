@@ -236,11 +236,9 @@ impl PlayerPlugin {
     
             //Rotate towards position mouse is on
             if ship_angle_difference > 0.0 {
-                // player.delta_rotation += SPIN_ACCELERATION * (2.0*PI - ship_angle_difference.abs());
                 velocity.angvel += SPIN_ACCELERATION * (2.0*PI - ship_angle_difference.abs());
             
             } else if ship_angle_difference < 0.0 {
-                // player.delta_rotation += -SPIN_ACCELERATION * (2.0*PI - ship_angle_difference.abs());
                 velocity.angvel += -SPIN_ACCELERATION * (2.0*PI - ship_angle_difference.abs());
             }
     
