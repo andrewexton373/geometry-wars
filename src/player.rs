@@ -118,31 +118,29 @@ impl PlayerPlugin {
         keyboard_input: Res<Input<KeyCode>>,
         mut player_query: Query<(&mut Transform, &mut Velocity, &mut ExternalForce), (With<Player>, Without<Crosshair>)>,
     ) {
-        const ACCELERATION: f32 =  400.0 * PIXELS_PER_METER;
+        const ACCELERATION: f32 =  650.0 * PIXELS_PER_METER;
 
             let (mut transform, mut velocity, mut ext_force) = player_query.single_mut();
     
-            let mut movement = Vec2::ZERO;
+            let mut thrust = Vec2::ZERO;
 
             if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
-                movement += Vec2 {x: -ACCELERATION, y: 0.0 };
-
+                thrust += Vec2 {x: -ACCELERATION, y: 0.0 };
             }
         
             if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
-                movement += Vec2 {x: ACCELERATION, y: 0.0 };
-
+                thrust += Vec2 {x: ACCELERATION, y: 0.0 };
             }
         
             if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
-                movement += Vec2{ x: 0.0, y: ACCELERATION };
+                thrust += Vec2{ x: 0.0, y: ACCELERATION };
             }
         
             if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
-                movement += Vec2 {x: 0.0, y: -ACCELERATION };
+                thrust += Vec2 {x: 0.0, y: -ACCELERATION };
             }
 
-            ext_force.force = movement;
+            ext_force.force = thrust;
 
             velocity.angvel = 0.0; // Prevents spin on astrid impact
 
