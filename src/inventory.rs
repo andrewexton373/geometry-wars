@@ -318,34 +318,26 @@ impl Inventory {
 
 }
 
-#[derive(Component, Default, Debug, Inspectable, Copy, Clone, PartialEq, PartialOrd)]
-pub struct ItemAndWeight {
-    pub item: AstroidMaterial,
-    pub weight: f32
-}
+// #[derive(Component, Default, Debug, Inspectable, Copy, Clone, PartialEq, PartialOrd)]
+// pub struct ItemAndWeight {
+//     pub item: AstroidMaterial,
+//     pub weight: f32
+// }
 
-impl fmt::Display for ItemAndWeight {
-    fn fmt(&self, f: &mut  fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Item: {:?} | Weight: {}", &self.item, &self.weight)
-    }
-}
+// impl fmt::Display for ItemAndWeight {
+//     fn fmt(&self, f: &mut  fmt::Formatter<'_>) -> fmt::Result {
+//         write!(f, "Item: {:?} | Weight: {}", &self.item, &self.weight)
+//     }
+// }
 
 pub struct InventoryPlugin;
 
 impl Plugin for InventoryPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_startup_system(Self::setup_inventory);
     }
 }
 
 impl InventoryPlugin {
-        fn setup_inventory(mut commands: Commands) {
-            commands.insert_resource(Inventory {
-                                        items: Vec::new(),
-                                        capacity: Capacity { maximum: 1000.0 }});
-        }
-
         pub fn attach_inventory_to_entity(commands: &mut Commands, inventory: Inventory, entity: Entity) {
             commands.entity(entity).insert(inventory);
         }

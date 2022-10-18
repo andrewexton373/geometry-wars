@@ -3,6 +3,7 @@ use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
 use bevy::render::camera::RenderTarget;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
+use bevy_rapier2d::rapier::prelude::MassProperties;
 use std::f32::consts::PI;
 use crate::base_station::{CanDeposit, BaseStation};
 use crate::player_stats_bar::PlayerStatsBarPlugin;
@@ -59,6 +60,7 @@ impl Plugin for PlayerPlugin {
             .add_system(Self::player_camera_control)
             .add_system(Self::player_deposit_control)
             .add_system(Self::gravitate_collectibles)
+            .add_system(Self::update_player_mass)
             .register_inspectable::<Player>();
     }
 }
@@ -92,6 +94,7 @@ impl PlayerPlugin {
                 }
             ))
             .insert(RigidBody::Dynamic)
+            .insert(AdditionalMassProperties::Mass(10.0))
             .insert(ExternalForce {
                 force: Vec2::new(0.0, 0.0),
                 torque: 0.0,
@@ -118,7 +121,7 @@ impl PlayerPlugin {
         keyboard_input: Res<Input<KeyCode>>,
         mut player_query: Query<(&mut Transform, &mut Velocity, &mut ExternalForce), (With<Player>, Without<Crosshair>)>,
     ) {
-        const ACCELERATION: f32 =  650.0 * PIXELS_PER_METER;
+        const ACCELERATION: f32 =  12000.0 * PIXELS_PER_METER;
 
             let (mut transform, mut velocity, mut ext_force) = player_query.single_mut();
     
@@ -280,4 +283,18 @@ impl PlayerPlugin {
         }
     }
 
-}
+    /// Updates the player mass with the ship's net mass for rapier2d movement physics.
+    fn update_player_mass(
+        mut player_query: Query<(&Player, &Inventory, &mut AdditionalMassProperties)>,
+    ) {
+        const PLAYER_MASS: f32 = 100.0;
+
+        for (player, inventory, mut mass_properties) in player_query.iter_mut() {
+
+            let inventory_weight = inventory.gross_material_weight();
+            let mass_properties = mass_properties.as_mut();
+            *mass_properties = AdditionalMassProperties::Mass(inventory_weight + PLAYER_MASS);
+
+        }
+    }
+}      
