@@ -137,15 +137,18 @@ impl BaseStationPlugin {
         rapier_context: Res<RapierContext>,
         mut can_deposit_res: ResMut<CanDeposit>,
         mut context_clue_res: ResMut<Clue>,
-        player_query: Query<(Entity, &mut Player), With<Player>>,
+        mut player_query: Query<(Entity, &mut Player), With<Player>>,
         base_station_query: Query<(Entity, &BaseStation), With<BaseStation>>,
+        time: Res<Time>
     ) {
-        let (player_ent, player) = player_query.single();
+        let (player_ent, mut player) = player_query.single_mut();
         let (base_station_ent, base_station) = base_station_query.single();
 
         if rapier_context.intersection_pair(player_ent, base_station_ent) == Some(true) {
             *can_deposit_res = CanDeposit(true);
             *context_clue_res = Clue(Some(ContextClue::NearBaseStation));
+            player.charge_battery(100.0 * time.delta_seconds());
+
         } else {
             *can_deposit_res = CanDeposit(false);
 
