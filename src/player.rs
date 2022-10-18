@@ -70,13 +70,14 @@ impl Plugin for PlayerPlugin {
 
         app
             .add_startup_system(Self::spawn_player.label("spawn_player"))
-            .add_system(Self::player_movement)
-            .add_system(Self::ship_rotate_towards_mouse)
+            .add_system(Self::update_player_mass)
+            .add_system(Self::player_movement.after(Self::update_player_mass))
+            .add_system(Self::ship_rotate_towards_mouse.after(Self::player_movement))
             .add_system(Self::player_fire_weapon)
             .add_system(Self::player_camera_control)
             .add_system(Self::player_deposit_control)
             .add_system(Self::gravitate_collectibles)
-            .add_system(Self::update_player_mass)
+            .add_system(Self::keep_player_on_top)
             .register_inspectable::<Player>();
     }
 }
@@ -105,10 +106,11 @@ impl PlayerPlugin {
                     outline_mode: lyon::StrokeMode::new(Color::WHITE, 2.0),
                 },
                 Transform {
-                    translation: Vec3::new(0.0, 0.0, 100.0),
+                    // translation: Vec3::new(0.0, 0.0, 100.0),
                     ..Default::default()
                 }
             ))
+            .insert(Transform {translation: Vec3 { x: 0.0, y: 0.0, z: 100.0 }, ..Default::default()})
             .insert(RigidBody::Dynamic)
             .insert(AdditionalMassProperties::Mass(10.0))
             .insert(ExternalForce {
@@ -132,6 +134,16 @@ impl PlayerPlugin {
         PlayerStatsBarPlugin::spawn_ship_capacity_statbar(&mut commands, player);
         PlayerStatsBarPlugin::spawn_ship_battery_statbar(&mut commands, player);
 
+    }
+
+
+    // FIXME: is this really the only way? I feel like rapier2d is messing with the z-value...
+    fn keep_player_on_top(
+        mut player_query: Query<(&mut Player, &mut Transform), (With<Player>, Without<Crosshair>)>
+    ) {
+        for (player, mut transform) in player_query.iter_mut() {
+            transform.translation.z = 100.0;
+        }
     }
 
     fn player_movement(
@@ -233,9 +245,6 @@ impl PlayerPlugin {
             }
     
         }
-
-        player.delta_rotation = player.delta_rotation.clamp(-MAX_VELOCITY, MAX_VELOCITY);
-        player_trans.rotate_z(player.delta_rotation.to_radians());
     
     }
 
