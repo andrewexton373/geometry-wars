@@ -57,9 +57,10 @@ LMB - Fire Projectile in direction of ship
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] **Ship Fuel System**  
-	Ship has limited fuel capacity that can be upgraded (more efficent engine/larger fuel tank)	
-- [ ] **Refueling System**  
+- [x] **Ship Fuel System**  
+	- [x] Ship has limited fuel capacity that can be upgraded 
+	- [ ] (more efficent engine/larger fuel tank)	
+- [x] **Refueling System**  
 
 - [x] **Ship Handling Characteristics?**  
 	- [x] change with added cargo weight
