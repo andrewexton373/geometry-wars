@@ -3,7 +3,6 @@ use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
 use bevy::render::camera::RenderTarget;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
-use bevy_rapier2d::rapier::prelude::MassProperties;
 use std::f32::consts::PI;
 use crate::base_station::{CanDeposit, BaseStation};
 use crate::player_stats_bar::PlayerStatsBarPlugin;
@@ -21,6 +20,12 @@ pub struct Health {
     pub maximum: f32,
 }
 
+#[derive(Component, Inspectable, Reflect, Default, Clone, Copy, Debug)]
+pub struct Battery {
+    pub current_capacity: f32,
+    pub maximum_capacity: f32,
+}
+
 #[derive(Component, Inspectable, Default)]
 pub struct Player {
     // TODO: refactor into velocity Vec2
@@ -28,6 +33,7 @@ pub struct Player {
     pub delta_y: f32,
     pub delta_rotation: f32,
     pub health: Health,
+    pub battery: Battery
 }
 
 impl Player {
@@ -37,6 +43,7 @@ impl Player {
             delta_y: 0.0,
             delta_rotation: 0.0,
             health: Health { current: 100.0, maximum: 100.0 },
+            battery: Battery { current_capacity: 1000.0, maximum_capacity: 1000.0 }
         }
     }
 
@@ -46,6 +53,15 @@ impl Player {
         self.health.current = modified_health;
     }
 
+    pub fn drain_battery(&mut self, amount: f32) {
+        let updated_capacity = self.battery.current_capacity - amount;
+        self.battery.current_capacity = updated_capacity.clamp(0.0, self.battery.maximum_capacity);
+    }
+
+    pub fn charge_battery(&mut self, amount: f32) {
+        let updated_capacity = self.battery.current_capacity + amount;
+        self.battery.current_capacity = updated_capacity.clamp(0.0, self.battery.maximum_capacity);
+    }
 }
 
 impl Plugin for PlayerPlugin {
@@ -114,36 +130,48 @@ impl PlayerPlugin {
 
         PlayerStatsBarPlugin::spawn_player_health_statbar(&mut commands, player);
         PlayerStatsBarPlugin::spawn_ship_capacity_statbar(&mut commands, player);
+        PlayerStatsBarPlugin::spawn_ship_battery_statbar(&mut commands, player);
 
     }
 
     fn player_movement(
         keyboard_input: Res<Input<KeyCode>>,
-        mut player_query: Query<(&mut Transform, &mut Velocity, &mut ExternalForce), (With<Player>, Without<Crosshair>)>,
+        mut player_query: Query<(&mut Player, &mut Transform, &mut Velocity, &mut ExternalForce), (With<Player>, Without<Crosshair>)>,
     ) {
         const ACCELERATION: f32 =  12000.0 * PIXELS_PER_METER;
 
-            let (mut transform, mut velocity, mut ext_force) = player_query.single_mut();
+            let (mut player, mut transform, mut velocity, mut ext_force) = player_query.single_mut();
     
             let mut thrust = Vec2::ZERO;
 
             if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
-                thrust += Vec2 {x: -ACCELERATION, y: 0.0 };
+                thrust += -Vec2::X;
             }
         
             if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
-                thrust += Vec2 {x: ACCELERATION, y: 0.0 };
+                thrust += Vec2::X;
             }
         
             if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
-                thrust += Vec2{ x: 0.0, y: ACCELERATION };
+                thrust += Vec2::Y;
             }
         
             if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
-                thrust += Vec2 {x: 0.0, y: -ACCELERATION };
+                thrust += -Vec2::Y;
             }
 
-            ext_force.force = thrust;
+            // If player has battery capacity remaining, apply controlled thrust.
+            if player.battery.current_capacity > 0.0 {
+                let force = thrust.normalize_or_zero() * ACCELERATION;
+                let energy_spent = force.length() / 1000000.0; // TODO: magic number
+
+                player.drain_battery(energy_spent);
+
+                ext_force.force = force;
+            } else {
+                // Show context clue that you're out of fuel.
+                todo!();
+            }
 
             velocity.angvel = 0.0; // Prevents spin on astrid impact
 
