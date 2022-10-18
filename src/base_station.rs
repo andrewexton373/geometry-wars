@@ -148,6 +148,7 @@ impl BaseStationPlugin {
             *can_deposit_res = CanDeposit(true);
             *context_clue_res = Clue(Some(ContextClue::NearBaseStation));
             player.charge_battery(100.0 * time.delta_seconds());
+            player.repair_damage(10.0 * time.delta_seconds());
 
         } else {
             *can_deposit_res = CanDeposit(false);

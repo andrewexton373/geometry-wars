@@ -1,3 +1,4 @@
+use bevy::ui::update;
 use bevy::{prelude::*};
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
@@ -51,6 +52,11 @@ impl Player {
         let modified_health = self.health.current - damage;
         let modified_health = modified_health.clamp(0.0, self.health.maximum);
         self.health.current = modified_health;
+    }
+
+    pub fn repair_damage(&mut self, amount: f32) {
+        let updated_health = self.health.current + amount;
+        self.health.current = updated_health.clamp(0.0, self.health.maximum);
     }
 
     pub fn drain_battery(&mut self, amount: f32) {
