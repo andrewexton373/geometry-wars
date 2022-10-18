@@ -61,8 +61,9 @@ LMB - Fire Projectile in direction of ship
 	Ship has limited fuel capacity that can be upgraded (more efficent engine/larger fuel tank)	
 - [ ] **Refueling System**  
 
-- [ ] **Ship Handling Characteristics?**  
-change with added cargo weight? (can mitigate with stronger engines?)  
+- [x] **Ship Handling Characteristics?**  
+	- [x] change with added cargo weight
+	- [ ] (can mitigate with stronger engines?)  
 	
 - [ ] **Upgrade System**
 	- [ ] *Ship Upgrade System*
