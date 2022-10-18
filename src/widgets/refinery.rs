@@ -60,12 +60,15 @@ pub fn UIRefineryView() {
     let ui_refinery_view_pos = (0.0 + offset, HEIGHT - size.y);
     
     rsx! {
-        <Window position={ui_refinery_view_pos} size={(size.x, size.y)} title={"Station Refinery".to_string()}>
+        // <Window position={ui_refinery_view_pos} size={(size.x, size.y)} title={"Station Refinery".to_string()}>
+        // <Window title={"Station Refinery".to_string()}>
+        <>
 
             <CurrentlyProcessing currently_processing={refinery.currently_processing.clone()} time_remaining={refinery.remaining_processing_time} />
             <Refineables refineables={refinery.recipes.clone()} on_create={handle_create} />
 
-        </Window>
+        </>
+        // </Window>
     }
 }
 

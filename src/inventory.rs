@@ -282,6 +282,8 @@ impl Inventory {
                     }
                 }) {
                     if found_item.amount() >= item_to_remove.amount() {
+                        found_item.remove_amount(item_to_remove.amount());
+
                         if found_item.amount() == Amount::Quantity(0) {
                             self.items.remove(index);
                         }

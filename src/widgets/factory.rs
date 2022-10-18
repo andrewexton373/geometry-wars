@@ -60,12 +60,13 @@ pub fn UIFactoryView() {
     let ui_factory_view_pos = (0.0 + offset, HEIGHT - size.y);
     
     rsx! {
-        <Window position={ui_factory_view_pos} size={(size.x, size.y)} title={"Station Factory".to_string()}>
-
+        // <Window position={ui_factory_view_pos} size={(size.x, size.y)} title={"Station Factory".to_string()}>
+        // <Window title={"Station Factory".to_string()}>
+        <>
             <CurrentlyProcessing currently_processing={factory.currently_processing.clone()} time_remaining={factory.remaining_processing_time} />
             <Craftables craftables={factory.recipes.clone()} on_create={handle_create} />
-
-        </Window>
+        </>
+        // </Window>
     }
 }
 

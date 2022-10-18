@@ -42,7 +42,7 @@ pub const PIXELS_PER_METER : f32 = 10.0;
 
 const BACKGROUND_COLOR: Color = Color::rgb(0.0, 0.0, 0.0);
 
-pub const HEIGHT: f32 = 1080.0;
+pub const HEIGHT: f32 = 800.0;
 pub const RESOLUTION: f32 = 16.0 / 9.0;
 
 #[derive(Component)]
