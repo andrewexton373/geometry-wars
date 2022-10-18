@@ -145,7 +145,6 @@ impl FactoryPlugin {
                 if let Some(currently_processing) = factory.currently_processing.clone() {
                     for required_item in currently_processing.items_required.iter() {
                         inventory.remove_from_inventory(*required_item);
-                        println!("hit!");
                     }
         
                     inventory.add_to_inventory(currently_processing.item_created);
