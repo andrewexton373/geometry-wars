@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy::reflect::FromReflect;
+use bevy::utils::HashMap;
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
@@ -14,12 +15,62 @@ use crate::player::Health;
 
 pub struct AstroidPlugin;
 
-#[derive(Component, Inspectable, Clone, Copy, Debug)]
+#[derive(Component, Clone, Debug)]
 pub struct Astroid {
     pub velocity: Vec2,
     pub size: AstroidSize,
     pub material: AstroidMaterial,
-    pub health: Health
+    pub health: Health,
+    pub composition: Composition
+}
+
+impl Astroid {
+    pub fn primary_composition(&self) -> AstroidMaterial {
+        // TODO: return most common in astroid composition
+        AstroidMaterial::Iron
+    }
+}
+#[derive(Component, Clone, Debug)]
+pub struct Composition {
+    composition: HashMap<AstroidMaterial, f32>
+}
+
+impl Default for Composition {
+    fn default() -> Self {
+        let mut default_composition: HashMap<AstroidMaterial, f32> = HashMap::new();
+
+        default_composition.insert(AstroidMaterial::Iron, 0.80);
+        default_composition.insert(AstroidMaterial::Silver, 0.15);
+        default_composition.insert(AstroidMaterial::Gold, 0.05);
+
+        Self { composition: default_composition }
+    }
+}
+
+impl Composition {
+    pub fn new(mut self) -> Self {
+        self.composition = HashMap::new();
+        self
+    }
+
+    pub fn insert_constituent(mut self, material: AstroidMaterial, weight: f32) {
+        self.composition.insert(material, weight);
+    }
+
+    pub fn most_abundant(self) -> Option<AstroidMaterial> {
+        self.composition.iter().max_by(|a, b| {
+            a.1.total_cmp(&b.1)
+        })
+        .map(|(k, _v)| k.clone())
+    }
+
+    pub fn percent_composition(&self) -> HashMap<AstroidMaterial, f32> {
+        let cloned: HashMap<AstroidMaterial, f32> = self.composition.clone();
+        let total_weights: f32 = cloned.iter().map(|e| {e.1}).sum();
+        cloned.into_iter().map(|e| {
+            (e.0, e.1 / total_weights)
+        }).collect::<HashMap<AstroidMaterial, f32>>()
+    }
 }
 
 #[derive(Clone, Copy, Inspectable, Debug, PartialEq, Eq)]
@@ -85,8 +136,8 @@ impl Plugin for AstroidPlugin {
             .add_system(Self::spawn_astroids_aimed_at_ship)
             .add_system(Self::despawn_far_astroids)
             .add_system(Self::handle_astroid_collision_event)
-            .add_system(Self::update_collectible_material_color)
-            .register_inspectable::<Astroid>();
+            .add_system(Self::update_collectible_material_color);
+            // .register_inspectable::<Astroid>();
     }
 }
 
@@ -115,7 +166,10 @@ impl AstroidPlugin {
             let random_spawn_position = player_position + (rand_direction * SPAWN_DISTANCE * crate::PIXELS_PER_METER);
             let direction_to_player = (player_position - random_spawn_position).normalize() * 20.0; // maybe?
 
-            Self::spawn_astroid(&mut commands, AstroidSize::Large, AstroidMaterial::Rock, direction_to_player * crate::PIXELS_PER_METER, random_spawn_position);
+            // TODO, calculate distance from player to base station and use that
+            let composition = Self::generate_astroid_composition(0.0); 
+
+            Self::spawn_astroid(&mut commands, AstroidSize::Large, AstroidMaterial::Rock, Composition::default(), direction_to_player * crate::PIXELS_PER_METER, random_spawn_position);
         }
     }
 
@@ -142,6 +196,7 @@ impl AstroidPlugin {
         commands: &mut Commands,
         size: AstroidSize,
         material: AstroidMaterial,
+        composition: Composition,
         velocity: Vec2,
         position: Vec2
     ) {
@@ -177,17 +232,17 @@ impl AstroidPlugin {
             velocity,
             size,
             material,
-            health: Health {current: 50.0, maximum: 100.0}
+            health: Health {current: 50.0, maximum: 100.0},
+            composition: Composition::default()
         };
     
         let astroid_ent = commands.spawn()
-            .insert(astroid)
+            .insert(astroid.clone())
             .insert_bundle(lyon::GeometryBuilder::build_as(
                 &astroid_shape,
                 lyon::DrawMode::Fill(lyon::FillMode::color(Color::DARK_GRAY)),
                 Default::default()
             ))
-            // .insert(Collider) // do we still need? don't think so
             .insert(RigidBody::Dynamic)
             .insert(Velocity { linvel: astroid.velocity, angvel: 0.0 })
             .insert(Sleeping::disabled())
@@ -201,11 +256,26 @@ impl AstroidPlugin {
             .id();
 
         // If the astroid is an ore chunk, add Collectible Tag
-        if astroid.size == AstroidSize::OreChunk {
+        if astroid.clone().size == AstroidSize::OreChunk {
             commands.entity(astroid_ent)
                 .insert(Collectible);
         }
             
+    }
+
+    // quick google:
+    // 80% iron
+    // and 20% a mixture of nickel, iridium, palladium, platinum, gold, magnesium and other precious metals such as osmium, ruthenium and rhodium.
+
+    fn generate_astroid_composition(distance_from_base: f32) -> HashMap<AstroidMaterial, f32> {
+
+        let mut composition = HashMap::new();
+        composition.insert(AstroidMaterial::Iron, 0.80);
+        composition.insert(AstroidMaterial::Silver, 0.15);
+        composition.insert(AstroidMaterial::Gold, 0.05);
+
+        composition
+
     }
 
     fn update_collectible_material_color(
@@ -217,7 +287,7 @@ impl AstroidPlugin {
             if astroid.size == AstroidSize::OreChunk {
                 if let DrawMode::Fill(ref mut fill_mode) = *draw_mode {
 
-                    match astroid.material {
+                    match astroid.primary_composition() {
                         AstroidMaterial::Iron => {
                             fill_mode.color = Color::GRAY;
                         },
@@ -259,10 +329,15 @@ impl AstroidPlugin {
                                 // commands.entity(astroid_entity).despawn_recursive();
                                 let ore_chunk_mass = mass_properties.0.mass;
                                 // inventory_resource.add_to_inventory(astroid.material, ore_chunk_mass);
-
-                                if inventory.add_to_inventory(InventoryItem::Material(astroid.material, Amount::Weight(ore_chunk_mass))) {
-                                    commands.entity(astroid_entity).despawn_recursive();
+                                for comp in astroid.composition.percent_composition().iter() {
+                                        inventory.add_to_inventory(InventoryItem::Material(*comp.0, Amount::Weight(comp.1 * ore_chunk_mass)));
                                 }
+
+                                commands.entity(astroid_entity).despawn_recursive();
+
+                                // if inventory.add_to_inventory(InventoryItem::Material(astroid.material, Amount::Weight(ore_chunk_mass))) {
+                                    // commands.entity(astroid_entity).despawn_recursive();
+                                // }
                             }
                             AstroidSize::Small => {
                                 println!("Hit small Astroid");
@@ -321,19 +396,19 @@ impl AstroidPlugin {
                     }
                 }
 
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, random_ore_material(), right_velocity, astroid_translation);
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, random_ore_material(), left_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, random_ore_material(), astroid.composition.clone(), right_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, random_ore_material(), astroid.composition.clone(), left_velocity, astroid_translation);
                 commands.entity(astroid_ent).despawn_recursive();
 
             },
             AstroidSize::Medium => {
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::Small, AstroidMaterial::Rock, right_velocity, astroid_translation);
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::Small, AstroidMaterial::Rock, left_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::Small, AstroidMaterial::Rock, astroid.composition.clone(),right_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::Small, AstroidMaterial::Rock, astroid.composition.clone(), left_velocity, astroid_translation);
                 commands.entity(astroid_ent).despawn_recursive();
             },
             AstroidSize::Large => {
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::Medium, AstroidMaterial::Rock, right_velocity,astroid_translation);
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::Medium, AstroidMaterial::Rock, left_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::Medium, AstroidMaterial::Rock, astroid.composition.clone(), right_velocity,astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::Medium, AstroidMaterial::Rock, astroid.composition.clone(), left_velocity, astroid_translation);
                 commands.entity(astroid_ent).despawn_recursive();
             }
             _ => {
