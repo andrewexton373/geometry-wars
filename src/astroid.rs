@@ -20,14 +20,12 @@ pub struct AstroidPlugin;
 pub struct Astroid {
     pub velocity: Vec2,
     pub size: AstroidSize,
-    pub material: AstroidMaterial,
     pub health: Health,
     pub composition: Composition
 }
 
 impl Astroid {
     pub fn primary_composition(&self) -> AstroidMaterial {
-        // TODO: return most common in astroid composition
         self.composition.most_abundant()
     }
 }
@@ -36,22 +34,7 @@ pub struct Composition {
     composition: HashMap<AstroidMaterial, f32>
 }
 
-impl Default for Composition {
-    fn default() -> Self {
-        let mut default_composition: HashMap<AstroidMaterial, f32> = HashMap::new();
-
-        default_composition.insert(AstroidMaterial::Iron, 0.80);
-        default_composition.insert(AstroidMaterial::Silver, 0.15);
-        default_composition.insert(AstroidMaterial::Gold, 0.05);
-
-        Self { composition: default_composition }
-    }
-}
-
 impl Composition {
-    pub fn new() -> Self {
-        Self { composition: HashMap::new() }
-    }
 
     pub fn new_with_distance(distance: f32) -> Self {
 
@@ -59,7 +42,6 @@ impl Composition {
         const MAX_DISTANCE: f32 = 10000.0;
 
         let percentage = ((distance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE)).clamp(0.0, 1.0);
-        // println!("{}", percentage);
 
         let mut near_composition: HashMap<AstroidMaterial, f32> = HashMap::new();
         near_composition.insert(AstroidMaterial::Iron, 0.80);
@@ -79,15 +61,8 @@ impl Composition {
             composition.insert(*near.0, near.1 + (far - near.1) * percentage);
         }
 
-        // println!("{:?}", composition);
-
-
         Self { composition }
     
-    }
-
-    pub fn insert_constituent(mut self, material: AstroidMaterial, weight: f32) {
-        self.composition.insert(material, weight);
     }
 
     pub fn most_abundant(&self) -> AstroidMaterial {
@@ -183,7 +158,7 @@ impl Plugin for AstroidPlugin {
 impl AstroidPlugin {
     fn spawn_astroids_aimed_at_ship(
         mut commands: Commands,
-        player_query: Query<(&Player, &Transform, &GlobalTransform)>,
+        player_query: Query<(&Player, &GlobalTransform)>,
         base_station_query: Query<(&BaseStation, &GlobalTransform)>,
         mut astroid_spawner: ResMut<AstroidSpawner>,
         time: Res<Time>
@@ -194,26 +169,22 @@ impl AstroidPlugin {
             astroid_spawner.timer.reset();
 
             let mut rng = rand::thread_rng();
-            let (_player, player_transform, player_g_transform) = player_query.single();
+            let (_player, player_g_transform) = player_query.single();
             let (_base_station, base_station_g_transform) = base_station_query.single();
 
             let distance_to_base_station = (player_g_transform.translation() - base_station_g_transform.translation()).length();
-            // println!("DISTANCE: {}", distance_to_base_station);
+            let player_position = player_g_transform.translation().truncate();
 
-            let player_position = player_transform.translation.truncate();
 
             let rand_x: f32 = rng.gen_range(-PI..PI);
             let rand_y: f32 = rng.gen_range(-PI..PI);
             let rand_direction = Vec2::new(rand_x.cos(), rand_y.sin()).normalize();
 
-            const SPAWN_DISTANCE: f32 = 300.0;
+            const SPAWN_DISTANCE: f32 = 350.0;
             let random_spawn_position = player_position + (rand_direction * SPAWN_DISTANCE * crate::PIXELS_PER_METER);
             let direction_to_player = (player_position - random_spawn_position).normalize() * 20.0; // maybe?
 
-            // TODO, calculate distance from player to base station and use that
-            // let composition = Self::generate_astroid_composition(0.0); 
-
-            Self::spawn_astroid(&mut commands, AstroidSize::Large, AstroidMaterial::Rock, Composition::new_with_distance(distance_to_base_station), direction_to_player * crate::PIXELS_PER_METER, random_spawn_position);
+            Self::spawn_astroid(&mut commands, AstroidSize::Large, Composition::new_with_distance(distance_to_base_station), direction_to_player * crate::PIXELS_PER_METER, random_spawn_position);
         }
     }
 
@@ -228,9 +199,7 @@ impl AstroidPlugin {
 
         for (entity, _astroid, transform) in astroid_query.iter() {
             let astroid_position = transform.translation.truncate();
-            // println!("{}", player_position.distance(astroid_position));
             if player_position.distance(astroid_position) > DESPAWN_DISTANCE {
-                // println!("DESPAWN: {}", player_position.distance(astroid_position));
                 commands.entity(entity).despawn_recursive();
             }
         }
@@ -239,7 +208,6 @@ impl AstroidPlugin {
     pub fn spawn_astroid(
         commands: &mut Commands,
         size: AstroidSize,
-        material: AstroidMaterial,
         composition: Composition,
         velocity: Vec2,
         position: Vec2
@@ -275,7 +243,6 @@ impl AstroidPlugin {
         let astroid = Astroid {
             velocity,
             size,
-            material,
             health: Health {current: 50.0, maximum: 100.0},
             composition: composition
         };
@@ -307,21 +274,6 @@ impl AstroidPlugin {
             
     }
 
-    // quick google:
-    // 80% iron
-    // and 20% a mixture of nickel, iridium, palladium, platinum, gold, magnesium and other precious metals such as osmium, ruthenium and rhodium.
-
-    // fn generate_astroid_composition(distance_from_base: f32) -> HashMap<AstroidMaterial, f32> {
-
-    //     let mut composition = HashMap::new();
-    //     composition.insert(AstroidMaterial::Iron, 0.80);
-    //     composition.insert(AstroidMaterial::Silver, 0.15);
-    //     composition.insert(AstroidMaterial::Gold, 0.05);
-
-    //     composition
-
-    // }
-
     fn update_collectible_material_color(
         mut astroid_query: Query<(&Astroid, &mut DrawMode), With<Astroid>>
     ) {
@@ -330,8 +282,6 @@ impl AstroidPlugin {
 
             if astroid.size == AstroidSize::OreChunk {
                 if let DrawMode::Fill(ref mut fill_mode) = *draw_mode {
-
-                    // println!("PRIMARY: {:?}", astroid.composition.most_abundant());
 
                     match astroid.primary_composition() {
                         AstroidMaterial::Iron => {
@@ -372,18 +322,14 @@ impl AstroidPlugin {
                         match astroid.size {
                             AstroidSize::OreChunk => {
                                 println!("Hit ore chunk, let's collect it!");
-                                // commands.entity(astroid_entity).despawn_recursive();
                                 let ore_chunk_mass = mass_properties.0.mass;
-                                // inventory_resource.add_to_inventory(astroid.material, ore_chunk_mass);
                                 for comp in astroid.composition.percent_composition().iter() {
                                         inventory.add_to_inventory(InventoryItem::Material(*comp.0, Amount::Weight(comp.1 * ore_chunk_mass)));
                                 }
 
+                                // FIXME: will despawn even if there's no room in inventory to collect.
                                 commands.entity(astroid_entity).despawn_recursive();
 
-                                // if inventory.add_to_inventory(InventoryItem::Material(astroid.material, Amount::Weight(ore_chunk_mass))) {
-                                    // commands.entity(astroid_entity).despawn_recursive();
-                                // }
                             }
                             AstroidSize::Small => {
                                 println!("Hit small Astroid");
@@ -392,14 +338,10 @@ impl AstroidPlugin {
                             AstroidSize::Medium => {
                                 println!("Hit medium Astroid");
                                 player.take_damage(2.5);
-                                // commands.entity(ent).despawn_recursive();
-
                             },
                             AstroidSize::Large => {
                                 println!("Hit large Astroid");
                                 player.take_damage(5.0);
-                                // commands.entity(ent).despawn_recursive();
-
                             }
                         }
                         return;
@@ -420,43 +362,18 @@ impl AstroidPlugin {
 
         match &astroid.size {
             AstroidSize::Small => {
-
-                fn random_ore_material() -> AstroidMaterial {
-                    let mut rng = rand::thread_rng();
-
-                    // let mut material: AstroidMaterial;
-
-                   match rng.gen::<u8>() % 3 {
-                        0 => {
-                            AstroidMaterial::Iron
-                        },
-                        1 => {
-                            AstroidMaterial::Silver
-                        },
-                        2 => {
-                            AstroidMaterial::Gold
-                        },
-                        _ => {
-                            AstroidMaterial::Rock
-                        }
-                    }
-                }
-
-                println!("SPLIT COMPOSITION: {:?}", astroid.composition);
-
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, random_ore_material(), astroid.composition.clone(), right_velocity, astroid_translation);
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, random_ore_material(), astroid.composition.clone(), left_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, astroid.composition.clone(), right_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, astroid.composition.clone(), left_velocity, astroid_translation);
                 commands.entity(astroid_ent).despawn_recursive();
-
             },
             AstroidSize::Medium => {
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::Small, AstroidMaterial::Rock, astroid.composition.clone(),right_velocity, astroid_translation);
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::Small, AstroidMaterial::Rock, astroid.composition.clone(), left_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::Small, astroid.composition.clone(),right_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::Small, astroid.composition.clone(), left_velocity, astroid_translation);
                 commands.entity(astroid_ent).despawn_recursive();
             },
             AstroidSize::Large => {
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::Medium, AstroidMaterial::Rock, astroid.composition.clone(), right_velocity,astroid_translation);
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::Medium, AstroidMaterial::Rock, astroid.composition.clone(), left_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::Medium, astroid.composition.clone(), right_velocity,astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::Medium, astroid.composition.clone(), left_velocity, astroid_translation);
                 commands.entity(astroid_ent).despawn_recursive();
             }
             _ => {
