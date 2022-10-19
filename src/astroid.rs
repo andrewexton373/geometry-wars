@@ -9,6 +9,7 @@ use rand::seq::SliceRandom;
 use std::cmp::Ordering;
 use std::f32::consts::{PI};
 use std::fmt;
+use crate::base_station::BaseStation;
 use crate::inventory::{Inventory, InventoryItem, Amount};
 use crate::{ Player, PIXELS_PER_METER };
 use crate::player::Health;
@@ -27,7 +28,7 @@ pub struct Astroid {
 impl Astroid {
     pub fn primary_composition(&self) -> AstroidMaterial {
         // TODO: return most common in astroid composition
-        AstroidMaterial::Iron
+        self.composition.most_abundant()
     }
 }
 #[derive(Component, Clone, Debug)]
@@ -48,20 +49,52 @@ impl Default for Composition {
 }
 
 impl Composition {
-    pub fn new(mut self) -> Self {
-        self.composition = HashMap::new();
-        self
+    pub fn new() -> Self {
+        Self { composition: HashMap::new() }
+    }
+
+    pub fn new_with_distance(distance: f32) -> Self {
+
+        const MIN_DISTANCE: f32 = 300.0;
+        const MAX_DISTANCE: f32 = 10000.0;
+
+        let percentage = ((distance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE)).clamp(0.0, 1.0);
+        // println!("{}", percentage);
+
+        let mut near_composition: HashMap<AstroidMaterial, f32> = HashMap::new();
+        near_composition.insert(AstroidMaterial::Iron, 0.80);
+        near_composition.insert(AstroidMaterial::Silver, 0.15);
+        near_composition.insert(AstroidMaterial::Gold, 0.05);
+
+        let mut far_composition: HashMap<AstroidMaterial, f32> = HashMap::new();
+        far_composition.insert(AstroidMaterial::Iron, 0.05);
+        far_composition.insert(AstroidMaterial::Silver, 0.20);
+        far_composition.insert(AstroidMaterial::Gold, 0.75);
+
+        let mut composition = HashMap::new();
+
+        for near in near_composition.iter() {
+            let far = far_composition.get(near.0).unwrap();
+
+            composition.insert(*near.0, near.1 + (far - near.1) * percentage);
+        }
+
+        // println!("{:?}", composition);
+
+
+        Self { composition }
+    
     }
 
     pub fn insert_constituent(mut self, material: AstroidMaterial, weight: f32) {
         self.composition.insert(material, weight);
     }
 
-    pub fn most_abundant(self) -> Option<AstroidMaterial> {
+    pub fn most_abundant(&self) -> AstroidMaterial {
         self.composition.iter().max_by(|a, b| {
             a.1.total_cmp(&b.1)
         })
-        .map(|(k, _v)| k.clone())
+        .map(|(k, _v)| k.clone()).unwrap()
     }
 
     pub fn percent_composition(&self) -> HashMap<AstroidMaterial, f32> {
@@ -71,6 +104,12 @@ impl Composition {
             (e.0, e.1 / total_weights)
         }).collect::<HashMap<AstroidMaterial, f32>>()
     }
+}
+
+#[test]
+fn test_most_abundant() {
+    assert_eq!(Composition::new_with_distance(0.0).most_abundant(), AstroidMaterial::Iron);
+    assert_eq!(Composition::new_with_distance(10000.0).most_abundant(), AstroidMaterial::Gold);
 }
 
 #[derive(Clone, Copy, Inspectable, Debug, PartialEq, Eq)]
@@ -144,7 +183,8 @@ impl Plugin for AstroidPlugin {
 impl AstroidPlugin {
     fn spawn_astroids_aimed_at_ship(
         mut commands: Commands,
-        player_query: Query<(&Player, &Transform)>,
+        player_query: Query<(&Player, &Transform, &GlobalTransform)>,
+        base_station_query: Query<(&BaseStation, &GlobalTransform)>,
         mut astroid_spawner: ResMut<AstroidSpawner>,
         time: Res<Time>
     ) {
@@ -154,9 +194,13 @@ impl AstroidPlugin {
             astroid_spawner.timer.reset();
 
             let mut rng = rand::thread_rng();
-            let (_player, transform) = player_query.single();
+            let (_player, player_transform, player_g_transform) = player_query.single();
+            let (_base_station, base_station_g_transform) = base_station_query.single();
 
-            let player_position = transform.translation.truncate();
+            let distance_to_base_station = (player_g_transform.translation() - base_station_g_transform.translation()).length();
+            // println!("DISTANCE: {}", distance_to_base_station);
+
+            let player_position = player_transform.translation.truncate();
 
             let rand_x: f32 = rng.gen_range(-PI..PI);
             let rand_y: f32 = rng.gen_range(-PI..PI);
@@ -167,9 +211,9 @@ impl AstroidPlugin {
             let direction_to_player = (player_position - random_spawn_position).normalize() * 20.0; // maybe?
 
             // TODO, calculate distance from player to base station and use that
-            let composition = Self::generate_astroid_composition(0.0); 
+            // let composition = Self::generate_astroid_composition(0.0); 
 
-            Self::spawn_astroid(&mut commands, AstroidSize::Large, AstroidMaterial::Rock, Composition::default(), direction_to_player * crate::PIXELS_PER_METER, random_spawn_position);
+            Self::spawn_astroid(&mut commands, AstroidSize::Large, AstroidMaterial::Rock, Composition::new_with_distance(distance_to_base_station), direction_to_player * crate::PIXELS_PER_METER, random_spawn_position);
         }
     }
 
@@ -233,7 +277,7 @@ impl AstroidPlugin {
             size,
             material,
             health: Health {current: 50.0, maximum: 100.0},
-            composition: Composition::default()
+            composition: composition
         };
     
         let astroid_ent = commands.spawn()
@@ -267,16 +311,16 @@ impl AstroidPlugin {
     // 80% iron
     // and 20% a mixture of nickel, iridium, palladium, platinum, gold, magnesium and other precious metals such as osmium, ruthenium and rhodium.
 
-    fn generate_astroid_composition(distance_from_base: f32) -> HashMap<AstroidMaterial, f32> {
+    // fn generate_astroid_composition(distance_from_base: f32) -> HashMap<AstroidMaterial, f32> {
 
-        let mut composition = HashMap::new();
-        composition.insert(AstroidMaterial::Iron, 0.80);
-        composition.insert(AstroidMaterial::Silver, 0.15);
-        composition.insert(AstroidMaterial::Gold, 0.05);
+    //     let mut composition = HashMap::new();
+    //     composition.insert(AstroidMaterial::Iron, 0.80);
+    //     composition.insert(AstroidMaterial::Silver, 0.15);
+    //     composition.insert(AstroidMaterial::Gold, 0.05);
 
-        composition
+    //     composition
 
-    }
+    // }
 
     fn update_collectible_material_color(
         mut astroid_query: Query<(&Astroid, &mut DrawMode), With<Astroid>>
@@ -286,6 +330,8 @@ impl AstroidPlugin {
 
             if astroid.size == AstroidSize::OreChunk {
                 if let DrawMode::Fill(ref mut fill_mode) = *draw_mode {
+
+                    // println!("PRIMARY: {:?}", astroid.composition.most_abundant());
 
                     match astroid.primary_composition() {
                         AstroidMaterial::Iron => {
@@ -395,6 +441,8 @@ impl AstroidPlugin {
                         }
                     }
                 }
+
+                println!("SPLIT COMPOSITION: {:?}", astroid.composition);
 
                 AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, random_ore_material(), astroid.composition.clone(), right_velocity, astroid_translation);
                 AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, random_ore_material(), astroid.composition.clone(), left_velocity, astroid_translation);
