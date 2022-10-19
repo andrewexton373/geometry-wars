@@ -81,8 +81,9 @@ LMB - Fire Projectile in direction of ship
 		- [ ] Refueling Speed
 		- [ ] Astroid Repel Strength?
 		
-- [ ] **Astroid Ore Rarity**
-	- [ ] Astroids further from the base station have a higher chance of spawning rarer ores.
+- [x] **Astroid Ore Rarity**
+	- [x] Astroids further from the base station have a higher chance of spawning rarer ores.
+   - [ ] Refine values for interpolated system
 	- [ ] ? OR use noise function to generate pockets with higher rarity ores.
 	
 - [x] **Components Crafting System**
