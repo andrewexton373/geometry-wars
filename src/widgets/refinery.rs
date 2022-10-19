@@ -4,7 +4,7 @@ use kayak_ui::core::{
 };
 
 use kayak_ui::{core::{VecTracker, constructor, Binding, Bound}, widgets::If};
-use kayak_ui::widgets::{Text, Window, Element, Background};
+use kayak_ui::widgets::{Text, Element, Background};
 use kayak_ui::core::{
     color::Color,
     render_command::RenderCommand,
@@ -16,9 +16,8 @@ use kayak_ui::core::{
 use bevy::prelude::*;
 
 use crate::refinery::Recipe;
-use crate::{HEIGHT, RESOLUTION};
+use crate::{HEIGHT};
 use crate::game_ui::{UIItems};
-use crate::inventory::{InventoryItem, Amount};
 
 
 #[widget]

@@ -1,6 +1,4 @@
 use bevy::{prelude::*};
-
-use bevy_inspector_egui::{Inspectable};
 use crate::astroid::{AstroidMaterial};
 use crate::factory::UpgradeComponent;
 use crate::refinery::MetalIngot;
@@ -190,7 +188,7 @@ impl Inventory {
         if self.has_capacity_for(item_to_add) {
 
             match item_to_add {
-                InventoryItem::Material(material, weight) => {
+                InventoryItem::Material(material, _weight) => {
                     if let Some(found) = self.items.iter_mut().find_map(|item| {
                         match item {
                             InventoryItem::Material(m, _) if *m == material => {
@@ -206,7 +204,7 @@ impl Inventory {
                         self.items.push(item_to_add);
                     }
                 },
-                InventoryItem::Ingot(ingot, quantity) => {
+                InventoryItem::Ingot(ingot, _quantity) => {
                     if let Some(found) = self.items.iter_mut().find_map(|item| {
                         match item {
                             InventoryItem::Ingot(i, _) if *i == ingot => {
@@ -222,7 +220,7 @@ impl Inventory {
                         self.items.push(item_to_add);
                     }
                 },
-                InventoryItem::Component(component, quantity) => {
+                InventoryItem::Component(component, _quantity) => {
                     if let Some(found) = self.items.iter_mut().find_map(|item| {
                         match item {
                             InventoryItem::Component(i, _) if *i == component => {
@@ -335,7 +333,7 @@ impl Inventory {
 pub struct InventoryPlugin;
 
 impl Plugin for InventoryPlugin {
-    fn build(&self, app: &mut App) {
+    fn build(&self, _app: &mut App) {
     }
 }
 

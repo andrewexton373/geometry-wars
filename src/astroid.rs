@@ -36,10 +36,19 @@ pub struct Collectible;
 impl AstroidSize {
     fn radius(self) -> f32 {
         match self {
-            Self::OreChunk => 1.0,
-            Self::Small => 2.0,
-            Self::Medium => 5.0,
-            Self::Large => 10.0
+            Self::OreChunk => 25.0,
+            Self::Small => 45.0,
+            Self::Medium => 85.0,
+            Self::Large => 100.0
+        }
+    }
+
+    fn num_sides(self) -> usize {
+        match self {
+            Self::OreChunk => 5,
+            Self::Small => 7,
+            Self::Medium => 9,
+            Self::Large => 11
         }
     }
 }
@@ -140,25 +149,25 @@ impl AstroidPlugin {
         let astroid_shape = match size {
             AstroidSize::OreChunk => {
                 lyon::shapes::Polygon {
-                    points: Self::make_valtr_convex_polygon_coords(5, 25.0),
+                    points: Self::make_valtr_convex_polygon_coords(AstroidSize::OreChunk.num_sides(), AstroidSize::OreChunk.radius()),
                     closed: true
                 }
             },
             AstroidSize::Small => {
                 lyon::shapes::Polygon {
-                    points: Self::make_valtr_convex_polygon_coords(7, 45.0),
+                    points: Self::make_valtr_convex_polygon_coords(AstroidSize::Small.num_sides(), AstroidSize::Small.radius()),
                     closed: true
                 }
             },
             AstroidSize::Medium => {
                 lyon::shapes::Polygon {
-                    points: Self::make_valtr_convex_polygon_coords(9, 85.0),
+                    points: Self::make_valtr_convex_polygon_coords(AstroidSize::Medium.num_sides(), AstroidSize::Medium.radius()),
                     closed: true
                 }
             },
             AstroidSize::Large => {
                 lyon::shapes::Polygon {
-                    points: Self::make_valtr_convex_polygon_coords(11, 100.0),
+                    points: Self::make_valtr_convex_polygon_coords(AstroidSize::Large.num_sides(), AstroidSize::Large.radius()),
                     closed: true
                 }
             }

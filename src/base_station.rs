@@ -1,10 +1,9 @@
-use std::{time::Duration};
 
-use bevy::{prelude::*, time::Timer};
+use bevy::{prelude::*};
 use bevy_prototype_lyon::prelude::{self as lyon, DrawMode, FillMode};
 use bevy_rapier2d::{prelude::{Velocity, Collider, Sleeping, Sensor, ActiveEvents, RapierContext}};
 
-use crate::{astroid::{Astroid, AstroidMaterial}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin, InventoryItem, Amount}, refinery::{Refinery, RefineryPlugin}, game_ui::{Clue, ContextClue}, factory::{FactoryPlugin, Factory}};
+use crate::{astroid::{Astroid}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin, InventoryItem, Amount}, refinery::{Refinery, RefineryPlugin}, game_ui::{Clue, ContextClue}, factory::{FactoryPlugin, Factory}};
 
 pub const BASE_STATION_SIZE: f32 = 20.0;
 
@@ -59,8 +58,8 @@ impl BaseStationPlugin {
             .id();
 
         InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: Vec::new(), capacity: Capacity {maximum: 1000.0}}, base_station);
-        RefineryPlugin::attach_refinery_to_entity(&mut commands, Refinery::new(), base_station);
-        FactoryPlugin::attach_factory_to_entity(&mut commands, Factory::new(), base_station);
+        RefineryPlugin::attach_refinery_to_entity(&mut commands, base_station);
+        FactoryPlugin::attach_factory_to_entity(&mut commands, base_station);
 
     }
 
@@ -90,15 +89,15 @@ impl BaseStationPlugin {
        
 
     fn guide_player_to_base_station(
-        mut dir_indicator_query: Query<(&mut Transform, &mut DrawMode, &mut GlobalTransform), (With<BaseStationDirectionIndicator>, Without<BaseStation>, Without<Player>)>,
+        mut dir_indicator_query: Query<(&mut Transform, &mut DrawMode), (With<BaseStationDirectionIndicator>, Without<BaseStation>, Without<Player>)>,
         player_query: Query<(&Player, &GlobalTransform), (With<Player>, Without<BaseStation>)>,
         base_query: Query<(&BaseStation, &GlobalTransform), (With<BaseStation>, Without<Player>)>
     ) {
         const FADE_DISTANCE: f32 = 500.0;
 
-        let (mut dir_indicator_transform, mut dir_indicator_draw_mode, dir_indicator_g_transform) = dir_indicator_query.single_mut();
-        let (player, player_trans) = player_query.single();
-        let (base_station, base_station_trans) = base_query.single();
+        let (mut dir_indicator_transform, mut dir_indicator_draw_mode) = dir_indicator_query.single_mut();
+        let (_player, player_trans) = player_query.single();
+        let (_base_station, base_station_trans) = base_query.single();
 
         let player_pos = player_trans.translation().truncate();
         let base_station_pos = base_station_trans.translation().truncate();
@@ -123,9 +122,9 @@ impl BaseStationPlugin {
         const REPEL_RADIUS: f32 = 120.0 * PIXELS_PER_METER;
         const REPEL_STRENGTH: f32 = 25.0;
 
-        let (base_station, base_station_transform) = base_query.single();
+        let (_base_station, base_station_transform) = base_query.single();
 
-        for (astroid, astroid_transform, mut astroid_velocity) in astroid_query.iter_mut() {
+        for (_astroid, astroid_transform, mut astroid_velocity) in astroid_query.iter_mut() {
             let base_station_pos = base_station_transform.translation().truncate();
             let astroid_pos = astroid_transform.translation().truncate();
 
@@ -148,7 +147,7 @@ impl BaseStationPlugin {
         time: Res<Time>
     ) {
         let (player_ent, mut player) = player_query.single_mut();
-        let (base_station_ent, base_station) = base_station_query.single();
+        let (base_station_ent, _base_station) = base_station_query.single();
 
         if rapier_context.intersection_pair(player_ent, base_station_ent) == Some(true) {
             *can_deposit_res = CanDeposit(true);

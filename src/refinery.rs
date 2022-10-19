@@ -123,7 +123,7 @@ impl RefineryPlugin {
     /// If the base_station inventory has the required materials for the recipe,
     /// Start processing the recipe by setting currently processing to the recipe,
     /// and starting a timer.
-    fn smelt_materials(mut inventory: Mut<Inventory>, recipe: &Recipe, mut refinery: Mut<Refinery>, mut timer: &mut ResMut<RefineryTimer>) {
+    fn smelt_materials(inventory: Mut<Inventory>, recipe: &Recipe, mut refinery: Mut<Refinery>, timer: &mut ResMut<RefineryTimer>) {
         if Self::have_materials_to_smelt(inventory.as_ref(), &recipe) {
             println!("We have the materials!");
 
@@ -143,9 +143,9 @@ impl RefineryPlugin {
         mut timer: ResMut<RefineryTimer>,
         time: Res<Time>
     ) {
-        if let Some(mut timer) = timer.0.as_mut() {
+        if let Some(timer) = timer.0.as_mut() {
 
-            let (base_station, mut inventory, mut refinery) = base_station_query.single_mut();
+            let (_base_station, mut inventory, mut refinery) = base_station_query.single_mut();
 
             timer.tick(time.delta());
 
@@ -176,13 +176,12 @@ impl RefineryPlugin {
     fn on_smelt_event(
         mut reader: EventReader<SmeltEvent>,
         mut base_station_query: Query<(&BaseStation, &mut Inventory, &mut Refinery), With<BaseStation>>,
-        mut refinery_timer: ResMut<RefineryTimer>,
-        mut time: Res<Time>
+        mut refinery_timer: ResMut<RefineryTimer>
     ) {
 
         for event in reader.iter() {
             println!("Smelt Event Detected!");
-            let (base_station, inventory, mut refinery) = base_station_query.single_mut();
+            let (_base_station, inventory, refinery) = base_station_query.single_mut();
 
             let recipe = event.0.clone();
             println!("{:?}", recipe);
@@ -191,7 +190,7 @@ impl RefineryPlugin {
         }
     }
 
-    pub fn attach_refinery_to_entity(mut commands: &mut Commands, refinery: Refinery, ent: Entity) {
+    pub fn attach_refinery_to_entity(commands: &mut Commands, ent: Entity) {
         commands.entity(ent)
             .insert(Refinery::new());
     }

@@ -104,10 +104,10 @@ impl FactoryPlugin {
     /// Start processing the recipe by setting currently processing to the recipe,
     /// and starting a timer.
     fn craft_from_materials(
-        mut inventory: Mut<Inventory>,
+        inventory: Mut<Inventory>,
         recipe: &Recipe,
         mut factory: Mut<Factory>,
-        mut timer: &mut ResMut<FactoryTimer>
+        timer: &mut ResMut<FactoryTimer>
     ) {
         if Self::have_materials_to_craft(inventory.as_ref(), &recipe) {
             println!("We have the materials!");
@@ -128,9 +128,9 @@ impl FactoryPlugin {
         mut timer: ResMut<FactoryTimer>,
         time: Res<Time>
     ) {
-        if let Some(mut timer) = timer.0.as_mut() {
+        if let Some(timer) = timer.0.as_mut() {
 
-            let (base_station, mut inventory, mut factory) = base_station_query.single_mut();
+            let (_base_station, mut inventory, mut factory) = base_station_query.single_mut();
 
             timer.tick(time.delta());
 
@@ -162,12 +162,11 @@ impl FactoryPlugin {
         mut reader: EventReader<CraftEvent>,
         mut base_station_query: Query<(&BaseStation, &mut Inventory, &mut Factory), With<BaseStation>>,
         mut factory_timer: ResMut<FactoryTimer>,
-        mut time: Res<Time>
     ) {
 
         for event in reader.iter() {
             println!("Craft Event Detected!");
-            let (base_station, inventory, mut factory) = base_station_query.single_mut();
+            let (_base_station, inventory, factory) = base_station_query.single_mut();
 
             let recipe = event.0.clone();
             println!("{:?}", recipe);
@@ -176,7 +175,7 @@ impl FactoryPlugin {
         }
     }
 
-    pub fn attach_factory_to_entity(mut commands: &mut Commands, factory: Factory, ent: Entity) {
+    pub fn attach_factory_to_entity(commands: &mut Commands, ent: Entity) {
         commands.entity(ent)
             .insert(Factory::new());
     }

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_stat_bars::*;
-use crate::{ Player, inventory::Inventory, player::Battery };
+use crate::{ Player, inventory::Inventory };
 
 struct PlayerHealth(f32);
 impl StatbarObservable for PlayerHealth {

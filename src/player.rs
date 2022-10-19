@@ -1,4 +1,3 @@
-use bevy::ui::update;
 use bevy::{prelude::*};
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
@@ -147,7 +146,7 @@ impl PlayerPlugin {
     fn keep_player_on_top(
         mut player_query: Query<(&mut Player, &mut Transform), (With<Player>, Without<Crosshair>)>
     ) {
-        for (player, mut transform) in player_query.iter_mut() {
+        for (_player, mut transform) in player_query.iter_mut() {
             transform.translation.z = 100.0;
         }
     }
@@ -216,9 +215,8 @@ impl PlayerPlugin {
         };
 
         const SPIN_ACCELERATION: f32 = 0.4;
-        const MAX_VELOCITY: f32 = 6.0;
     
-        let (mut player, mut player_trans, mut velocity) = player_query.single_mut();
+        let (_player, player_trans, mut velocity) = player_query.single_mut();
     
          // check if the cursor is inside the window and get its position
          if let Some(screen_pos) = wnd.cursor_position() {
@@ -263,6 +261,7 @@ impl PlayerPlugin {
             let (player, transform, velocity) = player_query.single();
     
             // why does this work? https://www.reddit.com/r/rust_gamedev/comments/rphgsf/calculating_bullet_x_and_y_position_based_off_of/
+            // FIXME: clean this up, it's confusing..., should also be using velocity here.
             let player_velocity = (transform.rotation * Vec3::Y) + Vec3::new(player.delta_x, player.delta_y, 0.0) * PIXELS_PER_METER;
 
 
@@ -330,7 +329,7 @@ impl PlayerPlugin {
     ) {
         const PLAYER_MASS: f32 = 100.0;
 
-        for (player, inventory, mut mass_properties) in player_query.iter_mut() {
+        for (_player, inventory, mut mass_properties) in player_query.iter_mut() {
 
             let inventory_weight = inventory.gross_material_weight();
             let mass_properties = mass_properties.as_mut();
