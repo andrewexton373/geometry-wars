@@ -1,7 +1,7 @@
 use std::{time::Duration};
 
 use bevy::{prelude::*, time::Timer};
-use bevy_prototype_lyon::prelude::{self as lyon};
+use bevy_prototype_lyon::prelude::{self as lyon, DrawMode, FillMode};
 use bevy_rapier2d::{prelude::{Velocity, Collider, Sleeping, Sensor, ActiveEvents, RapierContext}};
 
 use crate::{astroid::{Astroid, AstroidMaterial}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin, InventoryItem, Amount}, refinery::{Refinery, RefineryPlugin}, game_ui::{Clue, ContextClue}, factory::{FactoryPlugin, Factory}};
@@ -82,7 +82,7 @@ impl BaseStationPlugin {
                     fill_mode: lyon::FillMode::color(Color::RED),
                     outline_mode: lyon::StrokeMode::new(Color::WHITE, 1.0),
                 },
-                Default::default()
+                Default::default(),
             ))
             .insert(Name::new("BaseStationDirectionIndicator"))
             .id();
@@ -90,23 +90,29 @@ impl BaseStationPlugin {
        
 
     fn guide_player_to_base_station(
-        mut dir_indicator_query: Query<(&mut Transform, &mut GlobalTransform), (With<BaseStationDirectionIndicator>, Without<BaseStation>, Without<Player>)>,
+        mut dir_indicator_query: Query<(&mut Transform, &mut DrawMode, &mut GlobalTransform), (With<BaseStationDirectionIndicator>, Without<BaseStation>, Without<Player>)>,
         player_query: Query<(&Player, &GlobalTransform), (With<Player>, Without<BaseStation>)>,
         base_query: Query<(&BaseStation, &GlobalTransform), (With<BaseStation>, Without<Player>)>
     ) {
-        let (mut dir_indicator_transform, dir_indicator_g_transform) = dir_indicator_query.single_mut();
+        const FADE_DISTANCE: f32 = 500.0;
+
+        let (mut dir_indicator_transform, mut dir_indicator_draw_mode, dir_indicator_g_transform) = dir_indicator_query.single_mut();
         let (player, player_trans) = player_query.single();
         let (base_station, base_station_trans) = base_query.single();
 
         let player_pos = player_trans.translation().truncate();
         let base_station_pos = base_station_trans.translation().truncate();
 
+        let distance_to_base = (base_station_pos - player_pos).length();
         let direction_to_base = (base_station_pos - player_pos).normalize();
         let rotation = Vec2::Y.angle_between(direction_to_base);
 
         dir_indicator_transform.rotation = Quat::from_rotation_z(rotation);
         dir_indicator_transform.translation = (player_trans.translation().truncate() + direction_to_base * 100.0).extend(999.0);
         dir_indicator_transform.scale = Vec3::new(0.3, 1.0, 1.0);
+
+        let opacity = (distance_to_base / FADE_DISTANCE).powi(2).clamp(0.0, 1.0);
+        *dir_indicator_draw_mode = DrawMode::Fill(FillMode::color(Color::Rgba { red: 255.0, green: 0.0, blue: 0.0, alpha: opacity}));
     }
     
 
