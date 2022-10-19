@@ -6,6 +6,7 @@ use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use rand::Rng;
 use rand::seq::SliceRandom;
+use rand_distr::{Normal, Distribution};
 use std::cmp::Ordering;
 use std::f32::consts::{PI};
 use std::fmt;
@@ -78,6 +79,18 @@ impl Composition {
         cloned.into_iter().map(|e| {
             (e.0, e.1 / total_weights)
         }).collect::<HashMap<AstroidMaterial, f32>>()
+    }
+
+    pub fn jitter(&self) -> Composition {
+        let mut rng = rand::thread_rng();
+        let normal = Normal::new(0.0, 0.3).unwrap();
+
+        Composition {
+            composition: self.composition.clone().into_iter().map(|(k, v)| {
+                (k, (v + normal.sample(&mut rng)).clamp(0.0, f32::MAX))
+            }).collect()
+        }
+
     }
 }
 
@@ -362,18 +375,23 @@ impl AstroidPlugin {
 
         match &astroid.size {
             AstroidSize::Small => {
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, astroid.composition.clone(), right_velocity, astroid_translation);
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, astroid.composition.clone(), left_velocity, astroid_translation);
+                let left_comp = astroid.composition.jitter();
+                let right_comp = astroid.composition.jitter();
+
+                println!("SPLIT\nCOMP1: {:?}\nCOMP2: {:?}", left_comp, right_comp);
+
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, right_comp, right_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, left_comp, left_velocity, astroid_translation);
                 commands.entity(astroid_ent).despawn_recursive();
             },
             AstroidSize::Medium => {
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::Small, astroid.composition.clone(),right_velocity, astroid_translation);
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::Small, astroid.composition.clone(), left_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::Small, astroid.composition.jitter(),right_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::Small, astroid.composition.jitter(), left_velocity, astroid_translation);
                 commands.entity(astroid_ent).despawn_recursive();
             },
             AstroidSize::Large => {
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::Medium, astroid.composition.clone(), right_velocity,astroid_translation);
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::Medium, astroid.composition.clone(), left_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::Medium, astroid.composition.jitter(), right_velocity,astroid_translation);
+                AstroidPlugin::spawn_astroid(commands, AstroidSize::Medium, astroid.composition.jitter(), left_velocity, astroid_translation);
                 commands.entity(astroid_ent).despawn_recursive();
             }
             _ => {

@@ -11,6 +11,7 @@ bevy_rapier2d = { version = "0.17.0", features = ["debug-render"] }
 bevy_prototype_lyon = "0.6.0"
 bevy-inspector-egui = "0.13.0"
 rand = "0.8.5"
+rand_distr = "0.4.3"
 bevy_stat_bars = "0.3"
 bevy-debug-text-overlay = "3.0"
 kayak_ui = { git="https://github.com/StarArawn/kayak_ui", rev="108affb36101e0c06fd9a28aa80224323365227d", features = ["bevy_renderer"] }
