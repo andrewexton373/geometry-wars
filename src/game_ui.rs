@@ -8,7 +8,7 @@ use kayak_ui::core::{
 use kayak_ui::widgets::{App as KayakApp};
 
 
-use bevy::{prelude::*};
+use bevy::{prelude::*, utils::HashSet};
 
 use crate::{inventory::{Inventory, InventoryItem}, player::Player, base_station::{BaseStation}, refinery::Refinery, widgets::{context_clue::UIContextClueView, inventory::{UIShipInventory, UIBaseInventory}, crafting::UICraftingTabsView}, factory::Factory};
 
@@ -19,24 +19,29 @@ pub struct UIItems {
     pub refinery: Refinery,
     pub factory: Factory,
     pub remaining_refinery_time: f32,
-    pub context_clue: Option<ContextClue>
+    pub context_clues: HashSet<ContextClue>
 }
 
-#[derive(Default, Debug, Clone, Copy, PartialEq)]
+#[derive(Default, Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum ContextClue {
     #[default]
-    NearBaseStation
+    NearBaseStation,
+    CargoBayFull,
+    ShipFuelEmpty
 }
 
 impl ContextClue {
     pub fn text(&self) -> String {
         match *self {
             ContextClue::NearBaseStation => "Near Base Station, Deposit Collected Ore with SPACE.",
+            ContextClue::CargoBayFull => "The Player's Ship Cargo Bay is Full. Deposit Ore at Base Station.",
+            ContextClue::ShipFuelEmpty => "The Player's Ship Fuel Tank is Empty!",
+            _ => "Missing Context Clue Note."
         }.to_string()
     }
 }
 
-pub struct Clue(pub Option<ContextClue>);
+pub struct ContextClues(pub HashSet<ContextClue>);
 
 pub struct GameUIPlugin;
 
@@ -44,7 +49,7 @@ impl Plugin for GameUIPlugin {
     fn build(&self, app: &mut bevy::app::App) {
         app.add_plugin(BevyKayakUIPlugin)
             .add_startup_system(Self::setup_game_ui)
-            .insert_resource(Clue(None))
+            .insert_resource(ContextClues(HashSet::new()))
             .add_system(Self::update_ui_data);
     }
 }
@@ -79,16 +84,11 @@ impl GameUIPlugin {
     fn update_ui_data(
         player_inventory_query: Query<&Inventory, (With<Player>, Without<BaseStation>)>,
         base_station_query: Query<(&Inventory, &Refinery, &Factory), (With<BaseStation>, Without<Player>)>,
-        context_clue_res: Res<Clue>,
+        context_clues_res: Res<ContextClues>,
         ui_items: Res<Binding<UIItems>>,
     ) {
         let ship_inventory = player_inventory_query.single();
         let (station_inventory, station_refinery, station_factory) = base_station_query.single();
-
-        let mut clue = None;
-        if let Clue(Some(context_clue)) = context_clue_res.into_inner() {
-            clue = Some(context_clue.clone());
-        }
     
         // update ui by updating binding object
         ui_items.set(UIItems {
@@ -97,7 +97,7 @@ impl GameUIPlugin {
             refinery: station_refinery.clone(),
             factory: station_factory.clone(),
             remaining_refinery_time: 0.0,
-            context_clue: clue
+            context_clues: context_clues_res.into_inner().0.clone()
         });
         
     }

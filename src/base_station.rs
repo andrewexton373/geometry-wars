@@ -3,7 +3,7 @@ use bevy::{prelude::*};
 use bevy_prototype_lyon::prelude::{self as lyon, DrawMode, FillMode};
 use bevy_rapier2d::{prelude::{Velocity, Collider, Sleeping, Sensor, ActiveEvents, RapierContext}};
 
-use crate::{astroid::{Astroid}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin, InventoryItem, Amount}, refinery::{Refinery, RefineryPlugin}, game_ui::{Clue, ContextClue}, factory::{FactoryPlugin, Factory}};
+use crate::{astroid::{Astroid}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin, InventoryItem, Amount}, refinery::{Refinery, RefineryPlugin}, game_ui::{ContextClue, ContextClues}, factory::{FactoryPlugin, Factory}};
 
 pub const BASE_STATION_SIZE: f32 = 20.0;
 
@@ -141,7 +141,7 @@ impl BaseStationPlugin {
     fn handle_base_station_sensor_collision_event(
         rapier_context: Res<RapierContext>,
         mut can_deposit_res: ResMut<CanDeposit>,
-        mut context_clue_res: ResMut<Clue>,
+        mut context_clues_res: ResMut<ContextClues>,
         mut player_query: Query<(Entity, &mut Player), With<Player>>,
         base_station_query: Query<(Entity, &BaseStation), With<BaseStation>>,
         time: Res<Time>
@@ -151,15 +151,14 @@ impl BaseStationPlugin {
 
         if rapier_context.intersection_pair(player_ent, base_station_ent) == Some(true) {
             *can_deposit_res = CanDeposit(true);
-            *context_clue_res = Clue(Some(ContextClue::NearBaseStation));
+            context_clues_res.0.insert(ContextClue::NearBaseStation);
+
             player.charge_battery(100.0 * time.delta_seconds());
             player.repair_damage(10.0 * time.delta_seconds());
 
         } else {
             *can_deposit_res = CanDeposit(false);
-
-            // FIXME: Can't do this when there's more than one context clue
-            *context_clue_res = Clue(None);
+            context_clues_res.0.remove(&ContextClue::NearBaseStation);
 
         }
 

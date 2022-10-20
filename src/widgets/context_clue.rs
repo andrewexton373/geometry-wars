@@ -1,6 +1,6 @@
 use kayak_ui::core::{
     rsx,
-    widget
+    widget, constructor, VecTracker
 };
 
 use kayak_ui::{core::{Binding, Bound}};
@@ -10,7 +10,7 @@ use kayak_ui::core::{
     WidgetProps,
 };
 
-use bevy::prelude::*;
+use bevy::{prelude::*, ui};
 
 use crate::{HEIGHT, RESOLUTION};
 use crate::game_ui::{UIItems};
@@ -21,24 +21,42 @@ pub fn UIContextClueView(props: UIContextClueProps) {
     let ui_items = context.query_world::<Res<Binding<UIItems>>, _, _>(move |ui_items| ui_items.clone());
     context.bind(&ui_items);
 
-    let context_clue = ui_items.get().context_clue.clone();
+    let context_clues = ui_items.get().context_clues.clone();
 
     let size = Vec2 { x: 400.0, y: 100.0 };
     let offset = 200.0; // width of station inventory
     let ui_context_clue_pos = (HEIGHT * RESOLUTION / 2. + size.x / 2.0, HEIGHT - size.y);
 
-    match context_clue {
-        None => {},
-        Some(context_clue) => {
+    if !context_clues.is_empty() {
 
-            rsx! {
-                <Window position={ui_context_clue_pos} size={(size.x, size.y)} title={"Context Clue".to_string()}>
-                    <UIContextClue context_clue={context_clue.text()} />
-                </Window>
-            }
+        rsx! {
+            <Window position={ui_context_clue_pos} size={(size.x, size.y)} title={"Context Clue".to_string()}>
+
+                {VecTracker::from(context_clues.clone().into_iter().enumerate().map(|(index, context_clue)| {
+                    constructor! {
+                        <UIContextClue context_clue={context_clue.text()} />
+
+                    }
+                }))}
+
+            </Window>
         }
-
+       
     }
+
+
+    // match context_clue {
+    //     None => {},
+    //     Some(context_clue) => {
+
+    //         rsx! {
+    //             <Window position={ui_context_clue_pos} size={(size.x, size.y)} title={"Context Clue".to_string()}>
+    //                 <UIContextClue context_clue={context_clue.text()} />
+    //             </Window>
+    //         }
+    //     }
+
+    // }
 
 }
 
