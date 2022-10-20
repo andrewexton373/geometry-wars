@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy::reflect::FromReflect;
 use bevy::utils::HashMap;
+use bevy_hanabi::ParticleEffect;
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
@@ -13,6 +14,7 @@ use std::fmt;
 use crate::base_station::BaseStation;
 use crate::game_ui::{ContextClues, ContextClue};
 use crate::inventory::{Inventory, InventoryItem, Amount};
+use crate::particles::ShipAstroidImpactParticles;
 use crate::{ Player, PIXELS_PER_METER };
 use crate::player::Health;
 
@@ -322,57 +324,72 @@ impl AstroidPlugin {
     }
 
     fn handle_astroid_collision_event(
+        mut commands: Commands,
+        rapier_context: Res<RapierContext>,
         mut astroid_query: Query<(Entity, &Astroid, &ReadMassProperties), With<Astroid>>,
         mut player_query: Query<(Entity, &mut Player, &mut Inventory), With<Player>>,
-        mut contact_events: EventReader<CollisionEvent>,
-        // mut inventory_resource: ResMut<Inventory>,
+        mut effect: Query<(&mut ParticleEffect, &mut Transform), (With<ShipAstroidImpactParticles>, Without<Astroid>, Without<Player>)>,
         mut inventory_full_notification: ResMut<InventoryFullNotificationTimer>,
-        mut commands: Commands
     ) {
         let (player_ent, mut player, mut inventory) = player_query.single_mut();
 
-        for contact_event in contact_events.iter() {
-            for (astroid_entity, astroid, mass_properties) in astroid_query.iter_mut() {
-                if let CollisionEvent::Started(h1, h2, _event_flag) = contact_event {
-                    
-                    // If player hit astroid
-                    if player_ent == *h1 && astroid_entity == *h2 {
+        for (astroid_entity, astroid, mass_properties) in astroid_query.iter_mut() {
+            if let Some(contact_pair_view) = rapier_context.contact_pair(player_ent, astroid_entity) {
 
-                        match astroid.size {
-                            AstroidSize::OreChunk => {
-                                println!("Hit ore chunk, let's collect it!");
-                                let ore_chunk_mass = mass_properties.0.mass;
-                                for comp in astroid.composition.percent_composition().iter() {
+                    for manifold in contact_pair_view.manifolds() {
+                        // Read the solver contacts.
+                        
+                        for solver_contact in manifold.solver_contacts() {
+                            // Keep in mind that all the solver contact data are expressed in world-space.
+                        
+                            let mut astroid_collision = false;
 
-                                        if !inventory.add_to_inventory(InventoryItem::Material(*comp.0, Amount::Weight(comp.1 * ore_chunk_mass))) {
-                                            inventory_full_notification.0 = Some(Timer::from_seconds(3.0, false));
-                                        }
-                                        
+                            match astroid.size {
+                                AstroidSize::OreChunk => {
+                                    println!("Hit ore chunk, let's collect it!");
+                                    let ore_chunk_mass = mass_properties.0.mass;
+                                    for comp in astroid.composition.percent_composition().iter() {
+
+                                            if !inventory.add_to_inventory(InventoryItem::Material(*comp.0, Amount::Weight(comp.1 * ore_chunk_mass))) {
+                                                inventory_full_notification.0 = Some(Timer::from_seconds(3.0, false));
+                                            }
+                                            
+                                    }
+
+                                    // FIXME: will despawn even if there's no room in inventory to collect.
+                                    commands.entity(astroid_entity).despawn_recursive();
+
                                 }
-
-                                // FIXME: will despawn even if there's no room in inventory to collect.
-                                commands.entity(astroid_entity).despawn_recursive();
-
+                                AstroidSize::Small => {
+                                    println!("Hit small Astroid");
+                                    player.take_damage(1.0);
+                                    astroid_collision = true;
+                                },
+                                AstroidSize::Medium => {
+                                    println!("Hit medium Astroid");
+                                    player.take_damage(2.5);
+                                    astroid_collision = true;
+                                },
+                                AstroidSize::Large => {
+                                    println!("Hit large Astroid");
+                                    player.take_damage(5.0);
+                                    astroid_collision = true;
+                                    
+                                }
                             }
-                            AstroidSize::Small => {
-                                println!("Hit small Astroid");
-                                player.take_damage(1.0);
-                            },
-                            AstroidSize::Medium => {
-                                println!("Hit medium Astroid");
-                                player.take_damage(2.5);
-                            },
-                            AstroidSize::Large => {
-                                println!("Hit large Astroid");
-                                player.take_damage(5.0);
+
+                            if astroid_collision {
+                                let (mut effect, mut effect_translation) = effect.single_mut();
+                                effect_translation.translation = (solver_contact.point() * crate::PIXELS_PER_METER).extend(200.0);
+                                effect.maybe_spawner().unwrap().reset();
                             }
                         }
-                        return;
                     }
-                    
-                }
+                
             }
+
         }
+        
     }
 
     pub fn display_inventory_full_context_clue(
@@ -406,8 +423,6 @@ impl AstroidPlugin {
             AstroidSize::Small => {
                 let left_comp = astroid.composition.jitter();
                 let right_comp = astroid.composition.jitter();
-
-                println!("SPLIT\nCOMP1: {:?}\nCOMP2: {:?}", left_comp, right_comp);
 
                 AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, right_comp, right_velocity, astroid_translation);
                 AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, left_comp, left_velocity, astroid_translation);

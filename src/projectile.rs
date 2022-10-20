@@ -53,47 +53,42 @@ impl ProjectilePlugin {
             .insert(Collider::ball(projectile_shape.radius))
             .insert(Transform::from_translation(spawn_position.extend(0.0)))
             .insert(ActiveEvents::COLLISION_EVENTS)
-            // .insert(ActiveHooks::FILTER_CONTACT_PAIRS)
             .insert(Restitution::coefficient(0.01));
     }
 
     fn handle_projectile_collision_event(
-        mut contact_events: EventReader<CollisionEvent>,
         mut astroid_query: Query<(Entity, &Astroid, &Transform, &Velocity), With<Astroid>>,
-        projectile_query: Query<(Entity, &Projectile, &GlobalTransform, &Velocity), With<Projectile>>,
+        projectile_query: Query<(Entity, &Projectile, &Velocity), With<Projectile>>,
         mut effect: Query<(&mut ParticleEffect, &mut Transform), (With<ProjectileImpactParticles>, Without<Astroid>, Without<Projectile>)>,
         mut commands: Commands,
+        rapier_context: Res<RapierContext>,
     ) {
-        for contact_event in contact_events.iter() {
-            for (projectile_ent, _projectile, projectile_transform, projectile_velocity) in projectile_query.iter() {
-                for (astroid_ent, astroid, astroid_transform, _astroid_velocity) in astroid_query.iter_mut() {
-                
-                    if let CollisionEvent::Started(h1, h2, _event_flag) = contact_event {
+        for (projectile_ent, _projectile, projectile_velocity) in projectile_query.iter() {
+            for (astroid_ent, astroid, astroid_transform, _astroid_velocity) in astroid_query.iter_mut() {
 
-                        if (projectile_ent == *h2 && astroid_ent == *h1) ||
-                            (projectile_ent == *h1 && astroid_ent == *h2) {
+                if let Some(contact_pair_view) = rapier_context.contact_pair(projectile_ent, astroid_ent) {
 
+                    for manifold in contact_pair_view.manifolds() {
+                        // Read the solver contacts.
+                        
+                        for solver_contact in manifold.solver_contacts() {
+                            // Keep in mind that all the solver contact data are expressed in world-space.
                             println!("PROJECTILE COLLISION WITH ASTROID");
 
                             let (mut effect, mut effect_translation) = effect.single_mut();
-
-                            effect_translation.translation = projectile_transform.translation();
-                            // println!("{:?}", effect);
+        
+                            effect_translation.translation = (solver_contact.point() * crate::PIXELS_PER_METER).extend(200.0);
                             effect.maybe_spawner().unwrap().reset();
-
+        
                             AstroidPlugin::split_astroid(&mut commands, astroid_ent, astroid, astroid_transform.translation.truncate(), projectile_velocity);
                             commands.entity(projectile_ent).despawn_recursive();
-
-    
                         }
-    
                     }
-                
+
                 }
-                
+
             }
-            
-        }
+        }        
 
     }
     

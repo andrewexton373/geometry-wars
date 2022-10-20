@@ -197,18 +197,13 @@ impl PlayerPlugin {
 
                 ext_force.force = force;
 
-                // TEST PARTICLES
                 if force.length() > 0.0 {
                     if let (mut effect, mut effect_trans) = effect.single_mut() {
                         effect_trans.translation = transform.translation;
                         effect.maybe_spawner().unwrap().reset();
-                        println!("PARTICLES?");
                     }
                 }
 
-                // if keyboard_input.pressed(KeyCode::P) {
-                    
-                // }
             }
 
             velocity.angvel = 0.0; // Prevents spin on astrid impact
