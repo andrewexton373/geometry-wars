@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_hanabi::ParticleEffect;
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
-use crate::{astroid::{AstroidPlugin, Astroid}};
+use crate::{astroid::{AstroidPlugin, Astroid}, particles::ProjectileImpactParticles};
 
 const PROJECTILE_RADIUS: f32 = 0.5;
 
@@ -61,7 +61,7 @@ impl ProjectilePlugin {
         mut contact_events: EventReader<CollisionEvent>,
         mut astroid_query: Query<(Entity, &Astroid, &Transform, &Velocity), With<Astroid>>,
         projectile_query: Query<(Entity, &Projectile, &GlobalTransform, &Velocity), With<Projectile>>,
-        mut effect: Query<(&mut ParticleEffect, &mut Transform), (Without<Astroid>, Without<Projectile>)>,
+        mut effect: Query<(&mut ParticleEffect, &mut Transform), (With<ProjectileImpactParticles>, Without<Astroid>, Without<Projectile>)>,
         mut commands: Commands,
     ) {
         for contact_event in contact_events.iter() {

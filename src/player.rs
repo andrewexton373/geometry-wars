@@ -7,6 +7,7 @@ use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use std::f32::consts::PI;
 use crate::base_station::{CanDeposit, BaseStation};
 use crate::game_ui::{ContextClues, ContextClue};
+use crate::particles::PlayerShipTrailParticles;
 use crate::player_stats_bar::PlayerStatsBarPlugin;
 use crate::{PIXELS_PER_METER, GameCamera};
 use crate::astroid::{Collectible};
@@ -163,7 +164,7 @@ impl PlayerPlugin {
     fn player_movement(
         keyboard_input: Res<Input<KeyCode>>,
         mut player_query: Query<(&mut Player, &mut Transform, &mut Velocity, &mut ExternalForce), (With<Player>, Without<Crosshair>)>,
-        mut effect: Query<(&mut ParticleEffect, &mut Transform), Without<Player>>,
+        mut effect: Query<(&mut ParticleEffect, &mut Transform), (With<PlayerShipTrailParticles>, Without<Player>)>,
     ) {
         const ACCELERATION: f32 =  12000.0 * PIXELS_PER_METER;
 
