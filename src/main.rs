@@ -13,12 +13,14 @@ use bevy_hanabi::prelude::*;
 
 mod game_ui;
 mod widgets;
+mod particles;
 mod refinery;
 mod factory;
 use factory::FactoryPlugin;
 use game_ui::GameUIPlugin;
 
 mod player;
+use particles::ParticlePlugin;
 use player::{ PlayerPlugin, Player };
 
 mod astroid;
@@ -61,13 +63,8 @@ struct FpsText;
 pub struct GameCamera;
 
 fn main() {
-    let mut options = WgpuSettings::default();
-    options
-        .features
-        .set(WgpuFeatures::VERTEX_WRITABLE_STORAGE, true);
 
     App::new()
-        .insert_resource(options)
         .insert_resource(WindowDescriptor {
             title: "ASTROID MINER".to_string(),
             width: HEIGHT * RESOLUTION,
@@ -75,13 +72,8 @@ fn main() {
             present_mode: PresentMode::AutoVsync,
             ..default()
         })
-        .insert_resource(bevy::log::LogSettings {
-            level: bevy::log::Level::WARN,
-            filter: "bevy_hanabi=warn,spawn=trace".to_string(),
-        })
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new())
-        .add_plugin(HanabiPlugin)
         .add_plugin(ShapePlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(InventoryPlugin)
@@ -100,6 +92,7 @@ fn main() {
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(OverlayPlugin { font_size: 18.0, ..default() })
         .add_plugin(GameUIPlugin)
+        .add_plugin(ParticlePlugin)
         .add_system(screen_print_debug_text)
         .run();
 }
@@ -107,51 +100,13 @@ fn main() {
 fn setup(
     mut commands: Commands,
     mut rapier_config: ResMut<RapierConfiguration>,
-    mut effects: ResMut<Assets<EffectAsset>>,
+    // mut effects: ResMut<Assets<EffectAsset>>,
 ) {
     commands.spawn_bundle(Camera2dBundle::default())
                             .insert(GameCamera)
                             .insert(Name::new("GameCamera"));
 
     rapier_config.gravity = Vec2::new(0.0, 0.0);
-
-    let mut gradient = Gradient::new();
-    gradient.add_key(0.0, Vec4::new(1.0, 1.0, 1.0, 1.0));
-    gradient.add_key(1.0, Vec4::new(1.0, 1.0, 1.0, 0.0));
-
-    let spawner = Spawner::once(30.0.into(), false);
-    let effect = effects.add(
-        EffectAsset {
-            name: "Impact".into(),
-            capacity: 32768,
-            spawner,
-            ..Default::default()
-        }
-        .init(PositionSphereModifier {
-            radius: 0.05 * crate::PIXELS_PER_METER,
-            speed: (0.2 * crate::PIXELS_PER_METER).into(),
-            dimension: ShapeDimension::Surface,
-            ..Default::default()
-        })
-        .render(SizeOverLifetimeModifier {
-            gradient: Gradient::constant(Vec2::splat(0.25 * crate::PIXELS_PER_METER)),
-        })
-        .render(ColorOverLifetimeModifier { gradient }),
-    );
-
-    // Spawn an instance of the particle effect, and override its Z layer to
-    // be above the reference white square previously spawned.
-    commands
-        .spawn_bundle(ParticleEffectBundle {
-            // Assign the Z layer so it appears in the egui inspector and can be modified at runtime
-            effect: ParticleEffect::new(effect).with_z_layer_2d(Some(0.1)),
-            ..default()
-        })
-        .insert(Name::new("effect:2d"));
-
-    // commands
-    //     .spawn_bundle(ParticleEffectBundle::new(effect).with_spawner(spawner))
-    //     .insert(Name::new("particle-effect"));
 
 }
 
