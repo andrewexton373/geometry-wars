@@ -93,6 +93,9 @@ LMB - Fire Projectile in direction of ship
 	- [x] Near Base Station (Press SPACE to Deposit)
 	- [x] Ship Battery is Empty
 	- [x] Ship Cargo Bay is Full
+
+- [x] **Particles**
+	- [ ] Improve Look and Feel
 	
 **Is this a good 0.1 release?**
 
