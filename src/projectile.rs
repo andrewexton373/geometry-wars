@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_hanabi::ParticleEffect;
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
 use crate::{astroid::{AstroidPlugin, Astroid}};
@@ -59,11 +60,12 @@ impl ProjectilePlugin {
     fn handle_projectile_collision_event(
         mut contact_events: EventReader<CollisionEvent>,
         mut astroid_query: Query<(Entity, &Astroid, &Transform, &Velocity), With<Astroid>>,
-        projectile_query: Query<(Entity, &Projectile, &Velocity), With<Projectile>>,
+        projectile_query: Query<(Entity, &Projectile, &GlobalTransform, &Velocity), With<Projectile>>,
+        mut effect: Query<(&mut ParticleEffect, &mut Transform), (Without<Astroid>, Without<Projectile>)>,
         mut commands: Commands,
     ) {
         for contact_event in contact_events.iter() {
-            for (projectile_ent, _projectile, projectile_velocity) in projectile_query.iter() {
+            for (projectile_ent, _projectile, projectile_transform, projectile_velocity) in projectile_query.iter() {
                 for (astroid_ent, astroid, astroid_transform, _astroid_velocity) in astroid_query.iter_mut() {
                 
                     if let CollisionEvent::Started(h1, h2, _event_flag) = contact_event {
@@ -72,6 +74,13 @@ impl ProjectilePlugin {
                             (projectile_ent == *h1 && astroid_ent == *h2) {
 
                             println!("PROJECTILE COLLISION WITH ASTROID");
+
+                            let (mut effect, mut effect_translation) = effect.single_mut();
+
+                            effect_translation.translation = projectile_transform.translation();
+                            // println!("{:?}", effect);
+                            effect.maybe_spawner().unwrap().reset();
+
                             AstroidPlugin::split_astroid(&mut commands, astroid_ent, astroid, astroid_transform.translation.truncate(), projectile_velocity);
                             commands.entity(projectile_ent).despawn_recursive();
 

@@ -1,4 +1,5 @@
 use bevy::{prelude::*};
+use bevy_hanabi::ParticleEffect;
 use bevy_rapier2d::prelude::*;
 use bevy_prototype_lyon::prelude as lyon;
 use bevy::render::camera::RenderTarget;
@@ -162,11 +163,12 @@ impl PlayerPlugin {
     fn player_movement(
         keyboard_input: Res<Input<KeyCode>>,
         mut player_query: Query<(&mut Player, &mut Transform, &mut Velocity, &mut ExternalForce), (With<Player>, Without<Crosshair>)>,
+        mut effect: Query<(&mut ParticleEffect, &mut Transform), Without<Player>>,
     ) {
         const ACCELERATION: f32 =  12000.0 * PIXELS_PER_METER;
 
             let (mut player, mut transform, mut velocity, mut ext_force) = player_query.single_mut();
-    
+
             let mut thrust = Vec2::ZERO;
 
             if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
@@ -193,6 +195,19 @@ impl PlayerPlugin {
                 player.drain_battery(energy_spent);
 
                 ext_force.force = force;
+
+                // TEST PARTICLES
+                if force.length() > 0.0 {
+                    if let (mut effect, mut effect_trans) = effect.single_mut() {
+                        effect_trans.translation = transform.translation;
+                        effect.maybe_spawner().unwrap().reset();
+                        println!("PARTICLES?");
+                    }
+                }
+
+                // if keyboard_input.pressed(KeyCode::P) {
+                    
+                // }
             }
 
             velocity.angvel = 0.0; // Prevents spin on astrid impact
