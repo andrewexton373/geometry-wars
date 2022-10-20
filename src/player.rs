@@ -5,6 +5,7 @@ use bevy::render::camera::RenderTarget;
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use std::f32::consts::PI;
 use crate::base_station::{CanDeposit, BaseStation};
+use crate::game_ui::{ContextClues, ContextClue};
 use crate::player_stats_bar::PlayerStatsBarPlugin;
 use crate::{PIXELS_PER_METER, GameCamera};
 use crate::astroid::{Collectible};
@@ -24,6 +25,12 @@ pub struct Health {
 pub struct Battery {
     pub current_capacity: f32,
     pub maximum_capacity: f32,
+}
+
+impl Battery {
+    pub fn is_empty(&self) -> bool {
+        self.current_capacity <= 0.001
+    }
 }
 
 #[derive(Component, Inspectable, Default)]
@@ -83,6 +90,7 @@ impl Plugin for PlayerPlugin {
             .add_system(Self::player_deposit_control)
             .add_system(Self::gravitate_collectibles)
             .add_system(Self::keep_player_on_top)
+            .add_system(Self::ship_battery_is_empty_context_clue)
             .register_inspectable::<Player>();
     }
 }
@@ -180,14 +188,11 @@ impl PlayerPlugin {
             // If player has battery capacity remaining, apply controlled thrust.
             if player.battery.current_capacity > 0.0 {
                 let force = thrust.normalize_or_zero() * ACCELERATION;
-                let energy_spent = force.length() / 1000000.0; // TODO: magic number
+                let energy_spent = force.length() / 100000.0; // TODO: magic number
 
                 player.drain_battery(energy_spent);
 
                 ext_force.force = force;
-            } else {
-                // Show context clue that you're out of fuel.
-                todo!();
             }
 
             velocity.angvel = 0.0; // Prevents spin on astrid impact
@@ -335,6 +340,19 @@ impl PlayerPlugin {
             let mass_properties = mass_properties.as_mut();
             *mass_properties = AdditionalMassProperties::Mass(inventory_weight + PLAYER_MASS);
 
+        }
+    }
+
+    fn ship_battery_is_empty_context_clue(
+        mut context_clues_res: ResMut<ContextClues>,
+        player_query: Query<(&Player)>
+    ) {
+        for player in player_query.into_iter() {
+            if player.battery.is_empty() {
+                context_clues_res.0.insert(ContextClue::ShipFuelEmpty);
+            } else {
+                context_clues_res.0.remove(&ContextClue::ShipFuelEmpty);
+            }
         }
     }
 }      
