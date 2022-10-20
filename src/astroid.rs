@@ -39,20 +39,20 @@ impl Composition {
 
     pub fn new_with_distance(distance: f32) -> Self {
 
-        const MIN_DISTANCE: f32 = 300.0;
-        const MAX_DISTANCE: f32 = 10000.0;
+        const MIN_DISTANCE: f32 = 0.0;
+        const MAX_DISTANCE: f32 = 100000.0;
 
         let percentage = ((distance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE)).clamp(0.0, 1.0);
 
         let mut near_composition: HashMap<AstroidMaterial, f32> = HashMap::new();
-        near_composition.insert(AstroidMaterial::Iron, 0.80);
-        near_composition.insert(AstroidMaterial::Silver, 0.15);
-        near_composition.insert(AstroidMaterial::Gold, 0.05);
+        near_composition.insert(AstroidMaterial::Iron, 0.95);
+        near_composition.insert(AstroidMaterial::Silver, 0.04);
+        near_composition.insert(AstroidMaterial::Gold, 0.01);
 
         let mut far_composition: HashMap<AstroidMaterial, f32> = HashMap::new();
-        far_composition.insert(AstroidMaterial::Iron, 0.05);
-        far_composition.insert(AstroidMaterial::Silver, 0.20);
-        far_composition.insert(AstroidMaterial::Gold, 0.75);
+        far_composition.insert(AstroidMaterial::Iron, 1.0);
+        far_composition.insert(AstroidMaterial::Silver, 2.0);
+        far_composition.insert(AstroidMaterial::Gold, 2.0);
 
         let mut composition = HashMap::new();
 
@@ -83,10 +83,10 @@ impl Composition {
 
     pub fn jitter(&self) -> Composition {
         let mut rng = rand::thread_rng();
-        let normal = Normal::new(0.0, 0.3).unwrap();
+        let normal = Normal::new(0.0, 0.05).unwrap();
 
         Composition {
-            composition: self.composition.clone().into_iter().map(|(k, v)| {
+            composition: self.percent_composition().into_iter().map(|(k, v)| {
                 (k, (v + normal.sample(&mut rng)).clamp(0.0, f32::MAX))
             }).collect()
         }
