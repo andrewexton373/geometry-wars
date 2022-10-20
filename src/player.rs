@@ -29,7 +29,7 @@ pub struct Battery {
 
 impl Battery {
     pub fn is_empty(&self) -> bool {
-        self.current_capacity <= 0.001
+        self.current_capacity <= 0.0
     }
 }
 
@@ -188,7 +188,7 @@ impl PlayerPlugin {
             // If player has battery capacity remaining, apply controlled thrust.
             if player.battery.current_capacity > 0.0 {
                 let force = thrust.normalize_or_zero() * ACCELERATION;
-                let energy_spent = force.length() / 100000.0; // TODO: magic number
+                let energy_spent = force.length() / 500000.0; // TODO: magic number
 
                 player.drain_battery(energy_spent);
 

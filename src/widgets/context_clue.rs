@@ -10,7 +10,7 @@ use kayak_ui::core::{
     WidgetProps,
 };
 
-use bevy::{prelude::*, ui};
+use bevy::{prelude::*};
 
 use crate::{HEIGHT, RESOLUTION};
 use crate::game_ui::{UIItems};
@@ -25,7 +25,8 @@ pub fn UIContextClueView(props: UIContextClueProps) {
 
     let size = Vec2 { x: 400.0, y: 100.0 };
     let offset = 200.0; // width of station inventory
-    let ui_context_clue_pos = (HEIGHT * RESOLUTION / 2. + size.x / 2.0, HEIGHT - size.y);
+    let ui_context_clue_pos = (HEIGHT * RESOLUTION / 2. - size.x / 2.0, 100.0);
+
 
     if !context_clues.is_empty() {
 

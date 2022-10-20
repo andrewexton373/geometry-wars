@@ -11,9 +11,12 @@ use std::cmp::Ordering;
 use std::f32::consts::{PI};
 use std::fmt;
 use crate::base_station::BaseStation;
+use crate::game_ui::{ContextClues, ContextClue};
 use crate::inventory::{Inventory, InventoryItem, Amount};
 use crate::{ Player, PIXELS_PER_METER };
 use crate::player::Health;
+
+pub struct InventoryFullNotificationTimer(pub Option<Timer>);
 
 pub struct AstroidPlugin;
 
@@ -160,9 +163,11 @@ impl Plugin for AstroidPlugin {
     fn build(&self, app: &mut App) {
         app
             .insert_resource(AstroidSpawner{ timer: Timer::from_seconds(0.25, false)})
+            .insert_resource(InventoryFullNotificationTimer(None))
             .add_system(Self::spawn_astroids_aimed_at_ship)
             .add_system(Self::despawn_far_astroids)
             .add_system(Self::handle_astroid_collision_event)
+            .add_system(Self::display_inventory_full_context_clue)
             .add_system(Self::update_collectible_material_color);
             // .register_inspectable::<Astroid>();
     }
@@ -321,6 +326,7 @@ impl AstroidPlugin {
         mut player_query: Query<(Entity, &mut Player, &mut Inventory), With<Player>>,
         mut contact_events: EventReader<CollisionEvent>,
         // mut inventory_resource: ResMut<Inventory>,
+        mut inventory_full_notification: ResMut<InventoryFullNotificationTimer>,
         mut commands: Commands
     ) {
         let (player_ent, mut player, mut inventory) = player_query.single_mut();
@@ -337,7 +343,11 @@ impl AstroidPlugin {
                                 println!("Hit ore chunk, let's collect it!");
                                 let ore_chunk_mass = mass_properties.0.mass;
                                 for comp in astroid.composition.percent_composition().iter() {
-                                        inventory.add_to_inventory(InventoryItem::Material(*comp.0, Amount::Weight(comp.1 * ore_chunk_mass)));
+
+                                        if !inventory.add_to_inventory(InventoryItem::Material(*comp.0, Amount::Weight(comp.1 * ore_chunk_mass))) {
+                                            inventory_full_notification.0 = Some(Timer::from_seconds(3.0, false));
+                                        }
+                                        
                                 }
 
                                 // FIXME: will despawn even if there's no room in inventory to collect.
@@ -362,6 +372,25 @@ impl AstroidPlugin {
                     
                 }
             }
+        }
+    }
+
+    pub fn display_inventory_full_context_clue(
+        mut context_clues_res: ResMut<ContextClues>,
+        mut inventory_full_notification: ResMut<InventoryFullNotificationTimer>,
+        time: Res<Time>
+    ) {
+        if let Some(timer) = inventory_full_notification.0.as_mut() {
+            timer.tick(time.delta());
+
+            context_clues_res.0.insert(ContextClue::CargoBayFull);
+
+            if timer.finished() {
+                inventory_full_notification.0 = None;
+            }
+
+        } else {
+            context_clues_res.0.remove(&ContextClue::CargoBayFull);
         }
     }
 
