@@ -96,6 +96,9 @@ LMB - Fire Projectile in direction of ship
 
 - [x] **Particles**
 	- [ ] Improve Look and Feel
+
+- [ ] **UI**
+	- [ ] Dont fire weapon when clicking on UI
 	
 **Is this a good 0.1 release?**
 
