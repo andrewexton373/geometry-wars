@@ -19,7 +19,9 @@ pub struct Factory {
 pub enum UpgradeComponent {
     #[default]
     Cog,
-    IronPlate
+    IronPlate,
+    SilverConduit,
+    GoldLeaf
 }
 
 impl Factory {
@@ -45,8 +47,30 @@ impl Factory {
             time_required: 10.0
         };
 
+        let mut items_required = Vec::new();
+        items_required.push(InventoryItem::Ingot(MetalIngot::SilverIngot, Amount::Quantity(1)));
+
+
+        let silver_conduit_recipe = Recipe {
+            items_required,
+            item_created: InventoryItem::Component(UpgradeComponent::SilverConduit, Amount::Quantity(1)),
+            time_required: 8.0
+        };
+
+        let mut items_required = Vec::new();
+        items_required.push(InventoryItem::Ingot(MetalIngot::GoldIngot, Amount::Quantity(1)));
+
+
+        let gold_leaf_recipe = Recipe {
+            items_required,
+            item_created: InventoryItem::Component(UpgradeComponent::GoldLeaf, Amount::Quantity(1)),
+            time_required: 15.0
+        };
+
         recipes.push(cog_recipe);
         recipes.push(iron_plate_recipe);
+        recipes.push(silver_conduit_recipe);
+        recipes.push(gold_leaf_recipe);
 
         Self {
             recipes,
