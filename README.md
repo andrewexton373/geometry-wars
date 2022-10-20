@@ -89,6 +89,10 @@ LMB - Fire Projectile in direction of ship
 - [x] **Components Crafting System**
 	- [x] Factory to turn metal ingots into components used for upgrades.
 	
+- [x] **Context Clues**
+	- [x] Near Base Station (Press SPACE to Deposit)
+	- [x] Ship Battery is Empty
+	- [x] Ship Cargo Bay is Full
 	
 **Is this a good 0.1 release?**
 
