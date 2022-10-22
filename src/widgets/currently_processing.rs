@@ -37,9 +37,10 @@ pub fn CurrentlyProcessing(props: CurrentlyProcessingProps) {
     rsx! {
         <If condition={currently_processing.is_some()}>
             <ProgressBar percent={percent_remaining} />
+            <Text content={format!("{:.1} Seconds Remaining", time_remaining)} size={11.0} />
+
             <Text content={"Currently Processing:".to_string()} size={14.0} />
             <Text content={format!("{:?}\n Into {:?}", currently_processing.clone().unwrap().items_required, currently_processing.clone().unwrap().item_created)} size={16.0} />
-            <Text content={format!("{:.1} Seconds Remaining", time_remaining)} size={16.0} />
         </If>
     }
 }

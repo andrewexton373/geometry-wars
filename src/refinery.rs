@@ -63,7 +63,7 @@ impl Refinery {
 impl Refinery {
     pub fn remaining_processing_percent(&self) -> Option<f32> {
         if let Some(currently_processing) = self.currently_processing.clone() {
-            return Some((currently_processing.time_required - self.remaining_processing_time) / currently_processing.time_required);
+            return Some(((currently_processing.time_required - self.remaining_processing_time) / currently_processing.time_required).clamp(0.0, 1.0));
         }
         None
     }
