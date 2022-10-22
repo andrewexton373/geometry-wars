@@ -338,7 +338,9 @@ impl Plugin for InventoryPlugin {
 }
 
 impl InventoryPlugin {
-        pub fn attach_inventory_to_entity(commands: &mut Commands, inventory: Inventory, entity: Entity) {
+        pub fn attach_inventory_to_entity(commands: &mut Commands, mut inventory: Inventory, entity: Entity) {
+            // TODO: REMOVE ONLY FOR TESTING.
+            inventory.add_to_inventory(InventoryItem::Ingot(MetalIngot::IronIngot, Amount::Quantity(2)));
             commands.entity(entity).insert(inventory);
         }
 }

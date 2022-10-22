@@ -1,6 +1,6 @@
 use kayak_ui::core::{
     rsx,
-    widget, use_state, Handler,
+    widget, use_state, Handler, OnLayout,
 };
 
 use kayak_ui::{core::{VecTracker, constructor, Binding, Bound}, widgets::If};
@@ -58,12 +58,14 @@ pub fn UIFactoryView() {
     let size = Vec2 { x: 400.0, y: 400.0 };
     let offset = 600.0; // width of station inventory
     let ui_factory_view_pos = (0.0 + offset, HEIGHT - size.y);
+
+    // let percent_remaining = factory.remaining_processing_time / factory.currently_processing.clone().unwrap().time_required;
     
     rsx! {
         // <Window position={ui_factory_view_pos} size={(size.x, size.y)} title={"Station Factory".to_string()}>
         // <Window title={"Station Factory".to_string()}>
         <>
-            <CurrentlyProcessing currently_processing={factory.currently_processing.clone()} time_remaining={factory.remaining_processing_time} />
+            <CurrentlyProcessing currently_processing={factory.currently_processing.clone()} time_remaining={factory.remaining_processing_time} percent_remaining={factory.remaining_processing_percent()} />
             <Craftables craftables={factory.recipes.clone()} on_create={handle_create} />
         </>
         // </Window>
@@ -71,14 +73,53 @@ pub fn UIFactoryView() {
 }
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
+pub struct ProgressBarProps {
+    pub percent: Option<f32>
+}
+
+#[widget]
+fn ProgressBar(props: ProgressBarProps) {
+    let ProgressBarProps { percent } = props.clone();
+
+    let progress_bar_background_style = Style {
+        layout_type: StyleProp::Value(LayoutType::Column),
+        width: StyleProp::Value(Units::Percentage(100.0)),
+        height: StyleProp::Value(Units::Auto),
+        background_color: StyleProp::Value(Color::new(1.0, 0.0, 0.0, 1.0)),
+        ..Default::default()
+    };
+
+
+    // The background style of element growing/shrink
+    let mut progress_bar_fill_style = Style {
+        width: StyleProp::Value(Units::Pixels(0.0)),
+        height: StyleProp::Value(Units::Pixels(8.0)),
+        layout_type: StyleProp::Value(LayoutType::Column),
+        background_color: StyleProp::Value(Color::new(0.0, 1.0, 0.0, 1.0)),
+        ..Default::default()
+    };
+
+    if let Some(percent) = percent {
+        progress_bar_fill_style.width = StyleProp::Value(Units::Percentage(percent * 100.0));
+    }
+
+    rsx! {
+        <Background styles={Some(progress_bar_background_style)}>
+                <Background styles={Some(progress_bar_fill_style)} />
+        </Background>
+    }
+}
+
+#[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct CurrentlyProcessingProps {
     pub currently_processing: Option<Recipe>,
-    pub time_remaining: f32
+    pub time_remaining: f32,
+    pub percent_remaining: Option<f32>
 }
 
 #[widget]
 pub fn CurrentlyProcessing(props: CurrentlyProcessingProps) {
-    let CurrentlyProcessingProps { currently_processing, time_remaining } = props.clone();
+    let CurrentlyProcessingProps { currently_processing, time_remaining, percent_remaining } = props.clone();
 
     let background_styles = Style {
         layout_type: StyleProp::Value(LayoutType::Row),
@@ -91,12 +132,10 @@ pub fn CurrentlyProcessing(props: CurrentlyProcessingProps) {
 
     rsx! {
         <If condition={currently_processing.is_some()}>
-            // <Background styles={Some(background_styles)}>
-                <Text content={"Currently Processing:".to_string()} size={14.0} />
-                <Text content={format!("{:?}\n Into {:?}", currently_processing.clone().unwrap().items_required, currently_processing.clone().unwrap().item_created)} size={16.0} />
-                <Text content={format!("{:.1} Seconds Remaining", time_remaining)} size={16.0} />
-
-            // </Background>
+            <ProgressBar percent={percent_remaining} />
+            <Text content={format!("{:.1} Seconds Remaining", time_remaining)} size={11.0} />
+            <Text content={"Currently Processing:".to_string()} size={14.0} />
+            <Text content={format!("{:?}\n Into {:?}", currently_processing.clone().unwrap().items_required, currently_processing.clone().unwrap().item_created)} size={16.0} />
         </If>
     }
 }

@@ -15,6 +15,15 @@ pub struct Factory {
     pub remaining_processing_time: f32
 }
 
+impl Factory {
+    pub fn remaining_processing_percent(&self) -> Option<f32> {
+        if let Some(currently_processing) = self.currently_processing.clone() {
+            return Some((currently_processing.time_required - self.remaining_processing_time) / currently_processing.time_required);
+        }
+        None
+    }
+}
+
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
 pub enum UpgradeComponent {
     #[default]
