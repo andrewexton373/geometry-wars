@@ -18,6 +18,7 @@ use bevy::prelude::*;
 use crate::refinery::Recipe;
 use crate::{HEIGHT};
 use crate::game_ui::{UIItems};
+use crate::widgets::currently_processing::{CurrentlyProcessing, CurrentlyProcessingProps};
 
 
 #[widget]
@@ -63,42 +64,11 @@ pub fn UIRefineryView() {
         // <Window title={"Station Refinery".to_string()}>
         <>
 
-            <CurrentlyProcessing currently_processing={refinery.currently_processing.clone()} time_remaining={refinery.remaining_processing_time} />
+            <CurrentlyProcessing currently_processing={refinery.currently_processing.clone()} time_remaining={refinery.remaining_processing_time} percent_remaining={refinery.remaining_processing_percent()}/>
             <Refineables refineables={refinery.recipes.clone()} on_create={handle_create} />
 
         </>
         // </Window>
-    }
-}
-
-#[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
-pub struct CurrentlyProcessingProps {
-    pub currently_processing: Option<Recipe>,
-    pub time_remaining: f32
-}
-
-#[widget]
-pub fn CurrentlyProcessing(props: CurrentlyProcessingProps) {
-    let CurrentlyProcessingProps { currently_processing, time_remaining } = props.clone();
-
-    let background_styles = Style {
-        layout_type: StyleProp::Value(LayoutType::Row),
-        background_color: StyleProp::Value(Color::new(0.999, 0.196, 0.215, 1.0)),
-        height: StyleProp::Value(Units::Auto),
-        top: StyleProp::Value(Units::Pixels(10.0)),
-        padding: StyleProp::Value(Edge::all(Units::Pixels(5.0))),
-        ..Style::default()
-    };
-
-    rsx! {
-        <If condition={currently_processing.is_some()}>
-            // <Background styles={Some(background_styles)}>
-                <Text content={"Currently Processing:".to_string()} size={14.0} />
-                <Text content={format!("{:?}\n Into {:?}", currently_processing.clone().unwrap().items_required, currently_processing.clone().unwrap().item_created)} size={16.0} />
-                <Text content={format!("{:.1} Seconds Remaining", time_remaining)} size={16.0} />
-
-            // </Background>
-        </If>
     }
 }
 
