@@ -1,25 +1,18 @@
 use kayak_ui::core::{
     rsx,
-    widget, use_state, Handler, OnLayout,
+    widget
 };
 
-use kayak_ui::{core::{VecTracker, constructor, Binding, Bound}, widgets::If};
-use kayak_ui::widgets::{Text, Window, Element, Background};
+use kayak_ui::{widgets::If};
+use kayak_ui::widgets::{Text};
 use kayak_ui::core::{
     color::Color,
-    render_command::RenderCommand,
-    styles::{Corner, Style, StyleProp, Units, LayoutType, Edge},
-    EventType, OnEvent, WidgetProps,
-    CursorIcon
+    styles::{Style, StyleProp, Units, LayoutType, Edge},
+    WidgetProps,
 };
 
-use bevy::prelude::*;
-
 use crate::refinery::Recipe;
-use crate::{HEIGHT, RESOLUTION};
-use crate::game_ui::{UIItems};
-use crate::inventory::{InventoryItem, Amount};
-use crate::widgets::progress_bar::{ProgressBar, ProgressBarProps};
+use crate::widgets::progress_bar::{ProgressBar};
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct CurrentlyProcessingProps {
@@ -43,13 +36,10 @@ pub fn CurrentlyProcessing(props: CurrentlyProcessingProps) {
 
     rsx! {
         <If condition={currently_processing.is_some()}>
-            // <Background styles={Some(background_styles)}>
-                <ProgressBar percent={percent_remaining} />
-                <Text content={"Currently Processing:".to_string()} size={14.0} />
-                <Text content={format!("{:?}\n Into {:?}", currently_processing.clone().unwrap().items_required, currently_processing.clone().unwrap().item_created)} size={16.0} />
-                <Text content={format!("{:.1} Seconds Remaining", time_remaining)} size={16.0} />
-
-            // </Background>
+            <ProgressBar percent={percent_remaining} />
+            <Text content={"Currently Processing:".to_string()} size={14.0} />
+            <Text content={format!("{:?}\n Into {:?}", currently_processing.clone().unwrap().items_required, currently_processing.clone().unwrap().item_created)} size={16.0} />
+            <Text content={format!("{:.1} Seconds Remaining", time_remaining)} size={16.0} />
         </If>
     }
 }

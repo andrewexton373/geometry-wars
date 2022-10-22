@@ -1,10 +1,10 @@
 use kayak_ui::core::{
     rsx,
-    widget, use_state, Handler, OnLayout,
+    widget, use_state, Handler
 };
 
-use kayak_ui::{core::{VecTracker, constructor, Binding, Bound}, widgets::If};
-use kayak_ui::widgets::{Text, Window, Element, Background};
+use kayak_ui::{core::{VecTracker, constructor, Binding, Bound}};
+use kayak_ui::widgets::{Text, Element, Background};
 use kayak_ui::core::{
     color::Color,
     render_command::RenderCommand,
@@ -16,10 +16,8 @@ use kayak_ui::core::{
 use bevy::prelude::*;
 
 use crate::refinery::Recipe;
-use crate::{HEIGHT, RESOLUTION};
 use crate::game_ui::{UIItems};
-use crate::inventory::{InventoryItem, Amount};
-use crate::widgets::currently_processing::{CurrentlyProcessing, CurrentlyProcessingProps};
+use crate::widgets::currently_processing::{CurrentlyProcessing};
 
 
 
@@ -57,10 +55,6 @@ pub fn UIFactoryView() {
         println!("CRAFT Component! {}", craftable_id);
     });
 
-    let size = Vec2 { x: 400.0, y: 400.0 };
-    let offset = 600.0; // width of station inventory
-    let ui_factory_view_pos = (0.0 + offset, HEIGHT - size.y);
-
     rsx! {
         <>
             <CurrentlyProcessing currently_processing={factory.currently_processing.clone()} time_remaining={factory.remaining_processing_time} percent_remaining={factory.remaining_processing_percent()} />
@@ -80,15 +74,13 @@ pub fn Craftables(props: CraftablesProps) {
     let CraftablesProps { craftables, on_create } = props.clone();
 
     rsx! {
-    <Element>
-        {VecTracker::from(craftables.clone().into_iter().enumerate().map(|(index, recipe)| {
-            constructor! {
-                <Craftable craftable_id={index} factory_recipe={recipe.clone()} on_create={on_create.clone()}/>
-            }
-        }))}
-
-    </Element>
-
+        <Element>
+            {VecTracker::from(craftables.clone().into_iter().enumerate().map(|(index, recipe)| {
+                constructor! {
+                    <Craftable craftable_id={index} factory_recipe={recipe.clone()} on_create={on_create.clone()}/>
+                }
+            }))}
+        </Element>
     }
 }
 

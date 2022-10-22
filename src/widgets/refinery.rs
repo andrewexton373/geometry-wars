@@ -3,7 +3,7 @@ use kayak_ui::core::{
     widget, use_state, Handler,
 };
 
-use kayak_ui::{core::{VecTracker, constructor, Binding, Bound}, widgets::If};
+use kayak_ui::{core::{VecTracker, constructor, Binding, Bound}};
 use kayak_ui::widgets::{Text, Element, Background};
 use kayak_ui::core::{
     color::Color,
@@ -16,9 +16,8 @@ use kayak_ui::core::{
 use bevy::prelude::*;
 
 use crate::refinery::Recipe;
-use crate::{HEIGHT};
 use crate::game_ui::{UIItems};
-use crate::widgets::currently_processing::{CurrentlyProcessing, CurrentlyProcessingProps};
+use crate::widgets::currently_processing::{CurrentlyProcessing};
 
 
 #[widget]
@@ -54,21 +53,14 @@ pub fn UIRefineryView() {
     let handle_create = Handler::new(move |refineable_id: usize| {
         println!("CRAFT REFINEABLE! {}", refineable_id);
     });
-
-    let size = Vec2 { x: 400.0, y: 400.0 };
-    let offset = 200.0; // width of station inventory
-    let ui_refinery_view_pos = (0.0 + offset, HEIGHT - size.y);
     
     rsx! {
-        // <Window position={ui_refinery_view_pos} size={(size.x, size.y)} title={"Station Refinery".to_string()}>
-        // <Window title={"Station Refinery".to_string()}>
         <>
 
             <CurrentlyProcessing currently_processing={refinery.currently_processing.clone()} time_remaining={refinery.remaining_processing_time} percent_remaining={refinery.remaining_processing_percent()}/>
             <Refineables refineables={refinery.recipes.clone()} on_create={handle_create} />
 
         </>
-        // </Window>
     }
 }
 
