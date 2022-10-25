@@ -69,7 +69,7 @@ pub fn UICraftingTabsView() {
     rsx! {
         <Element styles={container_styles}>
             <Background styles={ship_information_styles}>
-                <Text content={"Station Produciton".to_string()}/>
+                <Text content={"Station Production".to_string()}/>
                 <TabThemeProvider initial_theme={theme}>
                     <TabDemo />
                 </TabThemeProvider>

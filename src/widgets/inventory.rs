@@ -62,7 +62,7 @@ pub fn UIBaseInventory() {
 
     let inventory = ui_items.get().station_inventory_items;
 
-    let inventory = ui_items.get().ship_inventory_items;
+    let inventory = ui_items.get().station_inventory_items;
     let container_styles = Some(Style {
         width: StyleProp::Value(Units::Percentage(100.0)),
         height: StyleProp::Value(Units::Percentage(100.0)),
