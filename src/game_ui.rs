@@ -1,3 +1,4 @@
+use bevy_rapier2d::prelude::Velocity;
 use kayak_ui::core::{Binding, MutableBound};
 
 use kayak_ui::bevy::{BevyContext, BevyKayakUIPlugin, FontMapping, UICameraBundle};
@@ -6,6 +7,7 @@ use kayak_ui::widgets::App as KayakApp;
 
 use bevy::{prelude::*, utils::HashSet};
 
+use crate::widgets::ship_information::{UIShipInformationView, ShipInformation};
 use crate::{
     base_station::BaseStation,
     factory::Factory,
@@ -27,6 +29,7 @@ pub struct UIItems {
     pub factory: Factory,
     pub remaining_refinery_time: f32,
     pub context_clues: HashSet<ContextClue>,
+    pub ship_info: ShipInformation
 }
 
 #[derive(Default, Debug, Clone, Copy, Eq, PartialEq, Hash)]
@@ -84,6 +87,7 @@ impl GameUIPlugin {
                     <UIBaseInventory />
                     <UIContextClueView />
                     <UICraftingTabsView />
+                    <UIShipInformationView />
                 </KayakApp>
             }
         });
@@ -92,7 +96,8 @@ impl GameUIPlugin {
     }
 
     fn update_ui_data(
-        player_inventory_query: Query<&Inventory, (With<Player>, Without<BaseStation>)>,
+
+        player_query: Query<(&Inventory, &Velocity), (With<Player>, Without<BaseStation>)>,
         base_station_query: Query<
             (&Inventory, &Refinery, &Factory),
             (With<BaseStation>, Without<Player>),
@@ -100,7 +105,7 @@ impl GameUIPlugin {
         context_clues_res: Res<ContextClues>,
         ui_items: Res<Binding<UIItems>>,
     ) {
-        let ship_inventory = player_inventory_query.single();
+        let (ship_inventory, ship_velocity) = player_query.single();
         let (station_inventory, station_refinery, station_factory) = base_station_query.single();
 
         // update ui by updating binding object
@@ -111,6 +116,11 @@ impl GameUIPlugin {
             factory: station_factory.clone(),
             remaining_refinery_time: 0.0,
             context_clues: context_clues_res.into_inner().0.clone(),
+            ship_info: ShipInformation {
+                net_weight: ship_inventory.gross_material_weight(),
+                speed: ship_velocity.linvel.length(),
+                direction: ship_velocity.linvel.angle_between(Vec2::Y) // In Rads for now
+            }
         });
     }
 }

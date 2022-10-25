@@ -5,3 +5,4 @@ pub mod factory;
 pub mod inventory;
 pub mod progress_bar;
 pub mod refinery;
+pub mod ship_information;

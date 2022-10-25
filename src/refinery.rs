@@ -106,7 +106,6 @@ impl ItemProducer for Refinery {
         Some(self.remaining_processing_time)
     }
 }
-
 pub struct RefineryPlugin;
 
 impl Plugin for RefineryPlugin {

@@ -1,4 +1,4 @@
-use crate::recipe::Recipe;
+use crate::{recipe::Recipe};
 
 pub trait ItemProducer {
     fn new() -> Self;
