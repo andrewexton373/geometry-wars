@@ -4,5 +4,5 @@ use crate::inventory::InventoryItem;
 pub struct Recipe {
     pub items_required: Vec<InventoryItem>,
     pub item_created: InventoryItem,
-    pub time_required: f32
+    pub time_required: f32,
 }

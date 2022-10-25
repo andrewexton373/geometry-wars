@@ -1,16 +1,23 @@
-use kayak_ui::{core::{Binding, MutableBound}};
+use kayak_ui::core::{Binding, MutableBound};
 
 use kayak_ui::bevy::{BevyContext, BevyKayakUIPlugin, FontMapping, UICameraBundle};
-use kayak_ui::core::{
-    render,
-    bind
-};
-use kayak_ui::widgets::{App as KayakApp};
-
+use kayak_ui::core::{bind, render};
+use kayak_ui::widgets::App as KayakApp;
 
 use bevy::{prelude::*, utils::HashSet};
 
-use crate::{inventory::{Inventory, InventoryItem}, player::Player, base_station::{BaseStation}, refinery::Refinery, widgets::{context_clue::UIContextClueView, inventory::{UIShipInventory, UIBaseInventory}, crafting::UICraftingTabsView}, factory::Factory};
+use crate::{
+    base_station::BaseStation,
+    factory::Factory,
+    inventory::{Inventory, InventoryItem},
+    player::Player,
+    refinery::Refinery,
+    widgets::{
+        context_clue::UIContextClueView,
+        crafting::UICraftingTabsView,
+        inventory::{UIBaseInventory, UIShipInventory},
+    },
+};
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct UIItems {
@@ -19,7 +26,7 @@ pub struct UIItems {
     pub refinery: Refinery,
     pub factory: Factory,
     pub remaining_refinery_time: f32,
-    pub context_clues: HashSet<ContextClue>
+    pub context_clues: HashSet<ContextClue>,
 }
 
 #[derive(Default, Debug, Clone, Copy, Eq, PartialEq, Hash)]
@@ -27,17 +34,20 @@ pub enum ContextClue {
     #[default]
     NearBaseStation,
     CargoBayFull,
-    ShipFuelEmpty
+    ShipFuelEmpty,
 }
 
 impl ContextClue {
     pub fn text(&self) -> String {
         match *self {
             ContextClue::NearBaseStation => "Near Base Station, Deposit Collected Ore with SPACE.",
-            ContextClue::CargoBayFull => "The Player's Ship Cargo Bay is Full. Deposit Ore at Base Station.",
+            ContextClue::CargoBayFull => {
+                "The Player's Ship Cargo Bay is Full. Deposit Ore at Base Station."
+            }
             ContextClue::ShipFuelEmpty => "The Player's Ship Fuel Tank is Empty!",
-            _ => "Missing Context Clue Note."
-        }.to_string()
+            _ => "Missing Context Clue Note.",
+        }
+        .to_string()
     }
 }
 
@@ -55,14 +65,14 @@ impl Plugin for GameUIPlugin {
 }
 
 impl GameUIPlugin {
-
     fn setup_game_ui(
         mut commands: Commands,
         mut font_mapping: ResMut<FontMapping>,
         asset_server: Res<AssetServer>,
     ) {
-        commands.spawn_bundle(UICameraBundle::new())
-        .insert(Name::new("UICamera"));
+        commands
+            .spawn_bundle(UICameraBundle::new())
+            .insert(Name::new("UICamera"));
 
         font_mapping.set_default(asset_server.load("roboto.kayak_font"));
         commands.insert_resource(bind(UIItems::default()));
@@ -83,13 +93,16 @@ impl GameUIPlugin {
 
     fn update_ui_data(
         player_inventory_query: Query<&Inventory, (With<Player>, Without<BaseStation>)>,
-        base_station_query: Query<(&Inventory, &Refinery, &Factory), (With<BaseStation>, Without<Player>)>,
+        base_station_query: Query<
+            (&Inventory, &Refinery, &Factory),
+            (With<BaseStation>, Without<Player>),
+        >,
         context_clues_res: Res<ContextClues>,
         ui_items: Res<Binding<UIItems>>,
     ) {
         let ship_inventory = player_inventory_query.single();
         let (station_inventory, station_refinery, station_factory) = base_station_query.single();
-    
+
         // update ui by updating binding object
         ui_items.set(UIItems {
             ship_inventory_items: ship_inventory.items.clone(),
@@ -97,11 +110,7 @@ impl GameUIPlugin {
             refinery: station_refinery.clone(),
             factory: station_factory.clone(),
             remaining_refinery_time: 0.0,
-            context_clues: context_clues_res.into_inner().0.clone()
+            context_clues: context_clues_res.into_inner().0.clone(),
         });
-        
     }
-
 }
-
-

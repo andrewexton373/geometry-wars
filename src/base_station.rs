@@ -1,9 +1,16 @@
-
-use bevy::{prelude::*};
+use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::{self as lyon, DrawMode, FillMode};
-use bevy_rapier2d::{prelude::{Velocity, Collider, Sleeping, Sensor, ActiveEvents, RapierContext}};
+use bevy_rapier2d::prelude::{ActiveEvents, Collider, RapierContext, Sensor, Sleeping, Velocity};
 
-use crate::{astroid::{Astroid}, PIXELS_PER_METER, player::Player, inventory::{Inventory, Capacity, InventoryPlugin, InventoryItem, Amount}, refinery::{Refinery, RefineryPlugin}, game_ui::{ContextClue, ContextClues}, factory::{FactoryPlugin, Factory}};
+use crate::{
+    astroid::Astroid,
+    factory::{Factory, FactoryPlugin},
+    game_ui::{ContextClue, ContextClues},
+    inventory::{Amount, Capacity, Inventory, InventoryItem, InventoryPlugin},
+    player::Player,
+    refinery::{Refinery, RefineryPlugin},
+    PIXELS_PER_METER,
+};
 
 pub const BASE_STATION_SIZE: f32 = 20.0;
 
@@ -19,8 +26,7 @@ pub struct CanDeposit(pub bool);
 
 impl Plugin for BaseStationPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_startup_system(Self::spawn_base_station)
+        app.add_startup_system(Self::spawn_base_station)
             .add_startup_system(Self::spawn_player_base_guide_arrow)
             .add_system(Self::guide_player_to_base_station)
             .add_system(Self::repel_astroids_from_base_station)
@@ -30,23 +36,27 @@ impl Plugin for BaseStationPlugin {
 }
 
 impl BaseStationPlugin {
-    fn spawn_base_station(
-        mut commands: Commands
-    ) {
+    fn spawn_base_station(mut commands: Commands) {
         let base_shape = lyon::shapes::RegularPolygon {
             sides: 6,
-            feature: lyon::shapes::RegularPolygonFeature::Radius(crate::PIXELS_PER_METER * BASE_STATION_SIZE),
+            feature: lyon::shapes::RegularPolygonFeature::Radius(
+                crate::PIXELS_PER_METER * BASE_STATION_SIZE,
+            ),
             ..lyon::shapes::RegularPolygon::default()
         };
-    
-        let base_station = commands.spawn()
+
+        let base_station = commands
+            .spawn()
             .insert_bundle(lyon::GeometryBuilder::build_as(
                 &base_shape,
                 lyon::DrawMode::Outlined {
                     fill_mode: lyon::FillMode::color(Color::MIDNIGHT_BLUE),
                     outline_mode: lyon::StrokeMode::new(Color::WHITE, 5.0),
                 },
-                Transform { translation: Vec3::new(0.0, 0.0, -100.0), ..Default::default() }
+                Transform {
+                    translation: Vec3::new(0.0, 0.0, -100.0),
+                    ..Default::default()
+                },
             ))
             .insert(Sleeping::disabled())
             .insert(Collider::ball(crate::PIXELS_PER_METER * BASE_STATION_SIZE))
@@ -57,23 +67,27 @@ impl BaseStationPlugin {
             .insert(Name::new("Base Station"))
             .id();
 
-        InventoryPlugin::attach_inventory_to_entity(&mut commands, Inventory {items: Vec::new(), capacity: Capacity {maximum: 1000.0}}, base_station);
+        InventoryPlugin::attach_inventory_to_entity(
+            &mut commands,
+            Inventory {
+                items: Vec::new(),
+                capacity: Capacity { maximum: 1000.0 },
+            },
+            base_station,
+        );
         RefineryPlugin::attach_refinery_to_entity(&mut commands, base_station);
         FactoryPlugin::attach_factory_to_entity(&mut commands, base_station);
-
     }
 
-
-    fn spawn_player_base_guide_arrow(
-        mut commands: Commands
-    ) {
+    fn spawn_player_base_guide_arrow(mut commands: Commands) {
         let direction_indicator_shape = lyon::shapes::RegularPolygon {
             sides: 3,
             feature: lyon::shapes::RegularPolygonFeature::Radius(crate::PIXELS_PER_METER * 2.0),
             ..lyon::shapes::RegularPolygon::default()
         };
-    
-        let _direction_indicator = commands.spawn()
+
+        let _direction_indicator = commands
+            .spawn()
             .insert(BaseStationDirectionIndicator)
             .insert_bundle(lyon::GeometryBuilder::build_as(
                 &direction_indicator_shape,
@@ -86,16 +100,23 @@ impl BaseStationPlugin {
             .insert(Name::new("BaseStationDirectionIndicator"))
             .id();
     }
-       
 
     fn guide_player_to_base_station(
-        mut dir_indicator_query: Query<(&mut Transform, &mut DrawMode), (With<BaseStationDirectionIndicator>, Without<BaseStation>, Without<Player>)>,
+        mut dir_indicator_query: Query<
+            (&mut Transform, &mut DrawMode),
+            (
+                With<BaseStationDirectionIndicator>,
+                Without<BaseStation>,
+                Without<Player>,
+            ),
+        >,
         player_query: Query<(&Player, &GlobalTransform), (With<Player>, Without<BaseStation>)>,
-        base_query: Query<(&BaseStation, &GlobalTransform), (With<BaseStation>, Without<Player>)>
+        base_query: Query<(&BaseStation, &GlobalTransform), (With<BaseStation>, Without<Player>)>,
     ) {
         const FADE_DISTANCE: f32 = 500.0;
 
-        let (mut dir_indicator_transform, mut dir_indicator_draw_mode) = dir_indicator_query.single_mut();
+        let (mut dir_indicator_transform, mut dir_indicator_draw_mode) =
+            dir_indicator_query.single_mut();
         let (_player, player_trans) = player_query.single();
         let (_base_station, base_station_trans) = base_query.single();
 
@@ -107,17 +128,22 @@ impl BaseStationPlugin {
         let rotation = Vec2::Y.angle_between(direction_to_base);
 
         dir_indicator_transform.rotation = Quat::from_rotation_z(rotation);
-        dir_indicator_transform.translation = (player_trans.translation().truncate() + direction_to_base * 100.0).extend(999.0);
+        dir_indicator_transform.translation =
+            (player_trans.translation().truncate() + direction_to_base * 100.0).extend(999.0);
         dir_indicator_transform.scale = Vec3::new(0.3, 1.0, 1.0);
 
         let opacity = (distance_to_base / FADE_DISTANCE).powi(2).clamp(0.0, 1.0);
-        *dir_indicator_draw_mode = DrawMode::Fill(FillMode::color(Color::Rgba { red: 255.0, green: 0.0, blue: 0.0, alpha: opacity}));
+        *dir_indicator_draw_mode = DrawMode::Fill(FillMode::color(Color::Rgba {
+            red: 255.0,
+            green: 0.0,
+            blue: 0.0,
+            alpha: opacity,
+        }));
     }
-    
 
     fn repel_astroids_from_base_station(
         base_query: Query<(&BaseStation, &GlobalTransform), With<BaseStation>>,
-        mut astroid_query: Query<(&Astroid, &GlobalTransform, &mut Velocity), With<Astroid>>
+        mut astroid_query: Query<(&Astroid, &GlobalTransform, &mut Velocity), With<Astroid>>,
     ) {
         const REPEL_RADIUS: f32 = 120.0 * PIXELS_PER_METER;
         const REPEL_STRENGTH: f32 = 25.0;
@@ -144,7 +170,7 @@ impl BaseStationPlugin {
         mut context_clues_res: ResMut<ContextClues>,
         mut player_query: Query<(Entity, &mut Player), With<Player>>,
         base_station_query: Query<(Entity, &BaseStation), With<BaseStation>>,
-        time: Res<Time>
+        time: Res<Time>,
     ) {
         let (player_ent, mut player) = player_query.single_mut();
         let (base_station_ent, _base_station) = base_station_query.single();
@@ -155,13 +181,9 @@ impl BaseStationPlugin {
 
             player.charge_battery(100.0 * time.delta_seconds());
             player.repair_damage(10.0 * time.delta_seconds());
-
         } else {
             *can_deposit_res = CanDeposit(false);
             context_clues_res.0.remove(&ContextClue::NearBaseStation);
-
         }
-
     }
-
 }

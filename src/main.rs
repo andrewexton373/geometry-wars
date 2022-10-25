@@ -1,35 +1,40 @@
 // #![feature(array_methods)]
 
-use bevy::{prelude::*, diagnostic::{FrameTimeDiagnosticsPlugin, Diagnostics}, window::PresentMode, render::{
-    camera::{Projection, ScalingMode},
-    render_resource::WgpuFeatures,
-    settings::WgpuSettings,
-}};
+use bevy::{
+    diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
+    prelude::*,
+    render::{
+        camera::{Projection, ScalingMode},
+        render_resource::WgpuFeatures,
+        settings::WgpuSettings,
+    },
+    window::PresentMode,
+};
 use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
-use bevy_rapier2d::prelude::*;
-use bevy_prototype_lyon::prelude::*;
-use bevy_inspector_egui::WorldInspectorPlugin;
 use bevy_hanabi::prelude::*;
+use bevy_inspector_egui::WorldInspectorPlugin;
+use bevy_prototype_lyon::prelude::*;
+use bevy_rapier2d::prelude::*;
 
-mod recipe;
-mod item_producer;
-mod game_ui;
-mod widgets;
-mod particles;
-mod refinery;
 mod factory;
+mod game_ui;
+mod item_producer;
+mod particles;
+mod recipe;
+mod refinery;
+mod widgets;
 use factory::FactoryPlugin;
 use game_ui::GameUIPlugin;
 
 mod player;
 use particles::ParticlePlugin;
-use player::{ PlayerPlugin, Player };
+use player::{Player, PlayerPlugin};
 
 mod astroid;
-use astroid::{AstroidPlugin};
+use astroid::AstroidPlugin;
 
 mod projectile;
-use projectile::{ProjectilePlugin};
+use projectile::ProjectilePlugin;
 
 mod crosshair;
 use crosshair::CrosshairPlugin;
@@ -47,7 +52,7 @@ use refinery::RefineryPlugin;
 // Defines the amount of time that should elapse between each physics step.
 // const TIME_STEP: f32 = 1.0 / 60.0;
 
-pub const PIXELS_PER_METER : f32 = 10.0;
+pub const PIXELS_PER_METER: f32 = 10.0;
 
 const BACKGROUND_COLOR: Color = Color::rgb(0.0, 0.0, 0.0);
 
@@ -65,7 +70,6 @@ struct FpsText;
 pub struct GameCamera;
 
 fn main() {
-
     App::new()
         .insert_resource(WindowDescriptor {
             title: "ASTROID MINER".to_string(),
@@ -89,10 +93,15 @@ fn main() {
         .add_startup_system(setup)
         .add_system(camera_follows_player)
         .add_plugin(PlayerStatsBarPlugin)
-        .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER))
+        .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
+            PIXELS_PER_METER,
+        ))
         .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugin(OverlayPlugin { font_size: 18.0, ..default() })
+        .add_plugin(OverlayPlugin {
+            font_size: 18.0,
+            ..default()
+        })
         .add_plugin(GameUIPlugin)
         .add_plugin(ParticlePlugin)
         .add_system(screen_print_debug_text)
@@ -104,31 +113,29 @@ fn setup(
     mut rapier_config: ResMut<RapierConfiguration>,
     // mut effects: ResMut<Assets<EffectAsset>>,
 ) {
-    commands.spawn_bundle(Camera2dBundle::default())
-                            .insert(GameCamera)
-                            .insert(Name::new("GameCamera"));
+    commands
+        .spawn_bundle(Camera2dBundle::default())
+        .insert(GameCamera)
+        .insert(Name::new("GameCamera"));
 
     rapier_config.gravity = Vec2::new(0.0, 0.0);
-
 }
 
 fn camera_follows_player(
     mut camera_query: Query<(&Camera, &mut GlobalTransform), With<GameCamera>>,
     player_query: Query<&Transform, (With<Player>, Without<GameCamera>)>,
-){
+) {
     let (_camera, mut camera_trans) = camera_query.single_mut();
     let player_trans = player_query.single();
 
-        // TODO: seems sloppy, is there another way?
-        let player_to_camera = camera_trans.translation() - player_trans.translation;
-        let mut_trans = camera_trans.translation_mut();
-        mut_trans.x -= player_to_camera.x;
-        mut_trans.y -= player_to_camera.y;
+    // TODO: seems sloppy, is there another way?
+    let player_to_camera = camera_trans.translation() - player_trans.translation;
+    let mut_trans = camera_trans.translation_mut();
+    mut_trans.x -= player_to_camera.x;
+    mut_trans.y -= player_to_camera.y;
 }
 
-fn screen_print_debug_text(
-    diagnostics: Res<Diagnostics>,
-) {
+fn screen_print_debug_text(diagnostics: Res<Diagnostics>) {
     if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(average) = fps.average() {
             // Update the value of the second section

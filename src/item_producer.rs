@@ -1,6 +1,4 @@
-use bevy::prelude::Mut;
-
-use crate::{recipe::Recipe, inventory::Inventory};
+use crate::recipe::Recipe;
 
 pub trait ItemProducer {
     fn new() -> Self;

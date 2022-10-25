@@ -1,30 +1,25 @@
 use std::ops::Index;
 
-use kayak_ui::core::{
-    rsx,
-    widget, use_state, Handler, render, Fragment, KeyCode,
-};
+use kayak_ui::core::{render, rsx, use_state, widget, Fragment, Handler, KeyCode};
 
-use kayak_ui::{core::{VecTracker, constructor, Bound}};
-use kayak_ui::widgets::{Text, Window, Background};
 use kayak_ui::core::{
     color::Color,
     render_command::RenderCommand,
-    styles::{Style, StyleProp, Units, LayoutType, Edge},
+    styles::{Edge, LayoutType, Style, StyleProp, Units},
     EventType, OnEvent, WidgetProps,
 };
+use kayak_ui::core::{constructor, Bound, VecTracker};
+use kayak_ui::widgets::{Background, Text, Window};
 
 use bevy::prelude::*;
 
-use crate::{HEIGHT, RESOLUTION};
-use crate::game_ui::{UIItems};
-use crate::widgets::refinery::UIRefineryView;
+use crate::game_ui::UIItems;
 use crate::widgets::factory::UIFactoryView;
-
+use crate::widgets::refinery::UIRefineryView;
+use crate::{HEIGHT, RESOLUTION};
 
 #[widget]
 pub fn UICraftingTabsView() {
-
     let theme = TabTheme {
         primary: Default::default(),
         bg: Color::new(0.176, 0.227, 0.255, 1.0),
@@ -59,7 +54,6 @@ pub fn UICraftingTabsView() {
             </TabThemeProvider>
         </Window>
     }
-
 }
 
 #[derive(Debug, Default, Clone, PartialEq)]
@@ -283,7 +277,6 @@ pub fn TabBox(props: TabBoxProps) {
     }
 }
 
-
 #[derive(WidgetProps, Default, Debug, PartialEq, Clone)]
 pub struct TabContentProps {
     pub selected: usize,
@@ -365,7 +358,7 @@ fn TabDemo() {
     }
 }
 
-use kayak_ui::core::{Children};
+use kayak_ui::core::Children;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct TabTheme {

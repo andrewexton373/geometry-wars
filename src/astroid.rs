@@ -1,22 +1,22 @@
+use crate::base_station::BaseStation;
+use crate::game_ui::{ContextClue, ContextClues};
+use crate::inventory::{Amount, Inventory, InventoryItem};
+use crate::particles::ShipAstroidImpactParticles;
+use crate::player::Health;
+use crate::{Player, PIXELS_PER_METER};
 use bevy::prelude::*;
 use bevy::reflect::FromReflect;
 use bevy::utils::HashMap;
 use bevy_hanabi::ParticleEffect;
-use bevy_rapier2d::prelude::*;
-use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
-use rand::Rng;
+use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
+use bevy_rapier2d::prelude::*;
 use rand::seq::SliceRandom;
-use rand_distr::{Normal, Distribution};
+use rand::Rng;
+use rand_distr::{Distribution, Normal};
 use std::cmp::Ordering;
-use std::f32::consts::{PI};
+use std::f32::consts::PI;
 use std::fmt;
-use crate::base_station::BaseStation;
-use crate::game_ui::{ContextClues, ContextClue};
-use crate::inventory::{Inventory, InventoryItem, Amount};
-use crate::particles::ShipAstroidImpactParticles;
-use crate::{ Player, PIXELS_PER_METER };
-use crate::player::Health;
 
 pub struct InventoryFullNotificationTimer(pub Option<Timer>);
 
@@ -27,7 +27,7 @@ pub struct Astroid {
     pub velocity: Vec2,
     pub size: AstroidSize,
     pub health: Health,
-    pub composition: Composition
+    pub composition: Composition,
 }
 
 impl Astroid {
@@ -37,17 +37,16 @@ impl Astroid {
 }
 #[derive(Component, Clone, Debug)]
 pub struct Composition {
-    composition: HashMap<AstroidMaterial, f32>
+    composition: HashMap<AstroidMaterial, f32>,
 }
 
 impl Composition {
-
     pub fn new_with_distance(distance: f32) -> Self {
-
         const MIN_DISTANCE: f32 = 0.0;
         const MAX_DISTANCE: f32 = 100000.0;
 
-        let percentage = ((distance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE)).clamp(0.0, 1.0);
+        let percentage =
+            ((distance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE)).clamp(0.0, 1.0);
 
         let mut near_composition: HashMap<AstroidMaterial, f32> = HashMap::new();
         near_composition.insert(AstroidMaterial::Iron, 0.95);
@@ -68,22 +67,23 @@ impl Composition {
         }
 
         Self { composition }
-    
     }
 
     pub fn most_abundant(&self) -> AstroidMaterial {
-        self.composition.iter().max_by(|a, b| {
-            a.1.total_cmp(&b.1)
-        })
-        .map(|(k, _v)| k.clone()).unwrap()
+        self.composition
+            .iter()
+            .max_by(|a, b| a.1.total_cmp(&b.1))
+            .map(|(k, _v)| k.clone())
+            .unwrap()
     }
 
     pub fn percent_composition(&self) -> HashMap<AstroidMaterial, f32> {
         let cloned: HashMap<AstroidMaterial, f32> = self.composition.clone();
-        let total_weights: f32 = cloned.iter().map(|e| {e.1}).sum();
-        cloned.into_iter().map(|e| {
-            (e.0, e.1 / total_weights)
-        }).collect::<HashMap<AstroidMaterial, f32>>()
+        let total_weights: f32 = cloned.iter().map(|e| e.1).sum();
+        cloned
+            .into_iter()
+            .map(|e| (e.0, e.1 / total_weights))
+            .collect::<HashMap<AstroidMaterial, f32>>()
     }
 
     pub fn jitter(&self) -> Composition {
@@ -91,18 +91,25 @@ impl Composition {
         let normal = Normal::new(0.0, 0.05).unwrap();
 
         Composition {
-            composition: self.percent_composition().into_iter().map(|(k, v)| {
-                (k, (v + normal.sample(&mut rng)).clamp(0.0, f32::MAX))
-            }).collect()
+            composition: self
+                .percent_composition()
+                .into_iter()
+                .map(|(k, v)| (k, (v + normal.sample(&mut rng)).clamp(0.0, f32::MAX)))
+                .collect(),
         }
-
     }
 }
 
 #[test]
 fn test_most_abundant() {
-    assert_eq!(Composition::new_with_distance(0.0).most_abundant(), AstroidMaterial::Iron);
-    assert_eq!(Composition::new_with_distance(10000.0).most_abundant(), AstroidMaterial::Gold);
+    assert_eq!(
+        Composition::new_with_distance(0.0).most_abundant(),
+        AstroidMaterial::Iron
+    );
+    assert_eq!(
+        Composition::new_with_distance(10000.0).most_abundant(),
+        AstroidMaterial::Gold
+    );
 }
 
 #[derive(Clone, Copy, Inspectable, Debug, PartialEq, Eq)]
@@ -110,7 +117,7 @@ pub enum AstroidSize {
     OreChunk,
     Small,
     Medium,
-    Large
+    Large,
 }
 
 #[derive(Component)]
@@ -122,7 +129,7 @@ impl AstroidSize {
             Self::OreChunk => 25.0,
             Self::Small => 45.0,
             Self::Medium => 85.0,
-            Self::Large => 100.0
+            Self::Large => 100.0,
         }
     }
 
@@ -131,12 +138,25 @@ impl AstroidSize {
             Self::OreChunk => 5,
             Self::Small => 7,
             Self::Medium => 9,
-            Self::Large => 11
+            Self::Large => 11,
         }
     }
 }
 
-#[derive(Component, Inspectable, Reflect, FromReflect, Default, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd)]
+#[derive(
+    Component,
+    Inspectable,
+    Reflect,
+    FromReflect,
+    Default,
+    Debug,
+    Clone,
+    Copy,
+    Hash,
+    PartialEq,
+    Eq,
+    PartialOrd,
+)]
 pub enum AstroidMaterial {
     #[default]
     Rock,
@@ -158,20 +178,21 @@ impl fmt::Display for AstroidMaterial {
 
 #[derive(Component)]
 pub struct AstroidSpawner {
-    timer: Timer
+    timer: Timer,
 }
 
 impl Plugin for AstroidPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .insert_resource(AstroidSpawner{ timer: Timer::from_seconds(0.25, false)})
-            .insert_resource(InventoryFullNotificationTimer(None))
-            .add_system(Self::spawn_astroids_aimed_at_ship)
-            .add_system(Self::despawn_far_astroids)
-            .add_system(Self::handle_astroid_collision_event)
-            .add_system(Self::display_inventory_full_context_clue)
-            .add_system(Self::update_collectible_material_color);
-            // .register_inspectable::<Astroid>();
+        app.insert_resource(AstroidSpawner {
+            timer: Timer::from_seconds(0.25, false),
+        })
+        .insert_resource(InventoryFullNotificationTimer(None))
+        .add_system(Self::spawn_astroids_aimed_at_ship)
+        .add_system(Self::despawn_far_astroids)
+        .add_system(Self::handle_astroid_collision_event)
+        .add_system(Self::display_inventory_full_context_clue)
+        .add_system(Self::update_collectible_material_color);
+        // .register_inspectable::<Astroid>();
     }
 }
 
@@ -181,7 +202,7 @@ impl AstroidPlugin {
         player_query: Query<(&Player, &GlobalTransform)>,
         base_station_query: Query<(&BaseStation, &GlobalTransform)>,
         mut astroid_spawner: ResMut<AstroidSpawner>,
-        time: Res<Time>
+        time: Res<Time>,
     ) {
         astroid_spawner.timer.tick(time.delta());
 
@@ -192,19 +213,27 @@ impl AstroidPlugin {
             let (_player, player_g_transform) = player_query.single();
             let (_base_station, base_station_g_transform) = base_station_query.single();
 
-            let distance_to_base_station = (player_g_transform.translation() - base_station_g_transform.translation()).length();
+            let distance_to_base_station = (player_g_transform.translation()
+                - base_station_g_transform.translation())
+            .length();
             let player_position = player_g_transform.translation().truncate();
-
 
             let rand_x: f32 = rng.gen_range(-PI..PI);
             let rand_y: f32 = rng.gen_range(-PI..PI);
             let rand_direction = Vec2::new(rand_x.cos(), rand_y.sin()).normalize();
 
             const SPAWN_DISTANCE: f32 = 350.0;
-            let random_spawn_position = player_position + (rand_direction * SPAWN_DISTANCE * crate::PIXELS_PER_METER);
+            let random_spawn_position =
+                player_position + (rand_direction * SPAWN_DISTANCE * crate::PIXELS_PER_METER);
             let direction_to_player = (player_position - random_spawn_position).normalize() * 20.0; // maybe?
 
-            Self::spawn_astroid(&mut commands, AstroidSize::Large, Composition::new_with_distance(distance_to_base_station), direction_to_player * crate::PIXELS_PER_METER, random_spawn_position);
+            Self::spawn_astroid(
+                &mut commands,
+                AstroidSize::Large,
+                Composition::new_with_distance(distance_to_base_station),
+                direction_to_player * crate::PIXELS_PER_METER,
+                random_spawn_position,
+            );
         }
     }
 
@@ -224,58 +253,68 @@ impl AstroidPlugin {
             }
         }
     }
-    
+
     pub fn spawn_astroid(
         commands: &mut Commands,
         size: AstroidSize,
         composition: Composition,
         velocity: Vec2,
-        position: Vec2
+        position: Vec2,
     ) {
-    
         let astroid_shape = match size {
-            AstroidSize::OreChunk => {
-                lyon::shapes::Polygon {
-                    points: Self::make_valtr_convex_polygon_coords(AstroidSize::OreChunk.num_sides(), AstroidSize::OreChunk.radius()),
-                    closed: true
-                }
+            AstroidSize::OreChunk => lyon::shapes::Polygon {
+                points: Self::make_valtr_convex_polygon_coords(
+                    AstroidSize::OreChunk.num_sides(),
+                    AstroidSize::OreChunk.radius(),
+                ),
+                closed: true,
             },
-            AstroidSize::Small => {
-                lyon::shapes::Polygon {
-                    points: Self::make_valtr_convex_polygon_coords(AstroidSize::Small.num_sides(), AstroidSize::Small.radius()),
-                    closed: true
-                }
+            AstroidSize::Small => lyon::shapes::Polygon {
+                points: Self::make_valtr_convex_polygon_coords(
+                    AstroidSize::Small.num_sides(),
+                    AstroidSize::Small.radius(),
+                ),
+                closed: true,
             },
-            AstroidSize::Medium => {
-                lyon::shapes::Polygon {
-                    points: Self::make_valtr_convex_polygon_coords(AstroidSize::Medium.num_sides(), AstroidSize::Medium.radius()),
-                    closed: true
-                }
+            AstroidSize::Medium => lyon::shapes::Polygon {
+                points: Self::make_valtr_convex_polygon_coords(
+                    AstroidSize::Medium.num_sides(),
+                    AstroidSize::Medium.radius(),
+                ),
+                closed: true,
             },
-            AstroidSize::Large => {
-                lyon::shapes::Polygon {
-                    points: Self::make_valtr_convex_polygon_coords(AstroidSize::Large.num_sides(), AstroidSize::Large.radius()),
-                    closed: true
-                }
-            }
+            AstroidSize::Large => lyon::shapes::Polygon {
+                points: Self::make_valtr_convex_polygon_coords(
+                    AstroidSize::Large.num_sides(),
+                    AstroidSize::Large.radius(),
+                ),
+                closed: true,
+            },
         };
 
         let astroid = Astroid {
             velocity,
             size,
-            health: Health {current: 50.0, maximum: 100.0},
-            composition: composition
+            health: Health {
+                current: 50.0,
+                maximum: 100.0,
+            },
+            composition: composition,
         };
-    
-        let astroid_ent = commands.spawn()
+
+        let astroid_ent = commands
+            .spawn()
             .insert(astroid.clone())
             .insert_bundle(lyon::GeometryBuilder::build_as(
                 &astroid_shape,
                 lyon::DrawMode::Fill(lyon::FillMode::color(Color::DARK_GRAY)),
-                Default::default()
+                Default::default(),
             ))
             .insert(RigidBody::Dynamic)
-            .insert(Velocity { linvel: astroid.velocity, angvel: 0.0 })
+            .insert(Velocity {
+                linvel: astroid.velocity,
+                angvel: 0.0,
+            })
             .insert(Sleeping::disabled())
             .insert(Ccd::enabled())
             .insert(Collider::convex_hull(&astroid_shape.points).unwrap())
@@ -288,39 +327,31 @@ impl AstroidPlugin {
 
         // If the astroid is an ore chunk, add Collectible Tag
         if astroid.clone().size == AstroidSize::OreChunk {
-            commands.entity(astroid_ent)
-                .insert(Collectible);
+            commands.entity(astroid_ent).insert(Collectible);
         }
-            
     }
 
     fn update_collectible_material_color(
-        mut astroid_query: Query<(&Astroid, &mut DrawMode), With<Astroid>>
+        mut astroid_query: Query<(&Astroid, &mut DrawMode), With<Astroid>>,
     ) {
-
         for (astroid, mut draw_mode) in astroid_query.iter_mut() {
-
             if astroid.size == AstroidSize::OreChunk {
                 if let DrawMode::Fill(ref mut fill_mode) = *draw_mode {
-
                     match astroid.primary_composition() {
                         AstroidMaterial::Iron => {
                             fill_mode.color = Color::GRAY;
-                        },
+                        }
                         AstroidMaterial::Silver => {
                             fill_mode.color = Color::SILVER;
-                        },
+                        }
                         AstroidMaterial::Gold => {
                             fill_mode.color = Color::GOLD;
-                        },
+                        }
                         _ => {}
                     }
-
                 }
             }
-
         }
-
     }
 
     fn handle_astroid_collision_event(
@@ -328,74 +359,79 @@ impl AstroidPlugin {
         rapier_context: Res<RapierContext>,
         mut astroid_query: Query<(Entity, &Astroid, &ReadMassProperties), With<Astroid>>,
         mut player_query: Query<(Entity, &mut Player, &mut Inventory), With<Player>>,
-        mut effect: Query<(&mut ParticleEffect, &mut Transform), (With<ShipAstroidImpactParticles>, Without<Astroid>, Without<Player>)>,
+        mut effect: Query<
+            (&mut ParticleEffect, &mut Transform),
+            (
+                With<ShipAstroidImpactParticles>,
+                Without<Astroid>,
+                Without<Player>,
+            ),
+        >,
         mut inventory_full_notification: ResMut<InventoryFullNotificationTimer>,
     ) {
         let (player_ent, mut player, mut inventory) = player_query.single_mut();
 
         for (astroid_entity, astroid, mass_properties) in astroid_query.iter_mut() {
-            if let Some(contact_pair_view) = rapier_context.contact_pair(player_ent, astroid_entity) {
+            if let Some(contact_pair_view) = rapier_context.contact_pair(player_ent, astroid_entity)
+            {
+                for manifold in contact_pair_view.manifolds() {
+                    // Read the solver contacts.
 
-                    for manifold in contact_pair_view.manifolds() {
-                        // Read the solver contacts.
-                        
-                        for solver_contact in manifold.solver_contacts() {
-                            // Keep in mind that all the solver contact data are expressed in world-space.
-                        
-                            let mut astroid_collision = false;
+                    for solver_contact in manifold.solver_contacts() {
+                        // Keep in mind that all the solver contact data are expressed in world-space.
 
-                            match astroid.size {
-                                AstroidSize::OreChunk => {
-                                    println!("Hit ore chunk, let's collect it!");
-                                    let ore_chunk_mass = mass_properties.0.mass;
-                                    for comp in astroid.composition.percent_composition().iter() {
+                        let mut astroid_collision = false;
 
-                                            if !inventory.add_to_inventory(InventoryItem::Material(*comp.0, Amount::Weight(comp.1 * ore_chunk_mass))) {
-                                                inventory_full_notification.0 = Some(Timer::from_seconds(3.0, false));
-                                            }
-                                            
+                        match astroid.size {
+                            AstroidSize::OreChunk => {
+                                println!("Hit ore chunk, let's collect it!");
+                                let ore_chunk_mass = mass_properties.0.mass;
+                                for comp in astroid.composition.percent_composition().iter() {
+                                    if !inventory.add_to_inventory(InventoryItem::Material(
+                                        *comp.0,
+                                        Amount::Weight(comp.1 * ore_chunk_mass),
+                                    )) {
+                                        inventory_full_notification.0 =
+                                            Some(Timer::from_seconds(3.0, false));
                                     }
-
-                                    // FIXME: will despawn even if there's no room in inventory to collect.
-                                    commands.entity(astroid_entity).despawn_recursive();
-
                                 }
-                                AstroidSize::Small => {
-                                    println!("Hit small Astroid");
-                                    player.take_damage(1.0);
-                                    astroid_collision = true;
-                                },
-                                AstroidSize::Medium => {
-                                    println!("Hit medium Astroid");
-                                    player.take_damage(2.5);
-                                    astroid_collision = true;
-                                },
-                                AstroidSize::Large => {
-                                    println!("Hit large Astroid");
-                                    player.take_damage(5.0);
-                                    astroid_collision = true;
-                                    
-                                }
+
+                                // FIXME: will despawn even if there's no room in inventory to collect.
+                                commands.entity(astroid_entity).despawn_recursive();
                             }
-
-                            if astroid_collision {
-                                let (mut effect, mut effect_translation) = effect.single_mut();
-                                effect_translation.translation = (solver_contact.point() * crate::PIXELS_PER_METER).extend(200.0);
-                                effect.maybe_spawner().unwrap().reset();
+                            AstroidSize::Small => {
+                                println!("Hit small Astroid");
+                                player.take_damage(1.0);
+                                astroid_collision = true;
+                            }
+                            AstroidSize::Medium => {
+                                println!("Hit medium Astroid");
+                                player.take_damage(2.5);
+                                astroid_collision = true;
+                            }
+                            AstroidSize::Large => {
+                                println!("Hit large Astroid");
+                                player.take_damage(5.0);
+                                astroid_collision = true;
                             }
                         }
-                    }
-                
-            }
 
+                        if astroid_collision {
+                            let (mut effect, mut effect_translation) = effect.single_mut();
+                            effect_translation.translation =
+                                (solver_contact.point() * crate::PIXELS_PER_METER).extend(200.0);
+                            effect.maybe_spawner().unwrap().reset();
+                        }
+                    }
+                }
+            }
         }
-        
     }
 
     pub fn display_inventory_full_context_clue(
         mut context_clues_res: ResMut<ContextClues>,
         mut inventory_full_notification: ResMut<InventoryFullNotificationTimer>,
-        time: Res<Time>
+        time: Res<Time>,
     ) {
         if let Some(timer) = inventory_full_notification.0.as_mut() {
             timer.tick(time.delta());
@@ -405,42 +441,86 @@ impl AstroidPlugin {
             if timer.finished() {
                 inventory_full_notification.0 = None;
             }
-
         } else {
             context_clues_res.0.remove(&ContextClue::CargoBayFull);
         }
     }
 
-    pub fn split_astroid(commands: &mut Commands, astroid_ent: Entity, astroid: &Astroid, astroid_translation: Vec2, projectile_velocity: &Velocity) {
-
+    pub fn split_astroid(
+        commands: &mut Commands,
+        astroid_ent: Entity,
+        astroid: &Astroid,
+        astroid_translation: Vec2,
+        projectile_velocity: &Velocity,
+    ) {
         let mut rng = rand::thread_rng();
-        let split_angle = rng.gen_range(0.0..PI/4.0);
-        
-        let right_velocity = projectile_velocity.linvel.rotate(Vec2::from_angle(split_angle)) * 0.5;
-        let left_velocity = projectile_velocity.linvel.rotate(Vec2::from_angle(-split_angle)) * 0.5;
+        let split_angle = rng.gen_range(0.0..PI / 4.0);
+
+        let right_velocity = projectile_velocity
+            .linvel
+            .rotate(Vec2::from_angle(split_angle))
+            * 0.5;
+        let left_velocity = projectile_velocity
+            .linvel
+            .rotate(Vec2::from_angle(-split_angle))
+            * 0.5;
 
         match &astroid.size {
             AstroidSize::Small => {
                 let left_comp = astroid.composition.jitter();
                 let right_comp = astroid.composition.jitter();
 
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, right_comp, right_velocity, astroid_translation);
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::OreChunk, left_comp, left_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(
+                    commands,
+                    AstroidSize::OreChunk,
+                    right_comp,
+                    right_velocity,
+                    astroid_translation,
+                );
+                AstroidPlugin::spawn_astroid(
+                    commands,
+                    AstroidSize::OreChunk,
+                    left_comp,
+                    left_velocity,
+                    astroid_translation,
+                );
                 commands.entity(astroid_ent).despawn_recursive();
-            },
+            }
             AstroidSize::Medium => {
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::Small, astroid.composition.jitter(),right_velocity, astroid_translation);
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::Small, astroid.composition.jitter(), left_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(
+                    commands,
+                    AstroidSize::Small,
+                    astroid.composition.jitter(),
+                    right_velocity,
+                    astroid_translation,
+                );
+                AstroidPlugin::spawn_astroid(
+                    commands,
+                    AstroidSize::Small,
+                    astroid.composition.jitter(),
+                    left_velocity,
+                    astroid_translation,
+                );
                 commands.entity(astroid_ent).despawn_recursive();
-            },
+            }
             AstroidSize::Large => {
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::Medium, astroid.composition.jitter(), right_velocity,astroid_translation);
-                AstroidPlugin::spawn_astroid(commands, AstroidSize::Medium, astroid.composition.jitter(), left_velocity, astroid_translation);
+                AstroidPlugin::spawn_astroid(
+                    commands,
+                    AstroidSize::Medium,
+                    astroid.composition.jitter(),
+                    right_velocity,
+                    astroid_translation,
+                );
+                AstroidPlugin::spawn_astroid(
+                    commands,
+                    AstroidSize::Medium,
+                    astroid.composition.jitter(),
+                    left_velocity,
+                    astroid_translation,
+                );
                 commands.entity(astroid_ent).despawn_recursive();
             }
-            _ => {
-                
-            }
+            _ => {}
         }
     }
 
@@ -455,9 +535,8 @@ impl AstroidPlugin {
         }
 
         // might be different than guide...
-        xs.sort_by(|a, b| {a.partial_cmp(b).unwrap()});
-        xs.sort_by(|a, b| {a.partial_cmp(b).unwrap()});
-
+        xs.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        xs.sort_by(|a, b| a.partial_cmp(b).unwrap());
 
         let min_xs = xs[0];
         let max_xs = xs[xs.len() - 1];
@@ -491,18 +570,17 @@ impl AstroidPlugin {
             vec_angs2.push(a);
         }
 
-        let mut  poly_coords = vec![];
+        let mut poly_coords = vec![];
         let mut x = 0.0;
-        let mut  y = 0.0;
+        let mut y = 0.0;
         for vec in &vecs {
             x += vec.0 * 1.0;
             y += vec.1 * 1.0;
-            poly_coords.push(Vec2 {x, y})
+            poly_coords.push(Vec2 { x, y })
         }
 
         fn make_vector_chain(values_array: Vec<f32>, min_value: f32, max_value: f32) -> Vec<f32> {
             let mut vector_chain: Vec<f32> = vec![];
-            
 
             let mut last_min = min_value;
             let mut last_max = max_value;
@@ -531,8 +609,8 @@ impl AstroidPlugin {
             for i in 0..n {
                 let x0 = verticies[i].x;
                 let y0 = verticies[i].y;
-                let x1 = verticies[(i+1)%n].x;
-                let y1 = verticies[(i+1)%n].y;
+                let x1 = verticies[(i + 1) % n].x;
+                let y1 = verticies[(i + 1) % n].y;
 
                 let area = (x0 * y1) - (x1 * y0);
                 signed_area += area;
@@ -551,9 +629,13 @@ impl AstroidPlugin {
         }
 
         let centroid = get_centroid(&poly_coords);
-        poly_coords = poly_coords.iter().map(|e| {
-            Vec2 { x: e.x - centroid.x, y: e.y - centroid.y }
-        }).collect();
+        poly_coords = poly_coords
+            .iter()
+            .map(|e| Vec2 {
+                x: e.x - centroid.x,
+                y: e.y - centroid.y,
+            })
+            .collect();
 
         poly_coords
     }

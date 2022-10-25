@@ -1,27 +1,27 @@
-use kayak_ui::core::{
-    rsx,
-    widget, use_state, Handler,
-};
+use kayak_ui::core::{rsx, use_state, widget, Handler};
 
-use kayak_ui::{core::{VecTracker, constructor, Binding, Bound}, widgets::If};
-use kayak_ui::widgets::{Text, Window, Element, Background};
 use kayak_ui::core::{
     color::Color,
     render_command::RenderCommand,
-    styles::{Corner, Style, StyleProp, Units, LayoutType, Edge},
-    EventType, OnEvent, WidgetProps,
-    CursorIcon
+    styles::{Corner, Edge, LayoutType, Style, StyleProp, Units},
+    CursorIcon, EventType, OnEvent, WidgetProps,
+};
+use kayak_ui::widgets::{Background, Element, Text, Window};
+use kayak_ui::{
+    core::{constructor, Binding, Bound, VecTracker},
+    widgets::If,
 };
 
 use bevy::prelude::*;
 
+use crate::game_ui::UIItems;
+use crate::inventory::{Amount, InventoryItem};
 use crate::{HEIGHT, RESOLUTION};
-use crate::game_ui::{UIItems};
-use crate::inventory::{InventoryItem, Amount};
 
 #[widget]
 pub fn UIShipInventory() {
-    let ui_items = context.query_world::<Res<Binding<UIItems>>, _, _>(move |ui_items| ui_items.clone());
+    let ui_items =
+        context.query_world::<Res<Binding<UIItems>>, _, _>(move |ui_items| ui_items.clone());
     context.bind(&ui_items);
 
     let inventory = ui_items.get().ship_inventory_items;
@@ -38,11 +38,12 @@ pub fn UIShipInventory() {
 
 #[widget]
 pub fn UIBaseInventory() {
-    let ui_items = context.query_world::<Res<Binding<UIItems>>, _, _>(move |ui_items| ui_items.clone());
+    let ui_items =
+        context.query_world::<Res<Binding<UIItems>>, _, _>(move |ui_items| ui_items.clone());
     context.bind(&ui_items);
 
     let inventory = ui_items.get().station_inventory_items;
-    
+
     let size = Vec2 { x: 200.0, y: 500.0 };
     let ui_base_inventory_pos = (0.0, HEIGHT - size.y);
 
@@ -55,7 +56,7 @@ pub fn UIBaseInventory() {
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct InventoryItemsProps {
-    pub items: Vec<InventoryItem>
+    pub items: Vec<InventoryItem>,
 }
 
 #[widget]
@@ -76,16 +77,12 @@ pub fn InventoryItems(props: InventoryItemsProps) {
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct UIInventoryItemProps {
     pub item_id: usize,
-    pub item: InventoryItem
+    pub item: InventoryItem,
 }
 
 #[widget]
 pub fn UIInventoryItem(props: UIInventoryItemProps) {
-
-    let UIInventoryItemProps {
-        item_id,
-        item
-    } = props.clone();
+    let UIInventoryItemProps { item_id, item } = props.clone();
 
     let background_styles = Style {
         layout_type: StyleProp::Value(LayoutType::Column),
@@ -104,7 +101,7 @@ pub fn UIInventoryItem(props: UIInventoryItemProps) {
                     <Text content={format!("Net Mass: {:.2} Kgs", weight)} size={14.0} />
                 </Background>
             }
-        },
+        }
         InventoryItem::Ingot(ingot, Amount::Quantity(quantity)) => {
             rsx! {
                 <Background styles={Some(background_styles)}>
@@ -112,7 +109,7 @@ pub fn UIInventoryItem(props: UIInventoryItemProps) {
                     <Text content={format!("x{}", quantity)} size={14.0} />
                 </Background>
             }
-        },
+        }
         InventoryItem::Component(component, Amount::Quantity(quantity)) => {
             rsx! {
                 <Background styles={Some(background_styles)}>
@@ -120,9 +117,7 @@ pub fn UIInventoryItem(props: UIInventoryItemProps) {
                     <Text content={format!("x{}", quantity)} size={14.0} />
                 </Background>
             }
-        },
+        }
         _ => {}
     }
-
-    
 }

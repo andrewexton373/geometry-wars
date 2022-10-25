@@ -1,27 +1,26 @@
-use kayak_ui::core::{
-    rsx,
-    widget, use_state, Handler, OnLayout,
-};
+use kayak_ui::core::{rsx, use_state, widget, Handler, OnLayout};
 
-use kayak_ui::{core::{VecTracker, constructor, Binding, Bound}, widgets::If};
-use kayak_ui::widgets::{Text, Window, Element, Background};
 use kayak_ui::core::{
     color::Color,
     render_command::RenderCommand,
-    styles::{Corner, Style, StyleProp, Units, LayoutType, Edge},
-    EventType, OnEvent, WidgetProps,
-    CursorIcon
+    styles::{Corner, Edge, LayoutType, Style, StyleProp, Units},
+    CursorIcon, EventType, OnEvent, WidgetProps,
+};
+use kayak_ui::widgets::{Background, Element, Text, Window};
+use kayak_ui::{
+    core::{constructor, Binding, Bound, VecTracker},
+    widgets::If,
 };
 
 use bevy::prelude::*;
 
+use crate::game_ui::UIItems;
+use crate::inventory::{Amount, InventoryItem};
 use crate::{HEIGHT, RESOLUTION};
-use crate::game_ui::{UIItems};
-use crate::inventory::{InventoryItem, Amount};
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct ProgressBarProps {
-    pub percent: Option<f32>
+    pub percent: Option<f32>,
 }
 
 #[widget]
@@ -35,7 +34,6 @@ pub fn ProgressBar(props: ProgressBarProps) {
         background_color: StyleProp::Value(Color::new(1.0, 0.0, 0.0, 1.0)),
         ..Default::default()
     };
-
 
     // The background style of element growing/shrink
     let mut progress_bar_fill_style = Style {

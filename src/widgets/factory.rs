@@ -1,32 +1,25 @@
-use kayak_ui::core::{
-    rsx,
-    widget, use_state, Handler
-};
+use kayak_ui::core::{rsx, use_state, widget, Handler};
 
-use kayak_ui::{core::{VecTracker, constructor, Binding, Bound}};
-use kayak_ui::widgets::{Text, Element, Background};
 use kayak_ui::core::{
     color::Color,
     render_command::RenderCommand,
-    styles::{Corner, Style, StyleProp, Units, LayoutType, Edge},
-    EventType, OnEvent, WidgetProps,
-    CursorIcon
+    styles::{Corner, Edge, LayoutType, Style, StyleProp, Units},
+    CursorIcon, EventType, OnEvent, WidgetProps,
 };
+use kayak_ui::core::{constructor, Binding, Bound, VecTracker};
+use kayak_ui::widgets::{Background, Element, Text};
 
 use bevy::prelude::*;
 
-use crate::game_ui::{UIItems};
-use crate::recipe::Recipe;
-use crate::widgets::currently_processing::{CurrentlyProcessing};
+use crate::game_ui::UIItems;
 use crate::item_producer::ItemProducer;
-
-
+use crate::recipe::Recipe;
+use crate::widgets::currently_processing::CurrentlyProcessing;
 
 #[widget]
 pub fn UIFactoryView() {
-
     let (color, set_color, ..) = use_state!(Color::new(0.0781, 0.0898, 0.101, 1.0));
-    
+
     let background_styles = Some(Style {
         border_radius: StyleProp::Value(Corner::all(5.0)),
         background_color: StyleProp::Value(color),
@@ -46,8 +39,8 @@ pub fn UIFactoryView() {
         _ => {}
     });
 
-
-    let ui_items = context.query_world::<Res<Binding<UIItems>>, _, _>(move |ui_items| ui_items.clone());
+    let ui_items =
+        context.query_world::<Res<Binding<UIItems>>, _, _>(move |ui_items| ui_items.clone());
     context.bind(&ui_items);
 
     let factory = ui_items.get().factory.clone();
@@ -72,7 +65,10 @@ pub struct CraftablesProps {
 
 #[widget]
 pub fn Craftables(props: CraftablesProps) {
-    let CraftablesProps { craftables, on_create } = props.clone();
+    let CraftablesProps {
+        craftables,
+        on_create,
+    } = props.clone();
 
     rsx! {
         <Element>
@@ -117,7 +113,9 @@ pub fn Craftable(props: CraftableProps) {
     let on_event = OnEvent::new(move |ctx, event| match event.event_type {
         EventType::Click(..) => {
             println!("CRAFT BUTTON CLICKED!");
-            ctx.query_world::<EventWriter<CraftEvent>, _, ()>(|mut writer| writer.send(CraftEvent(clone.clone())));
+            ctx.query_world::<EventWriter<CraftEvent>, _, ()>(|mut writer| {
+                writer.send(CraftEvent(clone.clone()))
+            });
             // on_create.call(refineable_id);
         }
         _ => (),
@@ -141,7 +139,6 @@ pub struct CraftButtonProps {
     #[prop_field(OnEvent)]
     pub on_event: Option<OnEvent>,
 }
-
 
 #[widget]
 pub fn CraftButton(props: CraftButtonProps) {

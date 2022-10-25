@@ -1,24 +1,21 @@
-use kayak_ui::core::{
-    rsx,
-    widget, constructor, VecTracker
-};
+use kayak_ui::core::{constructor, rsx, widget, VecTracker};
 
-use kayak_ui::{core::{Binding, Bound}};
-use kayak_ui::widgets::{Text, Window, Background};
 use kayak_ui::core::{
     styles::{Style, StyleProp},
     WidgetProps,
 };
+use kayak_ui::core::{Binding, Bound};
+use kayak_ui::widgets::{Background, Text, Window};
 
-use bevy::{prelude::*};
+use bevy::prelude::*;
 
+use crate::game_ui::UIItems;
 use crate::{HEIGHT, RESOLUTION};
-use crate::game_ui::{UIItems};
 
 #[widget]
 pub fn UIContextClueView(props: UIContextClueProps) {
-
-    let ui_items = context.query_world::<Res<Binding<UIItems>>, _, _>(move |ui_items| ui_items.clone());
+    let ui_items =
+        context.query_world::<Res<Binding<UIItems>>, _, _>(move |ui_items| ui_items.clone());
     context.bind(&ui_items);
 
     let context_clues = ui_items.get().context_clues.clone();
@@ -27,9 +24,7 @@ pub fn UIContextClueView(props: UIContextClueProps) {
     let offset = 200.0; // width of station inventory
     let ui_context_clue_pos = (HEIGHT * RESOLUTION / 2. - size.x / 2.0, 100.0);
 
-
     if !context_clues.is_empty() {
-
         rsx! {
             <Window position={ui_context_clue_pos} size={(size.x, size.y)} title={"Context Clue".to_string()}>
 
@@ -42,9 +37,7 @@ pub fn UIContextClueView(props: UIContextClueProps) {
 
             </Window>
         }
-       
     }
-
 
     // match context_clue {
     //     None => {},
@@ -58,17 +51,15 @@ pub fn UIContextClueView(props: UIContextClueProps) {
     //     }
 
     // }
-
 }
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct UIContextClueProps {
-    context_clue: String
+    context_clue: String,
 }
 
 #[widget]
 pub fn UIContextClue(props: UIContextClueProps) {
-
     let UIContextClueProps { context_clue } = props.clone();
 
     // let background_styles = Some(Style {
@@ -90,5 +81,4 @@ pub fn UIContextClue(props: UIContextClueProps) {
             <Text content={context_clue} size={16.0} styles={text_styles} />
         </Background>
     }
-
 }

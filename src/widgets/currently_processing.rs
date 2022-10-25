@@ -1,29 +1,30 @@
-use kayak_ui::core::{
-    rsx,
-    widget
-};
+use kayak_ui::core::{rsx, widget};
 
-use kayak_ui::{widgets::If};
-use kayak_ui::widgets::{Text};
 use kayak_ui::core::{
     color::Color,
-    styles::{Style, StyleProp, Units, LayoutType, Edge},
+    styles::{Edge, LayoutType, Style, StyleProp, Units},
     WidgetProps,
 };
+use kayak_ui::widgets::If;
+use kayak_ui::widgets::Text;
 
 use crate::recipe::Recipe;
-use crate::widgets::progress_bar::{ProgressBar};
+use crate::widgets::progress_bar::ProgressBar;
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct CurrentlyProcessingProps {
     pub currently_processing: Option<Recipe>,
     pub time_remaining: f32,
-    pub percent_remaining: Option<f32>
+    pub percent_remaining: Option<f32>,
 }
 
 #[widget]
 pub fn CurrentlyProcessing(props: CurrentlyProcessingProps) {
-    let CurrentlyProcessingProps { currently_processing, time_remaining, percent_remaining } = props.clone();
+    let CurrentlyProcessingProps {
+        currently_processing,
+        time_remaining,
+        percent_remaining,
+    } = props.clone();
 
     let background_styles = Style {
         layout_type: StyleProp::Value(LayoutType::Row),
