@@ -1,15 +1,18 @@
+use bevy::utils::HashSet;
+use kayak_ui::core::styles::{Units, PositionType};
 use kayak_ui::core::{constructor, rsx, widget, VecTracker};
 
 use kayak_ui::core::{
-    styles::{Style, StyleProp},
+    color::Color,
+    styles::{Style, StyleProp, Edge},
     WidgetProps,
 };
 use kayak_ui::core::{Binding, Bound};
-use kayak_ui::widgets::{Background, Text, Window};
+use kayak_ui::widgets::{Background, Text, Window, Element};
 
 use bevy::prelude::*;
 
-use crate::game_ui::UIItems;
+use crate::game_ui::{UIItems, ContextClue};
 use crate::{HEIGHT, RESOLUTION};
 
 #[widget]
@@ -24,33 +27,66 @@ pub fn UIContextClueView(props: UIContextClueProps) {
     let offset = 200.0; // width of station inventory
     let ui_context_clue_pos = (HEIGHT * RESOLUTION / 2. - size.x / 2.0, 100.0);
 
+    let container_styles = Some(Style {
+        width: StyleProp::Value(Units::Percentage(100.0)),
+        height: StyleProp::Value(Units::Percentage(100.0)),
+        position_type: StyleProp::Value(PositionType::SelfDirected),
+        // background_color: StyleProp::Value(Color::new(1.0, 0.0, 0.0, 0.8)),
+        ..Style::default()
+    });
+
+    let ship_information_styles = Some(Style {
+        left: StyleProp::Value(Units::Stretch(1.0)),
+        width: StyleProp::Value(Units::Pixels(200.0)),
+        height: StyleProp::Value(Units::Auto),
+        padding: StyleProp::Value(Edge::all(Units::Pixels(10.0))),
+        background_color: StyleProp::Value(Color::new(0.4, 0.4, 0.4, 1.0)),
+        ..Default::default()
+    });
+
     if !context_clues.is_empty() {
         rsx! {
-            <Window position={ui_context_clue_pos} size={(size.x, size.y)} title={"Context Clue".to_string()}>
-
-                {VecTracker::from(context_clues.clone().into_iter().enumerate().map(|(index, context_clue)| {
-                    constructor! {
-                        <UIContextClue context_clue={context_clue.text()} />
-
-                    }
-                }))}
-
-            </Window>
+            <Element styles={container_styles}>
+                <UIContextClues context_clues={context_clues.clone()} />
+            </Element>
         }
     }
 
-    // match context_clue {
-    //     None => {},
-    //     Some(context_clue) => {
+}
 
-    //         rsx! {
-    //             <Window position={ui_context_clue_pos} size={(size.x, size.y)} title={"Context Clue".to_string()}>
-    //                 <UIContextClue context_clue={context_clue.text()} />
-    //             </Window>
-    //         }
-    //     }
+#[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
+pub struct UIContextCluesProps {
+    context_clues: HashSet<ContextClue>
+}
 
-    // }
+#[widget]
+pub fn UIContextClues(props: UIContextCluesProps) {
+    let UIContextCluesProps { context_clues } = props.clone();
+
+    let size = Vec2 {x: 400., y: 120.};
+
+    let context_clues_styles = Some(Style {
+        position_type: StyleProp::Value(PositionType::SelfDirected),
+        left: StyleProp::Value(Units::Percentage(40.0)),
+        top: StyleProp::Value(Units::Percentage(10.0)),
+        width: StyleProp::Value(Units::Percentage(20.0)),
+        height: StyleProp::Value(Units::Pixels(size.y)),
+        padding: StyleProp::Value(Edge::all(Units::Pixels(10.0))),
+        background_color: StyleProp::Value(Color::new(0.4, 0.4, 0.4, 1.0)),
+        ..Default::default()
+    });
+
+    rsx! {
+        <Background styles={context_clues_styles}>
+            <Text content={"Context Clues".to_string()} size={14.0} />
+            {VecTracker::from(context_clues.clone().into_iter().enumerate().map(|(index, context_clue)| {
+                constructor! {
+                    <UIContextClue context_clue={context_clue.text()} />
+
+                }
+            }))}
+        </Background>
+    }
 }
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
@@ -62,23 +98,14 @@ pub struct UIContextClueProps {
 pub fn UIContextClue(props: UIContextClueProps) {
     let UIContextClueProps { context_clue } = props.clone();
 
-    // let background_styles = Some(Style {
-    //     border_radius: StyleProp::Value(Corner::all(5.0)),
-    //     background_color: StyleProp::Value(Color::WHITE),
-    //     cursor: CursorIcon::Hand.into(),
-    //     padding_left: StyleProp::Value(Units::Pixels(8.0)),
-    //     ..Style::default()
-    // });
-
     let text_styles = Some(Style {
         cursor: StyleProp::Inherit,
         ..Style::default()
     });
 
     rsx! {
-        // <Background styles={background_styles}>
         <Background>
-            <Text content={context_clue} size={16.0} styles={text_styles} />
+            <Text content={context_clue} size={12.0} styles={text_styles} />
         </Background>
     }
 }

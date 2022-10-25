@@ -41,6 +41,7 @@ pub fn UIShipInformationView() {
     let container_styles = Some(Style {
         width: StyleProp::Value(Units::Percentage(100.0)),
         height: StyleProp::Value(Units::Percentage(100.0)),
+        position_type: StyleProp::Value(PositionType::SelfDirected),
         // background_color: StyleProp::Value(Color::new(1.0, 0.0, 0.0, 0.8)),
         ..Style::default()
     });

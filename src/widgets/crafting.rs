@@ -5,11 +5,11 @@ use kayak_ui::core::{render, rsx, use_state, widget, Fragment, Handler, KeyCode}
 use kayak_ui::core::{
     color::Color,
     render_command::RenderCommand,
-    styles::{Edge, LayoutType, Style, StyleProp, Units},
+    styles::{Edge, LayoutType, Style, StyleProp, Units, PositionType},
     EventType, OnEvent, WidgetProps,
 };
 use kayak_ui::core::{constructor, Bound, VecTracker};
-use kayak_ui::widgets::{Background, Text, Window};
+use kayak_ui::widgets::{Background, Text, Window, Element};
 
 use bevy::prelude::*;
 
@@ -47,12 +47,41 @@ pub fn UICraftingTabsView() {
     let offset = 200.0; // width of station inventory
     let view_pos = (0.0 + offset, HEIGHT - size.y);
 
+    let container_styles = Some(Style {
+        width: StyleProp::Value(Units::Percentage(100.0)),
+        height: StyleProp::Value(Units::Percentage(100.0)),
+        position_type: StyleProp::Value(PositionType::SelfDirected),
+        // background_color: StyleProp::Value(Color::new(1.0, 0.0, 0.0, 0.8)),
+        ..Style::default()
+    });
+
+    let ship_information_styles = Some(Style {
+        top: StyleProp::Value(Units::Stretch(1.0)),
+        left: StyleProp::Value(Units::Pixels(200.0)),
+        width: StyleProp::Value(Units::Pixels(400.0)),
+        height: StyleProp::Value(Units::Pixels(400.0)),
+        padding: StyleProp::Value(Edge::all(Units::Pixels(10.0))),
+        background_color: StyleProp::Value(Color::new(0.4, 0.4, 0.4, 1.0)),
+        ..Default::default()
+    });
+
+
     rsx! {
-        <Window position={view_pos} size={(size.x, size.y)} title={"Base Station Crafting".to_string()}>
-            <TabThemeProvider initial_theme={theme}>
-                <TabDemo />
-            </TabThemeProvider>
-        </Window>
+        <Element styles={container_styles}>
+            <Background styles={ship_information_styles}>
+                <Text content={"Station Produciton".to_string()}/>
+                <TabThemeProvider initial_theme={theme}>
+                    <TabDemo />
+                </TabThemeProvider>
+            </Background>
+        </Element>
+
+
+        // <Window position={view_pos} size={(size.x, size.y)} title={"Base Station Crafting".to_string()}>
+        //     <TabThemeProvider initial_theme={theme}>
+        //         <TabDemo />
+        //     </TabThemeProvider>
+        // </Window>
     }
 }
 

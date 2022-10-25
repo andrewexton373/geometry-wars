@@ -119,7 +119,7 @@ impl GameUIPlugin {
             ship_info: ShipInformation {
                 net_weight: ship_inventory.gross_material_weight(),
                 speed: ship_velocity.linvel.length(),
-                direction: ship_velocity.linvel.angle_between(Vec2::Y) // In Rads for now
+                direction: ship_velocity.linvel.angle_between(Vec2::Y) // FIXME: In Rads for now, also wrong
             }
         });
     }

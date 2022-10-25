@@ -1,3 +1,4 @@
+use kayak_ui::core::styles::PositionType;
 use kayak_ui::core::{rsx, use_state, widget, Handler};
 
 use kayak_ui::core::{
@@ -25,14 +26,31 @@ pub fn UIShipInventory() {
     context.bind(&ui_items);
 
     let inventory = ui_items.get().ship_inventory_items;
+    let container_styles = Some(Style {
+        width: StyleProp::Value(Units::Percentage(100.0)),
+        height: StyleProp::Value(Units::Percentage(100.0)),
+        position_type: StyleProp::Value(PositionType::SelfDirected),
+        // background_color: StyleProp::Value(Color::new(1.0, 0.0, 0.0, 0.8)),
+        ..Style::default()
+    });
 
-    let size = Vec2 { x: 200.0, y: 500.0 };
-    let ui_ship_inventory_pos = (HEIGHT * RESOLUTION - size.x, HEIGHT - size.y);
+    let ship_information_styles = Some(Style {
+        top: StyleProp::Value(Units::Stretch(1.0)),
+        left: StyleProp::Value(Units::Stretch(1.0)),
+        width: StyleProp::Value(Units::Pixels(200.0)),
+        height: StyleProp::Value(Units::Pixels(500.0)), // TODO: can this size be dynamic?
+        padding: StyleProp::Value(Edge::all(Units::Pixels(10.0))),
+        background_color: StyleProp::Value(Color::new(0.4, 0.4, 0.4, 1.0)),
+        ..Default::default()
+    });
 
     rsx! {
-        <Window position={ui_ship_inventory_pos} size={(size.x, size.y)} title={"Ship Inventory".to_string()}>
-            <InventoryItems items={inventory} />
-        </Window>
+        <Element styles={container_styles}>
+            <Background styles={ship_information_styles}>
+                <Text content={"Ship Inventory".to_string()} size={14.0} />
+                <InventoryItems items={inventory} />
+            </Background>
+        </Element>
     }
 }
 
@@ -44,13 +62,32 @@ pub fn UIBaseInventory() {
 
     let inventory = ui_items.get().station_inventory_items;
 
-    let size = Vec2 { x: 200.0, y: 500.0 };
-    let ui_base_inventory_pos = (0.0, HEIGHT - size.y);
+    let inventory = ui_items.get().ship_inventory_items;
+    let container_styles = Some(Style {
+        width: StyleProp::Value(Units::Percentage(100.0)),
+        height: StyleProp::Value(Units::Percentage(100.0)),
+        position_type: StyleProp::Value(PositionType::SelfDirected),
+        // background_color: StyleProp::Value(Color::new(1.0, 0.0, 0.0, 0.8)),
+        ..Style::default()
+    });
+
+    let base_inventory_styles = Some(Style {
+        top: StyleProp::Value(Units::Stretch(1.0)),
+        left: StyleProp::Value(Units::Stretch(0.0)),
+        width: StyleProp::Value(Units::Pixels(200.0)),
+        height: StyleProp::Value(Units::Pixels(500.0)), // TODO: can this size be dynamic?
+        padding: StyleProp::Value(Edge::all(Units::Pixels(10.0))),
+        background_color: StyleProp::Value(Color::new(0.4, 0.4, 0.4, 1.0)),
+        ..Default::default()
+    });
 
     rsx! {
-        <Window position={ui_base_inventory_pos} size={(size.x, size.y)} title={"Station Inventory".to_string()}>
-            <InventoryItems items={inventory} />
-        </Window>
+        <Element styles={container_styles}>
+            <Background styles={base_inventory_styles}>
+                <Text content={"Station Inventory".to_string()} size={14.0} />
+                <InventoryItems items={inventory} />
+            </Background>
+        </Element>
     }
 }
 
