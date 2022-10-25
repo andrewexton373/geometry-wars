@@ -2,7 +2,15 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use crate::{base_station::BaseStation, inventory::{Inventory, InventoryItem, Amount}, astroid::AstroidMaterial, widgets::refinery::SmeltEvent};
+use crate::{base_station::BaseStation, inventory::{Inventory, InventoryItem, Amount}, astroid::AstroidMaterial, widgets::refinery::SmeltEvent, recipe::Recipe, item_producer::ItemProducer};
+
+#[derive(Default, Debug, Clone, Copy, PartialEq)]
+pub enum MetalIngot {
+    #[default]
+    IronIngot,
+    SilverIngot,
+    GoldIngot
+}
 
 pub struct RefineryTimer(pub Option<Timer>);
 
@@ -14,8 +22,8 @@ pub struct Refinery {
     pub remaining_processing_time: f32
 }
 
-impl Refinery {
-    pub fn new() -> Self {
+impl ItemProducer for Refinery {
+    fn new() -> Self {
         let mut recipes = Vec::new();
         
         let mut items_required = Vec::new();
@@ -58,31 +66,28 @@ impl Refinery {
             remaining_processing_time: 0.0
         }
     }
-}
 
-impl Refinery {
-    pub fn remaining_processing_percent(&self) -> Option<f32> {
+    fn recipes(&self) -> Vec<Recipe> {
+        self.recipes.clone()
+    }
+
+    fn currently_processing(&self) -> Option<Recipe> {
+        self.currently_processing.clone()
+    }
+
+    fn remaining_processing_percent(&self) -> Option<f32> {
         if let Some(currently_processing) = self.currently_processing.clone() {
             return Some(((currently_processing.time_required - self.remaining_processing_time) / currently_processing.time_required).clamp(0.0, 1.0));
         }
         None
     }
+
+    fn remaining_processing_time(&self) -> Option<f32> {
+        if self.currently_processing.is_none() {return None;}
+        Some(self.remaining_processing_time)
+    }
 }
 
-#[derive(Default, Debug, Clone, PartialEq)]
-pub struct Recipe {
-    pub items_required: Vec<InventoryItem>,
-    pub item_created: InventoryItem,
-    pub time_required: f32
-}
-
-#[derive(Default, Debug, Clone, Copy, PartialEq)]
-pub enum MetalIngot {
-    #[default]
-    IronIngot,
-    SilverIngot,
-    GoldIngot
-}
 pub struct RefineryPlugin;
 
 impl Plugin for RefineryPlugin {

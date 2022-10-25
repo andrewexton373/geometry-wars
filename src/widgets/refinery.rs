@@ -15,9 +15,10 @@ use kayak_ui::core::{
 
 use bevy::prelude::*;
 
-use crate::refinery::Recipe;
 use crate::game_ui::{UIItems};
+use crate::recipe::Recipe;
 use crate::widgets::currently_processing::{CurrentlyProcessing};
+use crate::item_producer::ItemProducer;
 
 
 #[widget]

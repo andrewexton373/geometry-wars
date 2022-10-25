@@ -11,6 +11,8 @@ use bevy_prototype_lyon::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
 use bevy_hanabi::prelude::*;
 
+mod recipe;
+mod item_producer;
 mod game_ui;
 mod widgets;
 mod particles;

@@ -11,7 +11,7 @@ use kayak_ui::core::{
     WidgetProps,
 };
 
-use crate::refinery::Recipe;
+use crate::recipe::Recipe;
 use crate::widgets::progress_bar::{ProgressBar};
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]

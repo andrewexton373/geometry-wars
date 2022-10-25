@@ -15,7 +15,6 @@ use kayak_ui::core::{
 
 use bevy::prelude::*;
 
-use crate::refinery::Recipe;
 use crate::{HEIGHT, RESOLUTION};
 use crate::game_ui::{UIItems};
 use crate::inventory::{InventoryItem, Amount};

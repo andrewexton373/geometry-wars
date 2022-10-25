@@ -2,27 +2,7 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use crate::{base_station::BaseStation, refinery::{MetalIngot, Recipe}, inventory::{Inventory, InventoryItem, Amount}, widgets::factory::CraftEvent};
-
-pub struct FactoryTimer(pub Option<Timer>);
-
-
-// A component you can add to the base station in order to smelt ore.
-#[derive(Component, Default, Debug, Clone, PartialEq)]
-pub struct Factory {
-    pub recipes: Vec<Recipe>,
-    pub currently_processing: Option<Recipe>,
-    pub remaining_processing_time: f32
-}
-
-impl Factory {
-    pub fn remaining_processing_percent(&self) -> Option<f32> {
-        if let Some(currently_processing) = self.currently_processing.clone() {
-            return Some(((currently_processing.time_required - self.remaining_processing_time) / currently_processing.time_required).clamp(0.0, 1.0));
-        }
-        None
-    }
-}
+use crate::{base_station::BaseStation, refinery::{MetalIngot}, inventory::{Inventory, InventoryItem, Amount}, widgets::factory::CraftEvent, item_producer::ItemProducer, recipe::Recipe};
 
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
 pub enum UpgradeComponent {
@@ -33,8 +13,38 @@ pub enum UpgradeComponent {
     GoldLeaf
 }
 
-impl Factory {
-    pub fn new() -> Self {
+pub struct FactoryTimer(pub Option<Timer>);
+
+// A component you can add to the base station in order to smelt ore.
+#[derive(Component, Default, Debug, Clone, PartialEq)]
+pub struct Factory {
+    pub recipes: Vec<Recipe>,
+    pub currently_processing: Option<Recipe>,
+    pub remaining_processing_time: f32
+}
+
+impl ItemProducer for Factory {
+    fn remaining_processing_percent(&self) -> Option<f32> {
+        if let Some(currently_processing) = self.currently_processing.clone() {
+            return Some(((currently_processing.time_required - self.remaining_processing_time) / currently_processing.time_required).clamp(0.0, 1.0));
+        }
+        None
+    }
+
+    fn recipes(&self) -> Vec<Recipe> {
+        self.recipes.clone()
+    }
+
+    fn currently_processing(&self) -> Option<Recipe> {
+        self.currently_processing.clone()
+    }
+
+    fn remaining_processing_time(&self) -> Option<f32> {
+        if self.currently_processing.is_none() { return None };
+        Some(self.remaining_processing_time)
+    }
+
+    fn new() -> Self {
         let mut recipes = Vec::new();
         
         let mut items_required = Vec::new();
@@ -88,6 +98,7 @@ impl Factory {
         }
     }
 }
+
 pub struct FactoryPlugin;
 
 impl Plugin for FactoryPlugin {
@@ -154,7 +165,7 @@ impl FactoryPlugin {
         }
     }
 
-    /// Watch the refinery processing timer,
+    /// Watch the factory processing timer,
     /// perfom actions when timer elapses.
     fn update_factory_processing(
         mut base_station_query: Query<(&BaseStation, &mut Inventory, &mut Factory), With<BaseStation>>,
