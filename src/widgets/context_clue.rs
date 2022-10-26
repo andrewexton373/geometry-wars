@@ -70,7 +70,7 @@ pub fn UIContextClues(props: UIContextCluesProps) {
         left: StyleProp::Value(Units::Percentage(40.0)),
         top: StyleProp::Value(Units::Percentage(10.0)),
         width: StyleProp::Value(Units::Percentage(20.0)),
-        height: StyleProp::Value(Units::Pixels(size.y)),
+        height: StyleProp::Value(Units::Auto),
         padding: StyleProp::Value(Edge::all(Units::Pixels(10.0))),
         background_color: StyleProp::Value(Color::new(0.4, 0.4, 0.4, 1.0)),
         ..Default::default()
@@ -98,13 +98,19 @@ pub struct UIContextClueProps {
 pub fn UIContextClue(props: UIContextClueProps) {
     let UIContextClueProps { context_clue } = props.clone();
 
+    let bg_styles = Some(Style {
+        height: StyleProp::Value(Units::Auto),
+        ..Style::default()
+    });
+
     let text_styles = Some(Style {
         cursor: StyleProp::Inherit,
+        // height: StyleProp::Value(Units::Auto),
         ..Style::default()
     });
 
     rsx! {
-        <Background>
+        <Background styles={bg_styles}>
             <Text content={context_clue} size={12.0} styles={text_styles} />
         </Background>
     }

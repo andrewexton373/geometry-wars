@@ -34,11 +34,11 @@ pub fn UIShipInventory() {
         ..Style::default()
     });
 
-    let ship_information_styles = Some(Style {
+    let ship_inventory_styles = Some(Style {
         top: StyleProp::Value(Units::Stretch(1.0)),
         left: StyleProp::Value(Units::Stretch(1.0)),
         width: StyleProp::Value(Units::Pixels(200.0)),
-        height: StyleProp::Value(Units::Pixels(500.0)), // TODO: can this size be dynamic?
+        height: StyleProp::Value(Units::Auto),
         padding: StyleProp::Value(Edge::all(Units::Pixels(10.0))),
         background_color: StyleProp::Value(Color::new(0.4, 0.4, 0.4, 1.0)),
         ..Default::default()
@@ -46,7 +46,7 @@ pub fn UIShipInventory() {
 
     rsx! {
         <Element styles={container_styles}>
-            <Background styles={ship_information_styles}>
+            <Background styles={ship_inventory_styles}>
                 <Text content={"Ship Inventory".to_string()} size={14.0} />
                 <InventoryItems items={inventory} />
             </Background>
@@ -75,7 +75,7 @@ pub fn UIBaseInventory() {
         top: StyleProp::Value(Units::Stretch(1.0)),
         left: StyleProp::Value(Units::Stretch(0.0)),
         width: StyleProp::Value(Units::Pixels(200.0)),
-        height: StyleProp::Value(Units::Pixels(500.0)), // TODO: can this size be dynamic?
+        height: StyleProp::Value(Units::Auto),
         padding: StyleProp::Value(Edge::all(Units::Pixels(10.0))),
         background_color: StyleProp::Value(Color::new(0.4, 0.4, 0.4, 1.0)),
         ..Default::default()
@@ -100,8 +100,17 @@ pub struct InventoryItemsProps {
 pub fn InventoryItems(props: InventoryItemsProps) {
     let InventoryItemsProps { items } = props.clone();
 
+    let styles = Some(Style {
+        layout_type: StyleProp::Value(LayoutType::Column),
+        background_color: StyleProp::Value(Color::new(1.0, 0.196, 0.215, 1.0)),
+        height: StyleProp::Value(Units::Auto),
+        // top: StyleProp::Value(Units::Pixels(10.0)),
+        // padding: StyleProp::Value(Edge::all(Units::Pixels(5.0))),
+        ..Style::default()
+    });
+
     rsx! {
-        <Element>
+        <Element styles={styles}>
             {VecTracker::from(items.clone().into_iter().enumerate().map(|(index, item)| {
                 constructor! {
                     <UIInventoryItem item_id={index} item={item.clone()} />
