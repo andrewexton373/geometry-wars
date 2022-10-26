@@ -7,7 +7,7 @@ use kayak_ui::core::{
     CursorIcon, EventType, OnEvent, WidgetProps,
 };
 use kayak_ui::core::{constructor, Binding, Bound, VecTracker};
-use kayak_ui::widgets::{Background, Element, Text};
+use kayak_ui::widgets::{Background, Element, Text, ScrollBox, ScrollMode, Clip};
 
 use bevy::prelude::*;
 
@@ -21,6 +21,7 @@ pub fn UIRefineryView() {
     let (color, set_color, ..) = use_state!(Color::new(0.0781, 0.0898, 0.101, 1.0));
 
     let background_styles = Some(Style {
+        height: StyleProp::Value(Units::Auto),
         border_radius: StyleProp::Value(Corner::all(5.0)),
         background_color: StyleProp::Value(color),
         cursor: CursorIcon::Hand.into(),
@@ -51,9 +52,12 @@ pub fn UIRefineryView() {
 
     rsx! {
         <>
+            // <ScrollBox always_show_scrollbar={true}>
 
             <CurrentlyProcessing currently_processing={refinery.currently_processing.clone()} time_remaining={refinery.remaining_processing_time} percent_remaining={refinery.remaining_processing_percent()}/>
+
             <Refineables refineables={refinery.recipes.clone()} on_create={handle_create} />
+            // </ScrollBox>
 
         </>
     }
@@ -72,15 +76,25 @@ pub fn Refineables(props: RefineablesProps) {
         on_create,
     } = props.clone();
 
+    let auto = Some(Style{
+        height: StyleProp::Value(Units::Stretch(1.0)),
+        render_command: StyleProp::Value(RenderCommand::Clip),
+        ..Style::default()
+    });
+
+    let clamped = ScrollMode::Clamped;
+
     rsx! {
-    <Element>
+    // <Element styles={auto}>
+        <ScrollBox styles={auto} mode={clamped}>
         {VecTracker::from(refineables.clone().into_iter().enumerate().map(|(index, recipe)| {
             constructor! {
                 <Refineable refineable_id={index} refinery_recipe={recipe.clone()} on_create={on_create.clone()}/>
             }
         }))}
+        </ScrollBox>
 
-    </Element>
+    // </Element>
 
     }
 }

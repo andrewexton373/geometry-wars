@@ -5,8 +5,7 @@ use kayak_ui::core::{
     styles::{Edge, LayoutType, Style, StyleProp, Units},
     WidgetProps,
 };
-use kayak_ui::widgets::If;
-use kayak_ui::widgets::Text;
+use kayak_ui::widgets::{If, Text, Element};
 
 use crate::recipe::Recipe;
 use crate::widgets::progress_bar::ProgressBar;
@@ -27,16 +26,16 @@ pub fn CurrentlyProcessing(props: CurrentlyProcessingProps) {
     } = props.clone();
 
     let background_styles = Style {
-        layout_type: StyleProp::Value(LayoutType::Row),
+        layout_type: StyleProp::Value(LayoutType::Column),
         background_color: StyleProp::Value(Color::new(0.999, 0.196, 0.215, 1.0)),
         height: StyleProp::Value(Units::Auto),
-        top: StyleProp::Value(Units::Pixels(10.0)),
-        padding: StyleProp::Value(Edge::all(Units::Pixels(5.0))),
+        // top: StyleProp::Value(Units::Pixels(10.0)),
+        // padding: StyleProp::Value(Edge::all(Units::Pixels(5.0))),
         ..Style::default()
     };
 
     rsx! {
-        <If condition={currently_processing.is_some()}>
+        <If styles={Some(background_styles)} condition={currently_processing.is_some()}>
             <ProgressBar percent={percent_remaining} />
             <Text content={format!("{:.1} Seconds Remaining", time_remaining)} size={11.0} />
 

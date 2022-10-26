@@ -7,7 +7,7 @@ use kayak_ui::core::{
     CursorIcon, EventType, OnEvent, WidgetProps,
 };
 use kayak_ui::core::{constructor, Binding, Bound, VecTracker};
-use kayak_ui::widgets::{Background, Element, Text};
+use kayak_ui::widgets::{Background, Element, Text, ScrollMode, ScrollBox};
 
 use bevy::prelude::*;
 
@@ -70,15 +70,33 @@ pub fn Craftables(props: CraftablesProps) {
         on_create,
     } = props.clone();
 
+    let auto = Some(Style{
+        height: StyleProp::Value(Units::Stretch(1.0)),
+        render_command: StyleProp::Value(RenderCommand::Clip),
+        ..Style::default()
+    });
+
+    let clamped = ScrollMode::Clamped;
+
     rsx! {
-        <Element>
-            {VecTracker::from(craftables.clone().into_iter().enumerate().map(|(index, recipe)| {
-                constructor! {
-                    <Craftable craftable_id={index} factory_recipe={recipe.clone()} on_create={on_create.clone()}/>
-                }
-            }))}
-        </Element>
+        <ScrollBox styles={auto} mode={clamped}>
+        {VecTracker::from(craftables.clone().into_iter().enumerate().map(|(index, recipe)| {
+            constructor! {
+                <Craftable craftable_id={index} factory_recipe={recipe.clone()} on_create={on_create.clone()}/>
+            }
+        }))}
+        </ScrollBox>
     }
+
+    // rsx! {
+    //     <Element>
+    //         {VecTracker::from(craftables.clone().into_iter().enumerate().map(|(index, recipe)| {
+    //             constructor! {
+    //                 <Craftable craftable_id={index} factory_recipe={recipe.clone()} on_create={on_create.clone()}/>
+    //             }
+    //         }))}
+    //     </Element>
+    // }
 }
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]

@@ -9,7 +9,7 @@ use kayak_ui::core::{
     EventType, OnEvent, WidgetProps,
 };
 use kayak_ui::core::{constructor, Bound, VecTracker};
-use kayak_ui::widgets::{Background, Text, Window, Element};
+use kayak_ui::widgets::{Background, Text, Window, Element, ScrollBox, ScrollMode};
 
 use bevy::prelude::*;
 
@@ -59,12 +59,11 @@ pub fn UICraftingTabsView() {
         top: StyleProp::Value(Units::Stretch(1.0)),
         left: StyleProp::Value(Units::Pixels(200.0)),
         width: StyleProp::Value(Units::Pixels(400.0)),
-        height: StyleProp::Value(Units::Pixels(400.0)),
+        height: StyleProp::Value(Units::Pixels(300.0)),
         padding: StyleProp::Value(Edge::all(Units::Pixels(10.0))),
         background_color: StyleProp::Value(Color::new(0.4, 0.4, 0.4, 1.0)),
         ..Default::default()
     });
-
 
     rsx! {
         <Element styles={container_styles}>
@@ -75,13 +74,6 @@ pub fn UICraftingTabsView() {
                 </TabThemeProvider>
             </Background>
         </Element>
-
-
-        // <Window position={view_pos} size={(size.x, size.y)} title={"Base Station Crafting".to_string()}>
-        //     <TabThemeProvider initial_theme={theme}>
-        //         <TabDemo />
-        //     </TabThemeProvider>
-        // </Window>
     }
 }
 
