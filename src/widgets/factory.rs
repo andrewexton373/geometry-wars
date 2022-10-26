@@ -72,10 +72,10 @@ pub fn Craftables(props: CraftablesProps) {
 
     let auto = Some(Style{
         height: StyleProp::Value(Units::Stretch(1.0)),
-        render_command: StyleProp::Value(RenderCommand::Clip),
+        render_command: StyleProp::Value(RenderCommand::Layout),
         ..Style::default()
     });
-
+    
     let clamped = ScrollMode::Clamped;
 
     rsx! {
@@ -88,15 +88,6 @@ pub fn Craftables(props: CraftablesProps) {
         </ScrollBox>
     }
 
-    // rsx! {
-    //     <Element>
-    //         {VecTracker::from(craftables.clone().into_iter().enumerate().map(|(index, recipe)| {
-    //             constructor! {
-    //                 <Craftable craftable_id={index} factory_recipe={recipe.clone()} on_create={on_create.clone()}/>
-    //             }
-    //         }))}
-    //     </Element>
-    // }
 }
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
