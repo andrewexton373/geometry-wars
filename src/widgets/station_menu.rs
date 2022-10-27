@@ -15,7 +15,7 @@ use kayak_ui::widgets::{Background, Element, Text, Window, NinePatch, Clip, If};
 use bevy::prelude::{*};
 
 use crate::{HEIGHT, RESOLUTION, WIDTH};
-use crate::game_ui::UIItems;
+use crate::game_ui::{UIItems, ContextClue};
 use crate::item_producer::ItemProducer;
 use crate::recipe::Recipe;
 use crate::widgets::currently_processing::CurrentlyProcessing;
@@ -25,12 +25,16 @@ pub fn UIStationMenu() {
 
     let (show, set_show, ..) = use_state!(false);
 
-
     let ui_items =
         context.query_world::<Res<Binding<UIItems>>, _, _>(move |ui_items| ui_items.clone());
     context.bind(&ui_items);
 
-    let ship_info = ui_items.get().ship_info; // TODO!
+    let context_clues = ui_items.get().context_clues; // TODO!
+    let near_base_station = context_clues.contains(&ContextClue::NearBaseStation);
+    
+    if !near_base_station {
+        set_show(false);
+    }
 
     let container_styles = Some(Style {
         width: StyleProp::Value(Units::Percentage(100.0)),
@@ -40,9 +44,6 @@ pub fn UIStationMenu() {
     });
 
     let station_menu_styles = Some(Style {
-        // left: StyleProp::Value(Units::Stretch(1.0)),
-        // width: StyleProp::Value(Units::Pixels(200.0)),
-        // height: StyleProp::Value(Units::Auto),
         left: StyleProp::Value(Units::Percentage(20.0)),
         right: StyleProp::Value(Units::Percentage(20.0)),
         top: StyleProp::Value(Units::Percentage(20.0)),
@@ -59,10 +60,6 @@ pub fn UIStationMenu() {
         EventType::Click(..) => {
             println!("STATION MENU BUTTON CLICKED!");
             set_show(!show);
-            // ctx.query_world::<EventWriter<CraftEvent>, _, ()>(|mut writer| {
-            //     writer.send(CraftEvent(clone.clone()))
-            // });
-            // on_create.call(refineable_id);
         }
         _ => (),
     }));
@@ -70,16 +67,18 @@ pub fn UIStationMenu() {
 
     rsx! {
         <>
-            <StationMenuButton on_event={on_menu_button_event}/>
-            <If condition={show}>
-            <Background styles={container_styles}>
-                <Background styles={station_menu_styles}>
-                    <Text content={"Base Station Menu".to_string()} size={14.0} />
-                    <Text content={"Upgrades".to_string()} size={12.0} />
-                    <Text content={"Crafting".to_string()} size={12.0} />
-                    <Text content={"Cargo Bay Inventory".to_string()} size={12.0} />
-                </Background>
-            </Background>
+            <If condition={near_base_station}>
+                <StationMenuButton on_event={on_menu_button_event}/>
+                <If condition={show}>
+                    <Background styles={container_styles}>
+                        <Background styles={station_menu_styles}>
+                            <Text content={"Base Station Menu".to_string()} size={14.0} />
+                            <Text content={"Upgrades".to_string()} size={12.0} />
+                            <Text content={"Crafting".to_string()} size={12.0} />
+                            <Text content={"Cargo Bay Inventory".to_string()} size={12.0} />
+                        </Background>
+                    </Background>
+                </If>
             </If>
         </>
     }
