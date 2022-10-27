@@ -8,6 +8,7 @@ use kayak_ui::widgets::App as KayakApp;
 use bevy::{prelude::*, utils::HashSet};
 
 use crate::widgets::ship_information::{UIShipInformationView, ShipInformation};
+use crate::widgets::station_menu::UIStationMenu;
 use crate::{
     base_station::BaseStation,
     factory::Factory,
@@ -88,6 +89,8 @@ impl GameUIPlugin {
                     <UIContextClueView />
                     <UICraftingTabsView />
                     <UIShipInformationView />
+                    <UIStationMenu />
+                    
                 </KayakApp>
             }
         });

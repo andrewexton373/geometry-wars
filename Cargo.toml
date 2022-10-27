@@ -18,8 +18,8 @@ bevy-debug-text-overlay = "3.0"
 kayak_ui = { git="https://github.com/StarArawn/kayak_ui", rev="108affb36101e0c06fd9a28aa80224323365227d", features = ["bevy_renderer"] }
 
 # Enable a small amount of optimization in debug mode
-[profile.dev]
-opt-level = 1
+# [profile.dev]
+# opt-level = 1
 
 # Enable high optimizations for dependencies (incl. Bevy), but not for our code:
 [profile.dev.package."*"]

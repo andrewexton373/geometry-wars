@@ -23,25 +23,11 @@ pub fn UIContextClueView(props: UIContextClueProps) {
 
     let context_clues = ui_items.get().context_clues.clone();
 
-    let size = Vec2 { x: 400.0, y: 100.0 };
-    let offset = 200.0; // width of station inventory
-    let ui_context_clue_pos = (HEIGHT * RESOLUTION / 2. - size.x / 2.0, 100.0);
-
     let container_styles = Some(Style {
         width: StyleProp::Value(Units::Percentage(100.0)),
         height: StyleProp::Value(Units::Percentage(100.0)),
         position_type: StyleProp::Value(PositionType::SelfDirected),
-        // background_color: StyleProp::Value(Color::new(1.0, 0.0, 0.0, 0.8)),
         ..Style::default()
-    });
-
-    let ship_information_styles = Some(Style {
-        left: StyleProp::Value(Units::Stretch(1.0)),
-        width: StyleProp::Value(Units::Pixels(200.0)),
-        height: StyleProp::Value(Units::Auto),
-        padding: StyleProp::Value(Edge::all(Units::Pixels(10.0))),
-        background_color: StyleProp::Value(Color::new(0.4, 0.4, 0.4, 1.0)),
-        ..Default::default()
     });
 
     if !context_clues.is_empty() {
