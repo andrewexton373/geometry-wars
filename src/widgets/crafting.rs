@@ -55,10 +55,10 @@ pub fn UICraftingTabsView() {
         ..Style::default()
     });
 
-    let ship_information_styles = Some(Style {
-        top: StyleProp::Value(Units::Stretch(1.0)),
-        left: StyleProp::Value(Units::Pixels(200.0)),
-        width: StyleProp::Value(Units::Pixels(400.0)),
+    let station_crafting_styles = Some(Style {
+        // top: StyleProp::Value(Units::Stretch(1.0)),
+        // left: StyleProp::Value(Units::Pixels(200.0)),
+        width: StyleProp::Value(Units::Percentage(100.0)),
         height: StyleProp::Value(Units::Pixels(300.0)),
         padding: StyleProp::Value(Edge::all(Units::Pixels(10.0))),
         background_color: StyleProp::Value(Color::new(0.4, 0.4, 0.4, 1.0)),
@@ -67,7 +67,7 @@ pub fn UICraftingTabsView() {
 
     rsx! {
         <Element styles={container_styles}>
-            <Background styles={ship_information_styles}>
+            <Background styles={station_crafting_styles}>
                 <Text content={"Station Production".to_string()}/>
                 <TabThemeProvider initial_theme={theme}>
                     <TabDemo />

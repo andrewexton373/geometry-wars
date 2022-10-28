@@ -72,8 +72,8 @@ pub fn UIBaseInventory() {
     });
 
     let base_inventory_styles = Some(Style {
-        top: StyleProp::Value(Units::Stretch(1.0)),
-        left: StyleProp::Value(Units::Stretch(0.0)),
+        // top: StyleProp::Value(Units::Stretch(1.0)),
+        // left: StyleProp::Value(Units::Stretch(0.0)),
         width: StyleProp::Value(Units::Pixels(200.0)),
         height: StyleProp::Value(Units::Auto),
         padding: StyleProp::Value(Edge::all(Units::Pixels(10.0))),

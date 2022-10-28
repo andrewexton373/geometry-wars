@@ -50,6 +50,8 @@ pub fn UIStationMenu() {
     });
 
     let station_menu_styles = Some(Style {
+        layout_type: StyleProp::Value(LayoutType::Column),
+
         left: StyleProp::Value(Units::Percentage(20.0)),
         right: StyleProp::Value(Units::Percentage(20.0)),
         top: StyleProp::Value(Units::Percentage(20.0)),
@@ -70,6 +72,19 @@ pub fn UIStationMenu() {
         _ => (),
     }));
 
+    let columns = Some(Style {
+        layout_type: StyleProp::Value(LayoutType::Row),
+        width: StyleProp::Value(Units::Percentage(100.0)),
+        height: StyleProp::Value(Units::Percentage(100.0)),
+
+        ..Default::default()
+    });
+
+    let fill_vertical = Some(Style {
+        height: StyleProp::Value(Units::Stretch(1.0)),
+        ..Default::default()
+    });
+
     rsx! {
         <>
             <If condition={near_base_station}>
@@ -78,14 +93,22 @@ pub fn UIStationMenu() {
                     <Background styles={container_styles}>
                         <Background styles={station_menu_styles}>
                             <Text content={"Base Station Menu".to_string()} size={14.0} />
-                            <Text content={"Upgrades".to_string()} size={12.0} />
-                            <UIUpgradesMenu upgrades={upgrades}/>
+                            <Element styles={columns}>
+                                <Element styles={fill_vertical}>
+                                    <Text content={"Upgrades".to_string()} size={12.0} />
+                                    <UIUpgradesMenu upgrades={upgrades}/>
+                                </Element>
 
-                            <Text content={"Crafting".to_string()} size={12.0} />
-                            <UICraftingTabsView />
+                                <Element styles={fill_vertical}>
+                                    <Text content={"Crafting".to_string()} size={12.0} />
+                                    <UICraftingTabsView />
+                                </Element>
 
-                            <Text content={"Cargo Bay Inventory".to_string()} size={12.0} />
-                            <UIBaseInventory />
+                                <Element styles={fill_vertical}>
+                                <Text content={"Cargo Bay Inventory".to_string()} size={12.0} />
+                                <UIBaseInventory />
+                                </Element>
+                            </Element>
                         </Background>
                     </Background>
                 </If>
@@ -113,6 +136,7 @@ pub fn StationMenuButton(props: StationMenuButtonProps) {
         width: StyleProp::Value(Units::Pixels(120.0)),
         // left: StyleProp::Value(Units::Stretch(1.0)),
         left: StyleProp::Value(Units::Percentage(0.0)),
+        top: StyleProp::Value(Units::Stretch(1.0)),
         ..base_styles
     });
 

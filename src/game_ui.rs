@@ -87,9 +87,9 @@ impl GameUIPlugin {
             render! {
                 <KayakApp>
                     <UIShipInventory />
-                    <UIBaseInventory />
+                    // <UIBaseInventory />
                     <UIContextClueView />
-                    <UICraftingTabsView />
+                    // <UICraftingTabsView />
                     <UIShipInformationView />
                     <UIStationMenu />
 
