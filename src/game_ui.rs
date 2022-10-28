@@ -7,7 +7,7 @@ use kayak_ui::widgets::App as KayakApp;
 
 use bevy::{prelude::*, utils::HashSet};
 
-use crate::player::UpgradesComponent;
+use crate::upgrades::UpgradesComponent;
 use crate::widgets::ship_information::{ShipInformation, UIShipInformationView};
 use crate::widgets::station_menu::{UIStationMenu, UpgradeType};
 use crate::{
@@ -40,6 +40,7 @@ pub enum ContextClue {
     NearBaseStation,
     CargoBayFull,
     ShipFuelEmpty,
+    ShipInventoryEmpty,
 }
 
 impl ContextClue {
@@ -50,6 +51,7 @@ impl ContextClue {
                 "The Player's Ship Cargo Bay is Full. Deposit Ore at Base Station."
             }
             ContextClue::ShipFuelEmpty => "The Player's Ship Fuel Tank is Empty!",
+            ContextClue::ShipInventoryEmpty => "The Player's Ship Inventory is Empty!",
             _ => "Missing Context Clue Note.",
         }
         .to_string()

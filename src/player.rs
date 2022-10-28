@@ -8,6 +8,7 @@ use crate::inventory::{Capacity, Inventory, InventoryPlugin};
 use crate::particles::PlayerShipTrailParticles;
 use crate::player_stats_bar::PlayerStatsBarPlugin;
 use crate::projectile::ProjectilePlugin;
+use crate::upgrades::UpgradesComponent;
 use crate::widgets::station_menu::{UpgradeEvent, UpgradeLevel, UpgradeType};
 use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
@@ -19,71 +20,10 @@ use bevy_rapier2d::prelude::*;
 use std::f32::consts::PI;
 use strum::IntoEnumIterator;
 
-
 pub struct PlayerPlugin;
 
-pub trait Upgradeable {
-    fn set_upgrade_level(&mut self, upgrade_level: UpgradeLevel);
-    fn upgrade_effect(&self) -> f32;
-}
+pub struct EmptyInventoryDepositTimer(Option<Timer>);
 
-#[derive(Component, Default, Inspectable)]
-pub struct UpgradesComponent {
-    pub upgrades: Vec<UpgradeType>,
-}
-
-impl UpgradesComponent {
-    pub fn new() -> Self {
-        let mut upgrades = vec![];
-        for upgrade_type in UpgradeType::iter() {
-            if upgrade_type != UpgradeType::None {
-                upgrades.push(upgrade_type);
-            }
-        }
-
-        Self { upgrades: upgrades }
-    }
-
-    pub fn upgrade(
-        &mut self,
-        upgrade_type: UpgradeType,
-        player: &mut Player,
-        ship_inventory: &mut Inventory,
-    ) {
-        if let Some(to_upgrade) = self
-            .upgrades
-            .iter_mut()
-            .find(|upgrade| **upgrade == upgrade_type)
-        {
-            // TODO if the ship inventory has the required components, perform the upgrade.
-            // if to_upgrade.requirements()
-
-            let upgrade_requirements = to_upgrade.next().requirements().unwrap().requirements;
-
-            if ship_inventory.has_items(upgrade_requirements.clone()) {
-                *to_upgrade = match to_upgrade {
-                    UpgradeType::None => UpgradeType::None,
-                    UpgradeType::Health(level) => {
-                        let next = level.next().unwrap_or_else(|| UpgradeLevel::MaxLevel);
-                        player.health.set_upgrade_level(next.clone());
-                        ship_inventory.remove_all_from_inventory(upgrade_requirements.clone());
-                        UpgradeType::Health(next)
-                    }
-                    UpgradeType::ShipCargoBay(level) => {
-                        let next = level.next().unwrap_or_else(|| UpgradeLevel::MaxLevel);
-                        player.battery.set_upgrade_level(next.clone());
-                        ship_inventory.remove_all_from_inventory(upgrade_requirements.clone());
-                        UpgradeType::ShipCargoBay(next)
-                    }
-                }
-            } else {
-                println!("DON'T HAVE MATERIALS REQUIRED FOR UPGRADE!");
-            }
-        }
-
-        println!("{:?}", self.upgrades);
-    }
-}
 
 #[derive(Component, Inspectable, Default)]
 pub struct Player {
@@ -143,7 +83,9 @@ impl Plugin for PlayerPlugin {
             .add_system(Self::gravitate_collectibles)
             .add_system(Self::keep_player_on_top)
             .add_system(Self::ship_battery_is_empty_context_clue)
+            .add_system(Self::display_empty_ship_inventory_context_clue)
             .add_system(Self::on_upgrade_event)
+            .insert_resource(EmptyInventoryDepositTimer(None))
             .register_inspectable::<Player>();
     }
 }
@@ -395,9 +337,11 @@ impl PlayerPlugin {
         }
     }
 
+
     fn player_deposit_control(
         kb: Res<Input<KeyCode>>,
         can_deposit: Res<CanDeposit>,
+        mut empty_deposit_timer: ResMut<EmptyInventoryDepositTimer>,
         mut player_query: Query<&mut Inventory, (With<Player>, Without<BaseStation>)>,
         mut base_station_query: Query<&mut Inventory, (With<BaseStation>, Without<Player>)>,
     ) {
@@ -406,11 +350,35 @@ impl PlayerPlugin {
             let mut player_inventory = player_query.single_mut();
             let mut base_station_inventory = base_station_query.single_mut();
 
+            if player_inventory.items.is_empty() {
+                let timer = empty_deposit_timer.as_mut();
+                *timer = EmptyInventoryDepositTimer(Some(Timer::from_seconds(3.0, false)));
+            }
+
             for item in player_inventory.clone().items.iter() {
                 base_station_inventory.add_to_inventory(*item);
                 player_inventory.remove_from_inventory(*item);
             }
         }
+    }
+
+    fn display_empty_ship_inventory_context_clue(
+        mut context_clues: ResMut<ContextClues>,
+        mut empty_deposit_timer: ResMut<EmptyInventoryDepositTimer>,
+        time: Res<Time>
+    ) {
+        if let Some(mut timer) = empty_deposit_timer.0.as_mut() {
+            timer.tick(time.delta());
+            context_clues.0.insert(ContextClue::ShipInventoryEmpty);
+
+            if timer.finished() {
+                empty_deposit_timer.0 = None;
+            }
+
+        } else {
+            context_clues.0.remove(&ContextClue::ShipInventoryEmpty);
+        }
+
     }
 
     fn gravitate_collectibles(

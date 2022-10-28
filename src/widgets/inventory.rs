@@ -63,7 +63,7 @@ pub fn UIBaseInventory() {
     let container_styles = Some(Style {
         width: StyleProp::Value(Units::Percentage(100.0)),
         height: StyleProp::Value(Units::Percentage(100.0)),
-        position_type: StyleProp::Value(PositionType::SelfDirected),
+        // position_type: StyleProp::Value(PositionType::SelfDirected),
         // background_color: StyleProp::Value(Color::new(1.0, 0.0, 0.0, 0.8)),
         ..Style::default()
     });
@@ -71,7 +71,7 @@ pub fn UIBaseInventory() {
     let base_inventory_styles = Some(Style {
         // top: StyleProp::Value(Units::Stretch(1.0)),
         // left: StyleProp::Value(Units::Stretch(0.0)),
-        width: StyleProp::Value(Units::Pixels(200.0)),
+        width: StyleProp::Value(Units::Percentage(100.0)),
         height: StyleProp::Value(Units::Auto),
         padding: StyleProp::Value(Edge::all(Units::Pixels(10.0))),
         background_color: StyleProp::Value(Color::new(0.4, 0.4, 0.4, 1.0)),

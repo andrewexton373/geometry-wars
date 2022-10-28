@@ -1,6 +1,8 @@
 // #![feature(array_methods)]
 #![feature(arbitrary_enum_discriminant)]
 
+use astroid::AstroidPlugin;
+use base_station::BaseStationPlugin;
 use bevy::{
     diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
     prelude::*,
@@ -11,7 +13,17 @@ use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
 use bevy_inspector_egui::WorldInspectorPlugin;
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
+use crosshair::CrosshairPlugin;
+use factory::FactoryPlugin;
+use game_ui::GameUIPlugin;
+use inventory::InventoryPlugin;
+use particles::ParticlePlugin;
+use player::{PlayerPlugin, Player};
+use player_stats_bar::PlayerStatsBarPlugin;
+use projectile::ProjectilePlugin;
+use refinery::RefineryPlugin;
 
+mod upgrades;
 mod battery;
 mod factory;
 mod game_ui;
@@ -21,31 +33,13 @@ mod particles;
 mod recipe;
 mod refinery;
 mod widgets;
-use factory::FactoryPlugin;
-use game_ui::GameUIPlugin;
-
 mod player;
-use particles::ParticlePlugin;
-use player::{Player, PlayerPlugin};
-
 mod astroid;
-use astroid::AstroidPlugin;
-
 mod projectile;
-use projectile::ProjectilePlugin;
-
 mod crosshair;
-use crosshair::CrosshairPlugin;
-
 mod player_stats_bar;
-use player_stats_bar::PlayerStatsBarPlugin;
-
 mod base_station;
-use base_station::BaseStationPlugin;
-
 mod inventory;
-use inventory::InventoryPlugin;
-use refinery::RefineryPlugin;
 
 // Defines the amount of time that should elapse between each physics step.
 // const TIME_STEP: f32 = 1.0 / 60.0;
@@ -110,7 +104,6 @@ fn main() {
 fn setup(
     mut commands: Commands,
     mut rapier_config: ResMut<RapierConfiguration>,
-    // mut effects: ResMut<Assets<EffectAsset>>,
 ) {
     commands
         .spawn_bundle(Camera2dBundle::default())
@@ -137,7 +130,6 @@ fn camera_follows_player(
 fn screen_print_debug_text(diagnostics: Res<Diagnostics>) {
     if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(average) = fps.average() {
-            // Update the value of the second section
             screen_print!(col: Color::WHITE, "fps: {average}");
         }
     }

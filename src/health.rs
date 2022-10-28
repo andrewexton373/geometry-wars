@@ -1,5 +1,4 @@
-use crate::player::Upgradeable;
-use crate::widgets::station_menu::UpgradeLevel;
+use crate::{widgets::station_menu::UpgradeLevel, upgrades::Upgradeable};
 use bevy::prelude::*;
 use bevy_inspector_egui::Inspectable;
 

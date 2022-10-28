@@ -64,6 +64,25 @@ pub fn UIStationMenu() {
         ..Default::default()
     });
 
+    let columns = Some(Style {
+        layout_type: StyleProp::Value(LayoutType::Row),
+        col_between: StyleProp::Value(Units::Pixels(8.0)),
+        width: StyleProp::Value(Units::Percentage(100.0)),
+        height: StyleProp::Value(Units::Percentage(100.0)),
+        left: StyleProp::Value(Units::Auto),
+        right: StyleProp::Value(Units::Auto),
+        ..Default::default()
+    });
+
+    let fill_vertical = Some(Style {
+        height: StyleProp::Value(Units::Stretch(1.0)),
+        width: StyleProp::Value(Units::Stretch(1.0)),
+        left: StyleProp::Value(Units::Auto),
+        right: StyleProp::Value(Units::Auto),
+        // padding: StyleProp::Value(Edge::all(Units::Pixels(8.0))),
+        ..Default::default()
+    });
+
     let on_menu_button_event = Some(OnEvent::new(move |_ctx, event| match event.event_type {
         EventType::Click(..) => {
             println!("STATION MENU BUTTON CLICKED!");
@@ -72,18 +91,7 @@ pub fn UIStationMenu() {
         _ => (),
     }));
 
-    let columns = Some(Style {
-        layout_type: StyleProp::Value(LayoutType::Row),
-        width: StyleProp::Value(Units::Percentage(100.0)),
-        height: StyleProp::Value(Units::Percentage(100.0)),
 
-        ..Default::default()
-    });
-
-    let fill_vertical = Some(Style {
-        height: StyleProp::Value(Units::Stretch(1.0)),
-        ..Default::default()
-    });
 
     rsx! {
         <>
@@ -131,7 +139,6 @@ pub fn StationMenuButton(props: StationMenuButtonProps) {
         render_command: StyleProp::Value(RenderCommand::Layout),
         height: StyleProp::Value(Units::Pixels(120.0)),
         width: StyleProp::Value(Units::Pixels(120.0)),
-        // left: StyleProp::Value(Units::Stretch(1.0)),
         left: StyleProp::Value(Units::Percentage(0.0)),
         top: StyleProp::Value(Units::Stretch(1.0)),
         ..base_styles
@@ -190,7 +197,6 @@ pub fn UIUpgradesMenu(props: UIUpgradesMenuProps) {
                 }
             }))}
         </Background>
-        // </Element>
     }
 }
 
@@ -363,25 +369,25 @@ pub fn UIUpgrade(props: UIUpgradeProps) {
         ..Default::default()
     });
 
+    let bg_color = Some(Style{
+        background_color: StyleProp::Value(Color::new(0.176, 0.196, 0.215, 1.0)),
+        height: StyleProp::Value(Units::Auto),
+        padding: StyleProp::Value(Edge::all(Units::Pixels(8.0))),
+        ..Default::default()
+    });
+
+
     let cloned = upgrade_type.clone();
 
     let on_event = OnEvent::new(move |ctx, event| match event.event_type {
         EventType::Click(..) => {
             println!("UPGRADE BUTTON CLICKED! {:?}", cloned);
-
-            // TODO Implement Events for Upgrades
             ctx.query_world::<EventWriter<UpgradeEvent>, _, ()>(|mut writer| {
                 writer.send(UpgradeEvent(cloned.clone().unwrap()));
             });
-            // on_create.call(refineable_id);
         }
         _ => (),
     });
-
-    // let requirements = vec![InventoryItem::Component(
-    //     UpgradeComponent::Cog,
-    //     Amount::Quantity(1),
-    // )];
 
     if let Some(upgrade_type) = upgrade_type.clone() {
         match upgrade_type.clone() {
@@ -390,11 +396,13 @@ pub fn UIUpgrade(props: UIUpgradeProps) {
 
                 rsx! {
                     <Element styles={styles}>
-                        <Text content={format!("Upgrade Type: {}", upgrade_type.clone().to_string())} />
-                        <UIRequirements requirements={next_upgrade_level.requirements().clone()} />
-                        <UpgradeButton on_event={Some(on_event)} />
+                        <Background styles={bg_color}>
+                            <Text content={format!("Upgrade Type: {}", upgrade_type.clone().to_string())} />
+                            <UIRequirements requirements={next_upgrade_level.requirements().clone()} />
+                            <UpgradeButton on_event={Some(on_event)} />
 
-                        <UIUpgradeLevel upgrade_level={level.clone()} />
+                            <UIUpgradeLevel upgrade_level={level.clone()} />
+                        </Background>
                     </Element>
                 }
             }
