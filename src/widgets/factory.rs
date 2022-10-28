@@ -7,7 +7,7 @@ use kayak_ui::core::{
     CursorIcon, EventType, OnEvent, WidgetProps,
 };
 use kayak_ui::core::{constructor, Binding, Bound, VecTracker};
-use kayak_ui::widgets::{Background, Element, Text, ScrollMode, ScrollBox};
+use kayak_ui::widgets::{Background, Element, ScrollBox, ScrollMode, Text};
 
 use bevy::prelude::*;
 
@@ -70,12 +70,12 @@ pub fn Craftables(props: CraftablesProps) {
         on_create,
     } = props.clone();
 
-    let auto = Some(Style{
+    let auto = Some(Style {
         height: StyleProp::Value(Units::Stretch(1.0)),
         render_command: StyleProp::Value(RenderCommand::Layout),
         ..Style::default()
     });
-    
+
     let clamped = ScrollMode::Clamped;
 
     rsx! {
@@ -87,7 +87,6 @@ pub fn Craftables(props: CraftablesProps) {
         }))}
         </ScrollBox>
     }
-
 }
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]

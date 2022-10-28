@@ -2,7 +2,6 @@ use crate::base_station::BaseStation;
 use crate::game_ui::{ContextClue, ContextClues};
 use crate::inventory::{Amount, Inventory, InventoryItem};
 use crate::particles::ShipAstroidImpactParticles;
-use crate::player::Health;
 use crate::{Player, PIXELS_PER_METER};
 use bevy::prelude::*;
 use bevy::reflect::FromReflect;

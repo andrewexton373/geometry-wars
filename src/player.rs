@@ -1,12 +1,14 @@
 use crate::astroid::Collectible;
 use crate::base_station::{BaseStation, CanDeposit};
+use crate::battery::Battery;
 use crate::crosshair::Crosshair;
 use crate::game_ui::{ContextClue, ContextClues};
+use crate::health::Health;
 use crate::inventory::{Capacity, Inventory, InventoryPlugin};
 use crate::particles::PlayerShipTrailParticles;
 use crate::player_stats_bar::PlayerStatsBarPlugin;
 use crate::projectile::ProjectilePlugin;
-use crate::widgets::station_menu::{UpgradeEvent, UpgradeType, UpgradeLevel};
+use crate::widgets::station_menu::{UpgradeEvent, UpgradeLevel, UpgradeType};
 use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
@@ -15,71 +17,23 @@ use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use bevy_prototype_lyon::prelude as lyon;
 use bevy_rapier2d::prelude::*;
 use std::f32::consts::PI;
-use strum_macros::EnumIter;
 use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
 
 pub struct PlayerPlugin;
 
-#[derive(Component, Inspectable, Default, Clone, Debug)]
-pub struct Health {
-    current: f32,
-    maximum: f32,
-    upgrade_level: UpgradeLevel
-}
-
-impl Health {
-    pub fn new() -> Self {
-        Self {
-            current: 100.0,
-            maximum: 100.0,
-            upgrade_level: UpgradeLevel::Level0,
-        }
-    }
-
-    pub fn current(&self) -> f32 {
-        self.current
-    }
-
-    pub fn maximum(&self) -> f32 {
-        self.maximum * self.upgrade_effect()
-    }
-
-    pub fn set_upgrade_level(&mut self, upgrade_level: UpgradeLevel) {
-        self.upgrade_level = upgrade_level;
-    }
-
-    pub fn upgrade_effect(&self) -> f32 {
-        match self.upgrade_level {
-            UpgradeLevel::Level0 => 1.0,
-            UpgradeLevel::Level1(_) => 1.5,
-            UpgradeLevel::Level2(_) => 2.0,
-            UpgradeLevel::Level3(_) => 3.0,
-            UpgradeLevel::Level4(_) => 4.0,
-            UpgradeLevel::MaxLevel(_) => 5.0,
-        }
-    }
-}
-
-#[derive(Component, Inspectable, Reflect, Default, Clone, Copy, Debug)]
-pub struct Battery {
-    pub current_capacity: f32,
-    pub maximum_capacity: f32,
-}
-
-impl Battery {
-    pub fn is_empty(&self) -> bool {
-        self.current_capacity <= 0.0
-    }
+pub trait Upgradeable {
+    fn set_upgrade_level(&mut self, upgrade_level: UpgradeLevel);
+    fn upgrade_effect(&self) -> f32;
 }
 
 #[derive(Component, Default, Inspectable)]
 pub struct UpgradesComponent {
-    pub upgrades: Vec<UpgradeType>
+    pub upgrades: Vec<UpgradeType>,
 }
 
 impl UpgradesComponent {
     pub fn new() -> Self {
-    
         let mut upgrades = vec![];
         for upgrade_type in UpgradeType::iter() {
             if upgrade_type != UpgradeType::None {
@@ -88,21 +42,25 @@ impl UpgradesComponent {
         }
 
         Self { upgrades: upgrades }
-
     }
 
     pub fn upgrade(&mut self, upgrade_type: UpgradeType, player: &mut Player) {
-        if let Some(mut to_upgrade) = self.upgrades.iter_mut().find(|upgrade| {**upgrade == upgrade_type}) {
-                *to_upgrade = match to_upgrade {
-                    UpgradeType::None => {UpgradeType::None},
-                    UpgradeType::Health(level) => {
-                        let next = level.next().unwrap_or_else(||{UpgradeLevel::MaxLevel(None)});
-                        player.health.set_upgrade_level(next.clone());
-                        UpgradeType::Health(next)
-                    },
-                    UpgradeType::ShipCargoBay(level) =>  {UpgradeType::ShipCargoBay(level.next().unwrap_or_else(||{UpgradeLevel::MaxLevel(None)}))}
+        if let Some(mut to_upgrade) = self
+            .upgrades
+            .iter_mut()
+            .find(|upgrade| **upgrade == upgrade_type)
+        {
+            *to_upgrade = match to_upgrade {
+                UpgradeType::None => UpgradeType::None,
+                UpgradeType::Health(level) => {
+                    let next = level.next().unwrap_or_else(|| UpgradeLevel::MaxLevel(None));
+                    player.health.set_upgrade_level(next.clone());
+                    UpgradeType::Health(next)
                 }
-            
+                UpgradeType::ShipCargoBay(level) => UpgradeType::ShipCargoBay(
+                    level.next().unwrap_or_else(|| UpgradeLevel::MaxLevel(None)),
+                ),
+            }
         }
 
         println!("{:?}", self.upgrades);
@@ -117,7 +75,6 @@ pub struct Player {
     pub delta_rotation: f32,
     pub health: Health,
     pub battery: Battery,
-    // pub upgrades: UpgradesComponent
 }
 
 impl Player {
@@ -127,33 +84,28 @@ impl Player {
             delta_y: 0.0,
             delta_rotation: 0.0,
             health: Health::new(),
-            battery: Battery {
-                current_capacity: 1000.0,
-                maximum_capacity: 1000.0,
-            },
-            // upgrades: UpgradesComponent::new()
+            battery: Battery::new(), // upgrades: UpgradesComponent::new()
         }
     }
 
     pub fn take_damage(&mut self, damage: f32) {
         let modified_health = self.health.current() - damage;
-        let modified_health = modified_health.clamp(0.0, self.health.maximum());
-        self.health.current = modified_health;
+        self.health.set_current(modified_health);
     }
 
     pub fn repair_damage(&mut self, amount: f32) {
         let updated_health = self.health.current() + amount;
-        self.health.current = updated_health.clamp(0.0, self.health.maximum());
+        self.health.set_current(updated_health);
     }
 
     pub fn drain_battery(&mut self, amount: f32) {
-        let updated_capacity = self.battery.current_capacity - amount;
-        self.battery.current_capacity = updated_capacity.clamp(0.0, self.battery.maximum_capacity);
+        let updated_capacity = self.battery.current() - amount;
+        self.battery.set_current(updated_capacity);
     }
 
     pub fn charge_battery(&mut self, amount: f32) {
-        let updated_capacity = self.battery.current_capacity + amount;
-        self.battery.current_capacity = updated_capacity.clamp(0.0, self.battery.maximum_capacity);
+        let updated_capacity = self.battery.current() + amount;
+        self.battery.set_current(updated_capacity);
     }
 }
 
@@ -161,8 +113,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         // add things to your app here
 
-        app
-            .add_event::<UpgradeEvent>()
+        app.add_event::<UpgradeEvent>()
             .add_startup_system(Self::spawn_player.label("spawn_player"))
             .add_system(Self::update_player_mass)
             .add_system(Self::player_movement.after(Self::update_player_mass))
@@ -305,7 +256,7 @@ impl PlayerPlugin {
         }
 
         // If player has battery capacity remaining, apply controlled thrust.
-        if player.battery.current_capacity > 0.0 {
+        if player.battery.current() > 0.0 {
             let force = thrust.normalize_or_zero() * ACCELERATION;
             let energy_spent = force.length() / 500000.0; // TODO: magic number
 
@@ -502,12 +453,8 @@ impl PlayerPlugin {
     /// Perfom a smelt action with a recipe provided by the SmeltEvent.
     fn on_upgrade_event(
         mut reader: EventReader<UpgradeEvent>,
-        mut base_station_query: Query<
-            (&BaseStation, &mut Inventory),
-            With<BaseStation>,
-        >,
-        mut player_query: Query<(&mut Player, &mut UpgradesComponent), Without<BaseStation>>
-        // mut refinery_timer: ResMut<RefineryTimer>,
+        mut base_station_query: Query<(&BaseStation, &mut Inventory), With<BaseStation>>,
+        mut player_query: Query<(&mut Player, &mut UpgradesComponent), Without<BaseStation>>, // mut refinery_timer: ResMut<RefineryTimer>,
     ) {
         for event in reader.iter() {
             println!("Upgrade Event Detected!");
@@ -521,10 +468,10 @@ impl PlayerPlugin {
 
             // match &upgrade {
             //     crate::widgets::station_menu::UpgradeType::Health(level) => {
-                    
+
             //     },
             //     crate::widgets::station_menu::UpgradeType::ShipCargoBay(level) => {
-                    
+
             //     },
             //     _ => {}
             // }
@@ -532,5 +479,4 @@ impl PlayerPlugin {
             // Self::smelt_materials(inventory, &recipe, refinery, &mut refinery_timer);
         }
     }
-
 }

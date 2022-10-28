@@ -33,7 +33,7 @@ impl fmt::Debug for Amount {
             }
             Self::Quantity(arg0) => {
                 write!(f, "x{}", arg0)
-            },
+            }
             _ => {
                 write!(f, "None")
             }
@@ -52,9 +52,7 @@ impl AddAssign for Amount {
                 Amount::Quantity(q) => *quantity += q,
                 _ => {}
             },
-            Amount::None => {
-
-            }
+            Amount::None => {}
         }
     }
 }
@@ -70,9 +68,7 @@ impl SubAssign for Amount {
                 Amount::Quantity(q) => *quantity -= q,
                 _ => {}
             },
-            Amount::None => {
-
-            }
+            Amount::None => {}
         }
     }
 }
@@ -154,7 +150,7 @@ impl Inventory {
             Amount::Quantity(_) => {
                 // TODO: calculate weight with quantity * item_weight
                 return true;
-            },
+            }
             Amount::None => {
                 return true; // Always has room for nothing?
             }
@@ -173,13 +169,11 @@ impl Inventory {
             match item.amount() {
                 Amount::Weight(w) => {
                     gross_weight += w;
-                },
+                }
                 Amount::Quantity(q) => {
                     // TODO: calculate weight with quantity * item_weight
-                },
-                Amount::None => {
-
                 }
+                Amount::None => {}
             }
         }
 

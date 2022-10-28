@@ -10,28 +10,25 @@ use kayak_ui::core::{
     CursorIcon, EventType, OnEvent, WidgetProps,
 };
 use kayak_ui::core::{constructor, Binding, Bound, VecTracker};
-use kayak_ui::widgets::{Background, Element, Text, Window, NinePatch, Clip};
+use kayak_ui::widgets::{Background, Clip, Element, NinePatch, Text, Window};
 
-use bevy::prelude::{*};
+use bevy::prelude::*;
 
-use crate::{HEIGHT, RESOLUTION, WIDTH};
 use crate::game_ui::UIItems;
 use crate::item_producer::ItemProducer;
 use crate::recipe::Recipe;
 use crate::widgets::currently_processing::CurrentlyProcessing;
+use crate::{HEIGHT, RESOLUTION, WIDTH};
 
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
 pub struct ShipInformation {
     pub net_weight: f32,
     pub speed: f32,
-    pub direction: f32
+    pub direction: f32,
 }
 
 #[widget]
 pub fn UIShipInformationView() {
-
-
-
     let ui_items =
         context.query_world::<Res<Binding<UIItems>>, _, _>(move |ui_items| ui_items.clone());
     context.bind(&ui_items);

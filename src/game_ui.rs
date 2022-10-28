@@ -8,7 +8,7 @@ use kayak_ui::widgets::App as KayakApp;
 use bevy::{prelude::*, utils::HashSet};
 
 use crate::player::UpgradesComponent;
-use crate::widgets::ship_information::{UIShipInformationView, ShipInformation};
+use crate::widgets::ship_information::{ShipInformation, UIShipInformationView};
 use crate::widgets::station_menu::{UIStationMenu, UpgradeType};
 use crate::{
     base_station::BaseStation,
@@ -32,7 +32,7 @@ pub struct UIItems {
     pub remaining_refinery_time: f32,
     pub context_clues: HashSet<ContextClue>,
     pub ship_info: ShipInformation,
-    pub upgrades: Vec<UpgradeType>
+    pub upgrades: Vec<UpgradeType>,
 }
 
 #[derive(Default, Debug, Clone, Copy, Eq, PartialEq, Hash)]
@@ -101,8 +101,10 @@ impl GameUIPlugin {
     }
 
     fn update_ui_data(
-
-        player_query: Query<(&UpgradesComponent, &Inventory, &Velocity), (With<Player>, Without<BaseStation>)>,
+        player_query: Query<
+            (&UpgradesComponent, &Inventory, &Velocity),
+            (With<Player>, Without<BaseStation>),
+        >,
         base_station_query: Query<
             (&Inventory, &Refinery, &Factory),
             (With<BaseStation>, Without<Player>),
@@ -124,9 +126,9 @@ impl GameUIPlugin {
             ship_info: ShipInformation {
                 net_weight: ship_inventory.gross_material_weight(),
                 speed: ship_velocity.linvel.length(),
-                direction: ship_velocity.linvel.angle_between(Vec2::Y) // FIXME: In Rads for now, also wrong
+                direction: ship_velocity.linvel.angle_between(Vec2::Y), // FIXME: In Rads for now, also wrong
             },
-            upgrades: upgrades.upgrades.clone()
+            upgrades: upgrades.upgrades.clone(),
         });
     }
 }

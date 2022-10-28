@@ -1,18 +1,18 @@
 use bevy::utils::HashSet;
-use kayak_ui::core::styles::{Units, PositionType};
+use kayak_ui::core::styles::{PositionType, Units};
 use kayak_ui::core::{constructor, rsx, widget, VecTracker};
 
 use kayak_ui::core::{
     color::Color,
-    styles::{Style, StyleProp, Edge},
+    styles::{Edge, Style, StyleProp},
     WidgetProps,
 };
 use kayak_ui::core::{Binding, Bound};
-use kayak_ui::widgets::{Background, Text, Window, Element};
+use kayak_ui::widgets::{Background, Element, Text, Window};
 
 use bevy::prelude::*;
 
-use crate::game_ui::{UIItems, ContextClue};
+use crate::game_ui::{ContextClue, UIItems};
 use crate::{HEIGHT, RESOLUTION};
 
 #[widget]
@@ -37,19 +37,18 @@ pub fn UIContextClueView(props: UIContextClueProps) {
             </Element>
         }
     }
-
 }
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct UIContextCluesProps {
-    context_clues: HashSet<ContextClue>
+    context_clues: HashSet<ContextClue>,
 }
 
 #[widget]
 pub fn UIContextClues(props: UIContextCluesProps) {
     let UIContextCluesProps { context_clues } = props.clone();
 
-    let size = Vec2 {x: 400., y: 120.};
+    let size = Vec2 { x: 400., y: 120. };
 
     let context_clues_styles = Some(Style {
         position_type: StyleProp::Value(PositionType::SelfDirected),

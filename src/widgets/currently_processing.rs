@@ -5,7 +5,7 @@ use kayak_ui::core::{
     styles::{Edge, LayoutType, Style, StyleProp, Units},
     WidgetProps,
 };
-use kayak_ui::widgets::{If, Text, Element};
+use kayak_ui::widgets::{Element, If, Text};
 
 use crate::recipe::Recipe;
 use crate::widgets::progress_bar::ProgressBar;

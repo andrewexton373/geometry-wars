@@ -5,11 +5,11 @@ use kayak_ui::core::{render, rsx, use_state, widget, Fragment, Handler, KeyCode}
 use kayak_ui::core::{
     color::Color,
     render_command::RenderCommand,
-    styles::{Edge, LayoutType, Style, StyleProp, Units, PositionType},
+    styles::{Edge, LayoutType, PositionType, Style, StyleProp, Units},
     EventType, OnEvent, WidgetProps,
 };
 use kayak_ui::core::{constructor, Bound, VecTracker};
-use kayak_ui::widgets::{Background, Text, Window, Element, ScrollBox, ScrollMode};
+use kayak_ui::widgets::{Background, Element, ScrollBox, ScrollMode, Text, Window};
 
 use bevy::prelude::*;
 

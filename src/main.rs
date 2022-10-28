@@ -1,7 +1,6 @@
 // #![feature(array_methods)]
 #![feature(arbitrary_enum_discriminant)]
 
-
 use bevy::{
     diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
     prelude::*,
@@ -18,8 +17,10 @@ use bevy_inspector_egui::WorldInspectorPlugin;
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 
+mod battery;
 mod factory;
 mod game_ui;
+mod health;
 mod item_producer;
 mod particles;
 mod recipe;

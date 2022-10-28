@@ -7,7 +7,7 @@ use kayak_ui::core::{
     CursorIcon, EventType, OnEvent, WidgetProps,
 };
 use kayak_ui::core::{constructor, Binding, Bound, VecTracker};
-use kayak_ui::widgets::{Background, Element, Text, ScrollBox, ScrollMode, Clip};
+use kayak_ui::widgets::{Background, Clip, Element, ScrollBox, ScrollMode, Text};
 
 use bevy::prelude::*;
 
@@ -77,7 +77,7 @@ pub fn Refineables(props: RefineablesProps) {
         on_create,
     } = props.clone();
 
-    let auto = Some(Style{
+    let auto = Some(Style {
         height: StyleProp::Value(Units::Stretch(1.0)),
         render_command: StyleProp::Value(RenderCommand::Clip),
         ..Style::default()
@@ -149,22 +149,18 @@ pub fn Refineable(props: RefineableProps) {
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct UIRequirementsProps {
-    pub required: Vec<InventoryItem>
+    pub required: Vec<InventoryItem>,
 }
 
 #[widget]
 pub fn UIRequirements(props: UIRequirementsProps) {
-
-    let UIRequirementsProps {
-        required
-    } = props.clone();
+    let UIRequirementsProps { required } = props.clone();
 
     rsx! {
         <Text size={14.0} content={"REQUIREMENTS: TODO!".to_string()} />
 
         // <Text size={14.0} content={format!("Requirements: {:?}", required)} />
     }
-
 }
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]

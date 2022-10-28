@@ -1,8 +1,6 @@
-
-
 use bevy_inspector_egui::Inspectable;
-use kayak_ui::core::styles::{PositionType, LayoutType};
-use kayak_ui::core::{rsx, use_state, widget, constructor};
+use kayak_ui::core::styles::{LayoutType, PositionType};
+use kayak_ui::core::{constructor, rsx, use_state, widget};
 
 use kayak_ui::core::{
     color::Color,
@@ -11,9 +9,9 @@ use kayak_ui::core::{
     CursorIcon, EventType, OnEvent, WidgetProps,
 };
 use kayak_ui::core::{Binding, Bound, VecTracker};
-use kayak_ui::widgets::{Background, Element, Text, If};
+use kayak_ui::widgets::{Background, Element, If, Text};
 
-use bevy::prelude::{*};
+use bevy::prelude::*;
 
 // use enum_iterator::{all, Sequence};
 use strum::IntoEnumIterator;
@@ -21,15 +19,14 @@ use strum_macros::EnumIter;
 use strum_macros::FromRepr;
 
 use crate::factory::UpgradeComponent;
-use crate::game_ui::{UIItems, ContextClue};
-use crate::inventory::{InventoryItem, Amount};
+use crate::game_ui::{ContextClue, UIItems};
+use crate::inventory::{Amount, InventoryItem};
 use crate::widgets::crafting::UICraftingTabsView;
 use crate::widgets::inventory::UIBaseInventory;
 use crate::widgets::refinery::UIRequirements;
 
 #[widget]
 pub fn UIStationMenu() {
-
     let (show, set_show, ..) = use_state!(false);
 
     let ui_items =
@@ -40,7 +37,7 @@ pub fn UIStationMenu() {
     let near_base_station = context_clues.contains(&ContextClue::NearBaseStation);
 
     let upgrades = ui_items.get().upgrades;
-    
+
     if !near_base_station {
         set_show(false);
     }
@@ -73,7 +70,6 @@ pub fn UIStationMenu() {
         _ => (),
     }));
 
-
     rsx! {
         <>
             <If condition={near_base_station}>
@@ -96,7 +92,6 @@ pub fn UIStationMenu() {
             </If>
         </>
     }
-   
 }
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
@@ -153,14 +148,12 @@ pub fn StationMenuButton(props: StationMenuButtonProps) {
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct UIUpgradesMenuProps {
-    pub upgrades: Vec<UpgradeType>
+    pub upgrades: Vec<UpgradeType>,
 }
 
 #[widget]
 pub fn UIUpgradesMenu(props: UIUpgradesMenuProps) {
-    let UIUpgradesMenuProps {
-        upgrades
-    } = props.clone();
+    let UIUpgradesMenuProps { upgrades } = props.clone();
 
     rsx! {
         <>
@@ -177,14 +170,13 @@ pub fn UIUpgradesMenu(props: UIUpgradesMenuProps) {
     }
 }
 
-
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct UIUpgradeProps {
     #[prop_field(Styles)]
     styles: Option<Style>,
     #[prop_field(OnEvent)]
     pub on_event: Option<OnEvent>,
-    pub upgrade_type: Option<UpgradeType>
+    pub upgrade_type: Option<UpgradeType>,
 }
 
 // #[derive(Clone, PartialEq)]
@@ -194,9 +186,8 @@ pub struct UIUpgradeProps {
 
 #[derive(Debug, Clone, PartialEq, Inspectable)]
 pub struct UpgradeRequirements {
-    requirements: Vec<InventoryItem>
+    requirements: Vec<InventoryItem>,
 }
-
 
 #[derive(FromRepr, EnumIter, Debug, Clone, Default, PartialEq, Inspectable)]
 #[repr(u8)]
@@ -207,7 +198,7 @@ pub enum UpgradeLevel {
     Level2(Option<UpgradeRequirements>) = 2,
     Level3(Option<UpgradeRequirements>) = 3,
     Level4(Option<UpgradeRequirements>) = 4,
-    MaxLevel(Option<UpgradeRequirements>) = 5
+    MaxLevel(Option<UpgradeRequirements>) = 5,
 }
 
 impl UpgradeLevel {
@@ -230,10 +221,10 @@ impl UpgradeLevel {
 
 #[derive(Default, EnumIter, Clone, Debug, PartialEq, Inspectable)]
 pub enum UpgradeType {
-   #[default]
+    #[default]
     None,
     Health(UpgradeLevel),
-    ShipCargoBay(UpgradeLevel)
+    ShipCargoBay(UpgradeLevel),
 }
 
 impl ToString for UpgradeType {
@@ -241,8 +232,9 @@ impl ToString for UpgradeType {
         match self {
             UpgradeType::Health(_) => "Health",
             UpgradeType::ShipCargoBay(_) => "Ship Cargo Bay",
-            UpgradeType::None => "NONE UPGRADE."
-        }.to_string()
+            UpgradeType::None => "NONE UPGRADE.",
+        }
+        .to_string()
     }
 }
 
@@ -250,11 +242,10 @@ pub struct UpgradeEvent(pub UpgradeType);
 
 #[widget]
 pub fn UIUpgrade(props: UIUpgradeProps) {
-    
     let UIUpgradeProps {
         styles,
         on_event,
-        upgrade_type
+        upgrade_type,
     } = props.clone();
 
     let styles = Some(Style {
@@ -279,12 +270,14 @@ pub fn UIUpgrade(props: UIUpgradeProps) {
         _ => (),
     });
 
-    let requirements = vec![InventoryItem::Component(UpgradeComponent::Cog, Amount::Quantity(1))];
+    let requirements = vec![InventoryItem::Component(
+        UpgradeComponent::Cog,
+        Amount::Quantity(1),
+    )];
 
     if let Some(upgrade_type) = upgrade_type.clone() {
         match upgrade_type.clone() {
-            UpgradeType::Health(level) |
-            UpgradeType::ShipCargoBay(level) => {
+            UpgradeType::Health(level) | UpgradeType::ShipCargoBay(level) => {
                 rsx! {
                     <Element styles={styles}>
                         <Text content={format!("Upgrade Type: {}", upgrade_type.to_string())} />
@@ -294,11 +287,10 @@ pub fn UIUpgrade(props: UIUpgradeProps) {
                         <UIUpgradeLevel upgrade_level={level.clone()} />
                     </Element>
                 }
-            },
+            }
             _ => {}
         }
     }
-
 }
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
@@ -354,16 +346,12 @@ pub fn UpgradeButton(props: UpgradeButtonProps) {
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct UIUpgradeLevelProps {
-    pub upgrade_level: UpgradeLevel
+    pub upgrade_level: UpgradeLevel,
 }
-
 
 #[widget]
 pub fn UIUpgradeLevel(props: UIUpgradeLevelProps) {
-    
-    let UIUpgradeLevelProps {
-        upgrade_level
-    } = props.clone();
+    let UIUpgradeLevelProps { upgrade_level } = props.clone();
 
     rsx! {
         <>
@@ -376,22 +364,17 @@ pub fn UIUpgradeLevel(props: UIUpgradeLevelProps) {
             // Perform Upgrade Button
         </>
     }
-
 }
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct UILevelIndicatorProps {
-    pub level: u8
+    pub level: u8,
 }
-
 
 #[widget]
 pub fn UIUpgradeLevelIndicator(props: UILevelIndicatorProps) {
-    
-    let UILevelIndicatorProps {
-        level
-    } = props.clone();
-    
+    let UILevelIndicatorProps { level } = props.clone();
+
     let container_styles = Some(Style {
         layout_type: StyleProp::Value(LayoutType::Row),
         col_between: StyleProp::Value(Units::Pixels(5.0)),
@@ -416,5 +399,4 @@ pub fn UIUpgradeLevelIndicator(props: UILevelIndicatorProps) {
 
         </Element>
     }
-
 }
