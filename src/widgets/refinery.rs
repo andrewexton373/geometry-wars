@@ -157,7 +157,10 @@ pub struct UIRequirementsProps {
 
 #[widget]
 pub fn UIRequirements(props: UIRequirementsProps) {
-    let UIRequirementsProps {requirements, required } = props.clone();
+    let UIRequirementsProps {
+        requirements,
+        required,
+    } = props.clone();
 
     if let Some(requirements) = requirements {
         rsx! {
@@ -168,8 +171,6 @@ pub fn UIRequirements(props: UIRequirementsProps) {
             <Text size={14.0} content={"REQUIREMENTS: NO REQUIREMENTS FOUND!".to_string()} />
         }
     }
-
-
 }
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]

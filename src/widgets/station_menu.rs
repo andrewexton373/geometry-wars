@@ -20,7 +20,7 @@ use strum_macros::FromRepr;
 
 use crate::factory::UpgradeComponent;
 use crate::game_ui::{ContextClue, UIItems};
-use crate::inventory::{Amount, InventoryItem, Inventory};
+use crate::inventory::{Amount, Inventory, InventoryItem};
 use crate::widgets::crafting::UICraftingTabsView;
 use crate::widgets::inventory::UIBaseInventory;
 use crate::widgets::refinery::UIRequirements;
@@ -262,7 +262,9 @@ impl UpgradeType {
         let mut requirements = vec![];
 
         match self {
-            UpgradeType::None => {return None; },
+            UpgradeType::None => {
+                return None;
+            }
             UpgradeType::Health(level) => {
                 requirements = match level {
                     UpgradeLevel::Level0 => vec![],
@@ -277,18 +279,27 @@ impl UpgradeType {
                     UpgradeLevel::Level3 => vec![
                         InventoryItem::Component(UpgradeComponent::Cog, Amount::Quantity(1)),
                         InventoryItem::Component(UpgradeComponent::IronPlate, Amount::Quantity(2)),
-                        InventoryItem::Component(UpgradeComponent::SilverConduit, Amount::Quantity(1)),
+                        InventoryItem::Component(
+                            UpgradeComponent::SilverConduit,
+                            Amount::Quantity(1),
+                        ),
                     ],
                     UpgradeLevel::Level4 => vec![
                         InventoryItem::Component(UpgradeComponent::Cog, Amount::Quantity(3)),
                         InventoryItem::Component(UpgradeComponent::IronPlate, Amount::Quantity(5)),
-                        InventoryItem::Component(UpgradeComponent::SilverConduit, Amount::Quantity(3)),
+                        InventoryItem::Component(
+                            UpgradeComponent::SilverConduit,
+                            Amount::Quantity(3),
+                        ),
                         InventoryItem::Component(UpgradeComponent::GoldLeaf, Amount::Quantity(1)),
                     ],
                     UpgradeLevel::MaxLevel => vec![
                         InventoryItem::Component(UpgradeComponent::Cog, Amount::Quantity(10)),
                         InventoryItem::Component(UpgradeComponent::IronPlate, Amount::Quantity(5)),
-                        InventoryItem::Component(UpgradeComponent::SilverConduit, Amount::Quantity(5)),
+                        InventoryItem::Component(
+                            UpgradeComponent::SilverConduit,
+                            Amount::Quantity(5),
+                        ),
                         InventoryItem::Component(UpgradeComponent::GoldLeaf, Amount::Quantity(3)),
                     ],
                 }
@@ -305,24 +316,23 @@ impl UpgradeType {
                     UpgradeLevel::Level4 => todo!(),
                     UpgradeLevel::MaxLevel => todo!(),
                 }
-            },
+            }
         }
 
-        return Some(UpgradeRequirements {
-            requirements
-        });
+        return Some(UpgradeRequirements { requirements });
     }
 
     pub fn next(&self) -> Self {
         match self {
-            UpgradeType::None => { return self.clone(); },
+            UpgradeType::None => {
+                return self.clone();
+            }
             UpgradeType::Health(level) => {
                 if let Some(next_level) = level.next() {
                     UpgradeType::Health(next_level)
                 } else {
                     self.clone()
                 }
-                
             }
             UpgradeType::ShipCargoBay(level) => {
                 if let Some(next_level) = level.next() {
@@ -330,7 +340,7 @@ impl UpgradeType {
                 } else {
                     self.clone()
                 }
-            },
+            }
         }
     }
 }
@@ -375,13 +385,9 @@ pub fn UIUpgrade(props: UIUpgradeProps) {
 
     if let Some(upgrade_type) = upgrade_type.clone() {
         match upgrade_type.clone() {
-            upgrade_type @ (
-                UpgradeType::Health(level) |
-                UpgradeType::ShipCargoBay(level)
-            ) => {
-
+            upgrade_type @ (UpgradeType::Health(level) | UpgradeType::ShipCargoBay(level)) => {
                 let next_upgrade_level = upgrade_type.next();
-                
+
                 rsx! {
                     <Element styles={styles}>
                         <Text content={format!("Upgrade Type: {}", upgrade_type.clone().to_string())} />

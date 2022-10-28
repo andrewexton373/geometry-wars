@@ -44,13 +44,17 @@ impl UpgradesComponent {
         Self { upgrades: upgrades }
     }
 
-    pub fn upgrade(&mut self, upgrade_type: UpgradeType, player: &mut Player, ship_inventory: &mut Inventory) {
+    pub fn upgrade(
+        &mut self,
+        upgrade_type: UpgradeType,
+        player: &mut Player,
+        ship_inventory: &mut Inventory,
+    ) {
         if let Some(mut to_upgrade) = self
             .upgrades
             .iter_mut()
             .find(|upgrade| **upgrade == upgrade_type)
         {
-
             // TODO if the ship inventory has the required components, perform the upgrade.
             // if to_upgrade.requirements()
 
@@ -64,19 +68,17 @@ impl UpgradesComponent {
                         player.health.set_upgrade_level(next.clone());
                         ship_inventory.remove_all_from_inventory(upgrade_requirements.clone());
                         UpgradeType::Health(next)
-                    },
+                    }
                     UpgradeType::ShipCargoBay(level) => {
                         let next = level.next().unwrap_or_else(|| UpgradeLevel::MaxLevel);
                         player.battery.set_upgrade_level(next.clone());
                         ship_inventory.remove_all_from_inventory(upgrade_requirements.clone());
                         UpgradeType::ShipCargoBay(next)
-                    },
+                    }
                 }
             } else {
                 println!("DON'T HAVE MATERIALS REQUIRED FOR UPGRADE!");
             }
-
-        
         }
 
         println!("{:?}", self.upgrades);
@@ -481,7 +483,7 @@ impl PlayerPlugin {
             let upgrade = event.0.clone();
             println!("{:?}", upgrade);
 
-            upgrades.upgrade(upgrade, &mut player,&mut inventory);
+            upgrades.upgrade(upgrade, &mut player, &mut inventory);
 
             // match &upgrade {
             //     crate::widgets::station_menu::UpgradeType::Health(level) => {
