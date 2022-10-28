@@ -393,7 +393,7 @@ impl InventoryPlugin {
         // TODO: REMOVE ONLY FOR TESTING.
         inventory.add_to_inventory(InventoryItem::Ingot(
             MetalIngot::IronIngot,
-            Amount::Quantity(2),
+            Amount::Quantity(5),
         ));
         inventory.add_to_inventory(InventoryItem::Component(
             UpgradeComponent::Cog,

@@ -60,7 +60,7 @@ pub fn UIStationMenu() {
         width: StyleProp::Value(Units::Percentage(60.0)),
         height: StyleProp::Value(Units::Percentage(60.0)),
         padding: StyleProp::Value(Edge::all(Units::Pixels(10.0))),
-        background_color: StyleProp::Value(Color::new(0.4, 0.4, 0.4, 1.0)),
+        background_color: StyleProp::Value(Color::new(0.4, 0.4, 0.4, 0.6)),
         ..Default::default()
     });
 
@@ -95,18 +95,15 @@ pub fn UIStationMenu() {
                             <Text content={"Base Station Menu".to_string()} size={14.0} />
                             <Element styles={columns}>
                                 <Element styles={fill_vertical}>
-                                    <Text content={"Upgrades".to_string()} size={12.0} />
                                     <UIUpgradesMenu upgrades={upgrades}/>
                                 </Element>
 
                                 <Element styles={fill_vertical}>
-                                    <Text content={"Crafting".to_string()} size={12.0} />
                                     <UICraftingTabsView />
                                 </Element>
 
                                 <Element styles={fill_vertical}>
-                                <Text content={"Cargo Bay Inventory".to_string()} size={12.0} />
-                                <UIBaseInventory />
+                                    <UIBaseInventory />
                                 </Element>
                             </Element>
                         </Background>
@@ -179,14 +176,21 @@ pub struct UIUpgradesMenuProps {
 pub fn UIUpgradesMenu(props: UIUpgradesMenuProps) {
     let UIUpgradesMenuProps { upgrades } = props.clone();
 
+    let styles = Some(Style {
+        background_color: StyleProp::Value(Color::new(0.4, 0.4, 0.4, 1.0)),
+        height: StyleProp::Value(Units::Percentage(100.0)),
+        ..Default::default()
+    });
+
     rsx! {
-        <>
+        <Background styles={styles}>
             {VecTracker::from(upgrades.clone().into_iter().enumerate().map(|(index, upgrade)| {
                 constructor! {
                     <UIUpgrade upgrade_type={Some(upgrade)} />
                 }
             }))}
-        </>
+        </Background>
+        // </Element>
     }
 }
 
@@ -343,6 +347,7 @@ pub fn UIUpgrade(props: UIUpgradeProps) {
 
     let styles = Some(Style {
         render_command: StyleProp::Value(RenderCommand::Quad),
+        height: StyleProp::Value(Units::Auto),
         layout_type: StyleProp::Value(LayoutType::Column),
         padding: StyleProp::Value(Edge::all(Units::Pixels(8.0))),
         ..Default::default()
