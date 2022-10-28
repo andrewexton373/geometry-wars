@@ -18,10 +18,12 @@ use bevy::prelude::{*};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
+use crate::factory::UpgradeComponent;
 use crate::game_ui::{UIItems, ContextClue};
-use crate::inventory::InventoryItem;
+use crate::inventory::{InventoryItem, Amount};
 use crate::widgets::crafting::UICraftingTabsView;
 use crate::widgets::inventory::UIBaseInventory;
+use crate::widgets::refinery::UIRequirements;
 
 #[widget]
 pub fn UIStationMenu() {
@@ -221,6 +223,15 @@ pub enum UpgradeType {
     ShipCargoBay(UpgradeLevel)
 }
 
+impl ToString for UpgradeType {
+    fn to_string(&self) -> String {
+        match self {
+            UpgradeType::Health(_) => "Health",
+            UpgradeType::ShipCargoBay(_) => "Ship Cargo Bay",
+        }.to_string()
+    }
+}
+
 #[widget]
 pub fn UIUpgrade(props: UIUpgradeProps) {
     
@@ -230,39 +241,99 @@ pub fn UIUpgrade(props: UIUpgradeProps) {
         upgrade_type
     } = props.clone();
 
-    match upgrade_type.clone() {
-        Some(UpgradeType::Health(level)) |
-        Some(UpgradeType::ShipCargoBay(level)) => {
-            rsx! {
-                <>
-                    // Upgrade Type
-                    <Text content={format!("{:?}", upgrade_type)} />
-                    <UIUpgradeLevel upgrade_level={level.clone()} />
-        
-        
-                    // Requires Components
-                    // Perform Upgrade Button
-                </>
-            }
-        },
-        _ => {}
+    let styles = Some(Style {
+        render_command: StyleProp::Value(RenderCommand::Quad),
+        layout_type: StyleProp::Value(LayoutType::Column),
+        padding: StyleProp::Value(Edge::all(Units::Pixels(8.0))),
+        ..Default::default()
+    });
+
+    let cloned = upgrade_type.clone();
+
+    let on_event = OnEvent::new(move |ctx, event| match event.event_type {
+        EventType::Click(..) => {
+            println!("UPGRADE BUTTON CLICKED! {:?}", cloned);
+
+            // TODO Implement Events for Upgrades
+            // ctx.query_world::<EventWriter<CraftEvent>, _, ()>(|mut writer| {
+            //     writer.send(CraftEvent(clone.clone()))
+            // });
+            // on_create.call(refineable_id);
+        }
+        _ => (),
+    });
+
+    let requirements = vec![InventoryItem::Component(UpgradeComponent::Cog, Amount::Quantity(1))];
+
+    if let Some(upgrade_type) = upgrade_type.clone() {
+        match upgrade_type.clone() {
+            UpgradeType::Health(level) |
+            UpgradeType::ShipCargoBay(level) => {
+                rsx! {
+                    <Element styles={styles}>
+                        <Text content={format!("Upgrade Type: {}", upgrade_type.to_string())} />
+                        <UIRequirements required={requirements} />
+                        <UpgradeButton on_event={Some(on_event)} />
+
+                        <UIUpgradeLevel upgrade_level={level.clone()} />
+                    </Element>
+                }
+            },
+            _ => {}
+        }
     }
 
-    // if let Some(upgrade_type) = upgrade_type {
-    //     rsx! {
-    //         <>
-    //             // Upgrade Type
-    //             <Text content={format!("{:?}", upgrade_type)} />
-    //             <UIUpgradeLevel upgrade_level={upgrade_type.0} />
-    
-    
-    //             // Requires Components
-    //             // Perform Upgrade Button
-    //         </>
-    //     }
-    // }
+}
 
+#[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
+pub struct UpgradeButtonProps {
+    #[prop_field(Styles)]
+    styles: Option<Style>,
+    #[prop_field(OnEvent)]
+    pub on_event: Option<OnEvent>,
+}
 
+#[widget]
+pub fn UpgradeButton(props: UpgradeButtonProps) {
+    let (color, set_color, ..) = use_state!(Color::new(0.0781, 0.0898, 0.101, 1.0));
+
+    let base_styles = props.styles.clone().unwrap_or_default();
+    props.styles = Some(Style {
+        render_command: StyleProp::Value(RenderCommand::Layout),
+        height: StyleProp::Value(Units::Pixels(32.0)),
+        width: StyleProp::Value(Units::Pixels(80.0)),
+        right: StyleProp::Value(Units::Stretch(1.0)),
+        ..base_styles
+    });
+
+    let background_styles = Some(Style {
+        border_radius: StyleProp::Value(Corner::all(5.0)),
+        background_color: StyleProp::Value(color),
+        cursor: CursorIcon::Hand.into(),
+        padding_left: StyleProp::Value(Units::Pixels(8.0)),
+        ..Style::default()
+    });
+
+    let text_styles = Some(Style {
+        cursor: StyleProp::Inherit,
+        ..Style::default()
+    });
+
+    let on_event = OnEvent::new(move |_, event| match event.event_type {
+        EventType::MouseIn(..) => {
+            set_color(Color::new(0.0791, 0.0998, 0.201, 1.0));
+        }
+        EventType::MouseOut(..) => {
+            set_color(Color::new(0.0781, 0.0898, 0.101, 1.0));
+        }
+        _ => {}
+    });
+
+    rsx! {
+        <Background styles={background_styles} on_event={Some(on_event)}>
+            <Text content={"UPGRADE".to_string()} size={16.0} styles={text_styles} />
+        </Background>
+    }
 }
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
@@ -281,7 +352,7 @@ pub fn UIUpgradeLevel(props: UIUpgradeLevelProps) {
     rsx! {
         <>
             // Upgrade Type
-            <Text content={format!("{:?}", upgrade_level.as_u8())} />
+            <Text content={format!("Level: {}", upgrade_level.as_u8())} />
             <UIUpgradeLevelIndicator level={upgrade_level.as_u8()} />
 
 

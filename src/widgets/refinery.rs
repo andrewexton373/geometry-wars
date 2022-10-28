@@ -12,6 +12,7 @@ use kayak_ui::widgets::{Background, Element, Text, ScrollBox, ScrollMode, Clip};
 use bevy::prelude::*;
 
 use crate::game_ui::UIItems;
+use crate::inventory::InventoryItem;
 use crate::item_producer::ItemProducer;
 use crate::recipe::Recipe;
 use crate::widgets::currently_processing::CurrentlyProcessing;
@@ -85,7 +86,6 @@ pub fn Refineables(props: RefineablesProps) {
     let clamped = ScrollMode::Clamped;
 
     rsx! {
-    // <Element styles={auto}>
         <ScrollBox styles={auto} mode={clamped}>
         {VecTracker::from(refineables.clone().into_iter().enumerate().map(|(index, recipe)| {
             constructor! {
@@ -93,9 +93,6 @@ pub fn Refineables(props: RefineablesProps) {
             }
         }))}
         </ScrollBox>
-
-    // </Element>
-
     }
 }
 
@@ -148,6 +145,26 @@ pub fn Refineable(props: RefineableProps) {
             <SmeltButton on_event={Some(on_event)} />
         </Background>
     }
+}
+
+#[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
+pub struct UIRequirementsProps {
+    pub required: Vec<InventoryItem>
+}
+
+#[widget]
+pub fn UIRequirements(props: UIRequirementsProps) {
+
+    let UIRequirementsProps {
+        required
+    } = props.clone();
+
+    rsx! {
+        <Text size={14.0} content={"HELLOOOOOOOOOO".to_string()} />
+
+        // <Text size={14.0} content={format!("Requirements: {:?}", required)} />
+    }
+
 }
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
