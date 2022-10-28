@@ -20,10 +20,44 @@ use strum::IntoEnumIterator;
 
 pub struct PlayerPlugin;
 
-#[derive(Component, Inspectable, Reflect, Default, Clone, Copy, Debug)]
+#[derive(Component, Inspectable, Default, Clone, Debug)]
 pub struct Health {
-    pub current: f32,
-    pub maximum: f32,
+    current: f32,
+    maximum: f32,
+    upgrade_level: UpgradeLevel
+}
+
+impl Health {
+    pub fn new() -> Self {
+        Self {
+            current: 100.0,
+            maximum: 100.0,
+            upgrade_level: UpgradeLevel::Level0,
+        }
+    }
+
+    pub fn current(&self) -> f32 {
+        self.current
+    }
+
+    pub fn maximum(&self) -> f32 {
+        self.maximum * self.upgrade_effect()
+    }
+
+    pub fn set_upgrade_level(&mut self, upgrade_level: UpgradeLevel) {
+        self.upgrade_level = upgrade_level;
+    }
+
+    pub fn upgrade_effect(&self) -> f32 {
+        match self.upgrade_level {
+            UpgradeLevel::Level0 => 1.0,
+            UpgradeLevel::Level1(_) => 1.5,
+            UpgradeLevel::Level2(_) => 2.0,
+            UpgradeLevel::Level3(_) => 3.0,
+            UpgradeLevel::Level4(_) => 4.0,
+            UpgradeLevel::MaxLevel(_) => 5.0,
+        }
+    }
 }
 
 #[derive(Component, Inspectable, Reflect, Default, Clone, Copy, Debug)]
@@ -57,11 +91,15 @@ impl UpgradesComponent {
 
     }
 
-    pub fn upgrade(&mut self, upgrade_type: UpgradeType) {
+    pub fn upgrade(&mut self, upgrade_type: UpgradeType, player: &mut Player) {
         if let Some(mut to_upgrade) = self.upgrades.iter_mut().find(|upgrade| {**upgrade == upgrade_type}) {
                 *to_upgrade = match to_upgrade {
                     UpgradeType::None => {UpgradeType::None},
-                    UpgradeType::Health(level) => {UpgradeType::Health(level.next().unwrap_or_else(||{UpgradeLevel::MaxLevel(None)}))},
+                    UpgradeType::Health(level) => {
+                        let next = level.next().unwrap_or_else(||{UpgradeLevel::MaxLevel(None)});
+                        player.health.set_upgrade_level(next.clone());
+                        UpgradeType::Health(next)
+                    },
                     UpgradeType::ShipCargoBay(level) =>  {UpgradeType::ShipCargoBay(level.next().unwrap_or_else(||{UpgradeLevel::MaxLevel(None)}))}
                 }
             
@@ -88,10 +126,7 @@ impl Player {
             delta_x: 0.0,
             delta_y: 0.0,
             delta_rotation: 0.0,
-            health: Health {
-                current: 100.0,
-                maximum: 100.0,
-            },
+            health: Health::new(),
             battery: Battery {
                 current_capacity: 1000.0,
                 maximum_capacity: 1000.0,
@@ -101,14 +136,14 @@ impl Player {
     }
 
     pub fn take_damage(&mut self, damage: f32) {
-        let modified_health = self.health.current - damage;
-        let modified_health = modified_health.clamp(0.0, self.health.maximum);
+        let modified_health = self.health.current() - damage;
+        let modified_health = modified_health.clamp(0.0, self.health.maximum());
         self.health.current = modified_health;
     }
 
     pub fn repair_damage(&mut self, amount: f32) {
-        let updated_health = self.health.current + amount;
-        self.health.current = updated_health.clamp(0.0, self.health.maximum);
+        let updated_health = self.health.current() + amount;
+        self.health.current = updated_health.clamp(0.0, self.health.maximum());
     }
 
     pub fn drain_battery(&mut self, amount: f32) {
@@ -471,18 +506,18 @@ impl PlayerPlugin {
             (&BaseStation, &mut Inventory),
             With<BaseStation>,
         >,
-        mut player_query: Query<(&Player, &mut UpgradesComponent), Without<BaseStation>>
+        mut player_query: Query<(&mut Player, &mut UpgradesComponent), Without<BaseStation>>
         // mut refinery_timer: ResMut<RefineryTimer>,
     ) {
         for event in reader.iter() {
             println!("Upgrade Event Detected!");
             let (_base_station, inventory) = base_station_query.single_mut();
-            let (_player, mut upgrades) = player_query.single_mut();
+            let (mut player, mut upgrades) = player_query.single_mut();
 
             let upgrade = event.0.clone();
             println!("{:?}", upgrade);
 
-            upgrades.upgrade(upgrade);
+            upgrades.upgrade(upgrade, &mut player);
 
             // match &upgrade {
             //     crate::widgets::station_menu::UpgradeType::Health(level) => {

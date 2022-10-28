@@ -26,7 +26,7 @@ pub struct AstroidPlugin;
 pub struct Astroid {
     pub velocity: Vec2,
     pub size: AstroidSize,
-    pub health: Health,
+    // pub health: Health,
     pub composition: Composition,
 }
 
@@ -295,10 +295,6 @@ impl AstroidPlugin {
         let astroid = Astroid {
             velocity,
             size,
-            health: Health {
-                current: 50.0,
-                maximum: 100.0,
-            },
             composition: composition,
         };
 

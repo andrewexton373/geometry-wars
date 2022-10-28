@@ -100,7 +100,7 @@ impl PlayerStatsBarPlugin {
     ) {
         let (player, inventory) = player_query.single();
 
-        player_health.0 = player.health.current / player.health.maximum;
+        player_health.0 = player.health.current() / player.health.maximum();
         player_health.0 = player_health.0.clamp(0.0, 1.0);
 
         player_battery_capacity.0 =
