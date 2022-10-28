@@ -1,24 +1,27 @@
-use std::f32::consts::PI;
 
-use kayak_ui::core::styles::PositionType;
-use kayak_ui::core::{rsx, use_state, widget, Handler};
+
+use kayak_ui::core::styles::{PositionType, LayoutType};
+use kayak_ui::core::{rsx, use_state, widget, constructor};
 
 use kayak_ui::core::{
     color::Color,
     render_command::RenderCommand,
-    styles::{Corner, Edge, LayoutType, Style, StyleProp, Units},
+    styles::{Corner, Edge, Style, StyleProp, Units},
     CursorIcon, EventType, OnEvent, WidgetProps,
 };
-use kayak_ui::core::{constructor, Binding, Bound, VecTracker};
-use kayak_ui::widgets::{Background, Element, Text, Window, NinePatch, Clip, If};
+use kayak_ui::core::{Binding, Bound, VecTracker};
+use kayak_ui::widgets::{Background, Element, Text, If};
 
 use bevy::prelude::{*};
 
-use crate::{HEIGHT, RESOLUTION, WIDTH};
+// use enum_iterator::{all, Sequence};
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
+
 use crate::game_ui::{UIItems, ContextClue};
-use crate::item_producer::ItemProducer;
-use crate::recipe::Recipe;
-use crate::widgets::currently_processing::CurrentlyProcessing;
+use crate::inventory::InventoryItem;
+use crate::widgets::crafting::UICraftingTabsView;
+use crate::widgets::inventory::UIBaseInventory;
 
 #[widget]
 pub fn UIStationMenu() {
@@ -74,8 +77,13 @@ pub fn UIStationMenu() {
                         <Background styles={station_menu_styles}>
                             <Text content={"Base Station Menu".to_string()} size={14.0} />
                             <Text content={"Upgrades".to_string()} size={12.0} />
+                            <UIUpgradesMenu />
+
                             <Text content={"Crafting".to_string()} size={12.0} />
+                            <UICraftingTabsView />
+
                             <Text content={"Cargo Bay Inventory".to_string()} size={12.0} />
+                            <UIBaseInventory />
                         </Background>
                     </Background>
                 </If>
@@ -135,4 +143,191 @@ pub fn StationMenuButton(props: StationMenuButtonProps) {
             <Text content={"Station Menu".to_string()} size={16.0} styles={text_styles} />
         </Background>
     }
+}
+
+#[widget]
+pub fn UIUpgradesMenu() {
+
+    let mut upgrade_list = vec![];
+    // for upgrade_type in UpgradeType::iter() {
+    //     upgrade_list.push(upgrade_type);
+    // }
+
+    upgrade_list.push(UpgradeType::Health(UpgradeLevel::Level3(None)));
+
+    // println!("{:?}", upgrade_list);
+
+
+    rsx! {
+        <>
+
+            {VecTracker::from(upgrade_list.clone().into_iter().enumerate().map(|(index, upgrade)| {
+                constructor! {
+                    <UIUpgrade upgrade_type={Some(upgrade)} />
+                }
+            }))}
+            // List Upgrades
+            <UIUpgrade />
+
+        </>
+    }
+}
+
+
+#[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
+pub struct UIUpgradeProps {
+    #[prop_field(Styles)]
+    styles: Option<Style>,
+    #[prop_field(OnEvent)]
+    pub on_event: Option<OnEvent>,
+    pub upgrade_type: Option<UpgradeType>
+}
+
+// #[derive(Clone, PartialEq)]
+// pub enum UpgradeLevelRequriements {
+//     Health(usize, Vec<InventoryItem>)
+// }
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct UpgradeRequirements {
+    requirements: Vec<InventoryItem>
+}
+
+
+#[derive(Debug, Clone, Default, PartialEq)]
+#[repr(u8)]
+pub enum UpgradeLevel {
+    #[default]
+    Level0 = 0,
+    Level1(Option<UpgradeRequirements>) = 1,
+    Level2(Option<UpgradeRequirements>) = 2,
+    Level3(Option<UpgradeRequirements>) = 3
+}
+
+impl UpgradeLevel {
+    pub fn as_u8(&self) -> u8 {
+        match self {
+            UpgradeLevel::Level0 => 0,
+            UpgradeLevel::Level1(_) => 1,
+            UpgradeLevel::Level2(_) => 2,
+            UpgradeLevel::Level3(_) => 3,
+        }
+    }
+}
+
+#[derive(EnumIter, Clone, Debug, PartialEq)]
+pub enum UpgradeType {
+    Health(UpgradeLevel),
+    ShipCargoBay(UpgradeLevel)
+}
+
+#[widget]
+pub fn UIUpgrade(props: UIUpgradeProps) {
+    
+    let UIUpgradeProps {
+        styles,
+        on_event,
+        upgrade_type
+    } = props.clone();
+
+    match upgrade_type.clone() {
+        Some(UpgradeType::Health(level)) |
+        Some(UpgradeType::ShipCargoBay(level)) => {
+            rsx! {
+                <>
+                    // Upgrade Type
+                    <Text content={format!("{:?}", upgrade_type)} />
+                    <UIUpgradeLevel upgrade_level={level.clone()} />
+        
+        
+                    // Requires Components
+                    // Perform Upgrade Button
+                </>
+            }
+        },
+        _ => {}
+    }
+
+    // if let Some(upgrade_type) = upgrade_type {
+    //     rsx! {
+    //         <>
+    //             // Upgrade Type
+    //             <Text content={format!("{:?}", upgrade_type)} />
+    //             <UIUpgradeLevel upgrade_level={upgrade_type.0} />
+    
+    
+    //             // Requires Components
+    //             // Perform Upgrade Button
+    //         </>
+    //     }
+    // }
+
+
+}
+
+#[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
+pub struct UIUpgradeLevelProps {
+    pub upgrade_level: UpgradeLevel
+}
+
+
+#[widget]
+pub fn UIUpgradeLevel(props: UIUpgradeLevelProps) {
+    
+    let UIUpgradeLevelProps {
+        upgrade_level
+    } = props.clone();
+
+    rsx! {
+        <>
+            // Upgrade Type
+            <Text content={format!("{:?}", upgrade_level.as_u8())} />
+            <UIUpgradeLevelIndicator level={upgrade_level.as_u8()} />
+
+
+            // Requires Components
+            // Perform Upgrade Button
+        </>
+    }
+
+}
+
+#[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
+pub struct UILevelIndicatorProps {
+    pub level: u8
+}
+
+
+#[widget]
+pub fn UIUpgradeLevelIndicator(props: UILevelIndicatorProps) {
+    
+    let UILevelIndicatorProps {
+        level
+    } = props.clone();
+    
+    let container_styles = Some(Style {
+        layout_type: StyleProp::Value(LayoutType::Row),
+        col_between: StyleProp::Value(Units::Pixels(5.0)),
+        ..Default::default()
+    });
+
+    let level_block_styles = Some(Style {
+        background_color: StyleProp::Value(Color::new(0.0, 1.0, 0.0, 1.0)),
+        width: StyleProp::Value(Units::Pixels(10.0)),
+        height: StyleProp::Value(Units::Pixels(10.0)),
+        ..Default::default()
+    });
+
+    rsx! {
+        <Element styles={container_styles}>
+
+            {VecTracker::from((0..level).map(|_| {
+                constructor! {
+                    <Background styles={level_block_styles.clone()} />
+                }
+            }))}
+
+        </Element>
+    }
+
 }

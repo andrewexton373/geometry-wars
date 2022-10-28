@@ -1,4 +1,6 @@
 // #![feature(array_methods)]
+#![feature(arbitrary_enum_discriminant)]
+
 
 use bevy::{
     diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
