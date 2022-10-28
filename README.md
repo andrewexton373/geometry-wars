@@ -66,10 +66,11 @@ LMB - Fire Projectile in direction of ship
 	- [x] change with added cargo weight
 	- [ ] (can mitigate with stronger engines?)  
 	
-- [ ] **Upgrade System**
-	- [ ] *Ship Upgrade System*
+- [x] **Upgrade System**
+	- [x] *Ship Upgrade System*
 		- [ ] Cargo Bay Size
-		- [ ] Fuel Tank Size
+		- [x] Ship Maximum Health
+		- [x] Fuel Tank Size
 		- [ ] Engine Fuel Efficency
 		- [ ] Ore Attractor Strength
 		- [ ] Weapon Strength/Rate of Fire  
