@@ -18,6 +18,7 @@ use bevy::prelude::{*};
 // use enum_iterator::{all, Sequence};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
+use strum_macros::FromRepr;
 
 use crate::factory::UpgradeComponent;
 use crate::game_ui::{UIItems, ContextClue};
@@ -197,14 +198,16 @@ pub struct UpgradeRequirements {
 }
 
 
-#[derive(Debug, Clone, Default, PartialEq, Inspectable)]
+#[derive(FromRepr, EnumIter, Debug, Clone, Default, PartialEq, Inspectable)]
 #[repr(u8)]
 pub enum UpgradeLevel {
     #[default]
     Level0 = 0,
     Level1(Option<UpgradeRequirements>) = 1,
     Level2(Option<UpgradeRequirements>) = 2,
-    Level3(Option<UpgradeRequirements>) = 3
+    Level3(Option<UpgradeRequirements>) = 3,
+    Level4(Option<UpgradeRequirements>) = 4,
+    MaxLevel(Option<UpgradeRequirements>) = 5
 }
 
 impl UpgradeLevel {
@@ -214,7 +217,14 @@ impl UpgradeLevel {
             UpgradeLevel::Level1(_) => 1,
             UpgradeLevel::Level2(_) => 2,
             UpgradeLevel::Level3(_) => 3,
+            UpgradeLevel::Level4(_) => 4,
+            UpgradeLevel::MaxLevel(_) => 5,
         }
+    }
+
+    pub fn next(&self) -> Option<UpgradeLevel> {
+        let current_lvl = self.as_u8();
+        UpgradeLevel::from_repr(current_lvl + 1)
     }
 }
 

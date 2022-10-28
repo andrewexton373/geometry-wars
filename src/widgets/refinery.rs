@@ -160,7 +160,7 @@ pub fn UIRequirements(props: UIRequirementsProps) {
     } = props.clone();
 
     rsx! {
-        <Text size={14.0} content={"HELLOOOOOOOOOO".to_string()} />
+        <Text size={14.0} content={"REQUIREMENTS: TODO!".to_string()} />
 
         // <Text size={14.0} content={format!("Requirements: {:?}", required)} />
     }

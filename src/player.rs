@@ -61,10 +61,10 @@ impl UpgradesComponent {
         if let Some(mut to_upgrade) = self.upgrades.iter_mut().find(|upgrade| {**upgrade == upgrade_type}) {
                 *to_upgrade = match to_upgrade {
                     UpgradeType::None => {UpgradeType::None},
-                    UpgradeType::Health(level) => {UpgradeType::Health(UpgradeLevel::Level1(None))},
-                    UpgradeType::ShipCargoBay(_) =>  {UpgradeType::ShipCargoBay(UpgradeLevel::Level1(None))
+                    UpgradeType::Health(level) => {UpgradeType::Health(level.next().unwrap_or_else(||{UpgradeLevel::MaxLevel(None)}))},
+                    UpgradeType::ShipCargoBay(level) =>  {UpgradeType::ShipCargoBay(level.next().unwrap_or_else(||{UpgradeLevel::MaxLevel(None)}))}
                 }
-            }
+            
         }
 
         println!("{:?}", self.upgrades);
