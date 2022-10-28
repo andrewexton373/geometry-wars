@@ -4,15 +4,10 @@
 use bevy::{
     diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
     prelude::*,
-    render::{
-        camera::{Projection, ScalingMode},
-        render_resource::WgpuFeatures,
-        settings::WgpuSettings,
-    },
     window::PresentMode,
 };
 use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
-use bevy_hanabi::prelude::*;
+
 use bevy_inspector_egui::WorldInspectorPlugin;
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;

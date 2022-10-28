@@ -1,23 +1,20 @@
 use kayak_ui::core::styles::PositionType;
-use kayak_ui::core::{rsx, use_state, widget, Handler};
+use kayak_ui::core::{rsx, widget};
 
 use kayak_ui::core::{
     color::Color,
-    render_command::RenderCommand,
-    styles::{Corner, Edge, LayoutType, Style, StyleProp, Units},
-    CursorIcon, EventType, OnEvent, WidgetProps,
+    styles::{Edge, LayoutType, Style, StyleProp, Units}, WidgetProps,
 };
-use kayak_ui::widgets::{Background, Element, Text, Window};
+use kayak_ui::widgets::{Background, Element, Text};
 use kayak_ui::{
     core::{constructor, Binding, Bound, VecTracker},
-    widgets::If,
 };
 
 use bevy::prelude::*;
 
 use crate::game_ui::UIItems;
 use crate::inventory::{Amount, InventoryItem};
-use crate::{HEIGHT, RESOLUTION};
+
 
 #[widget]
 pub fn UIShipInventory() {
@@ -60,7 +57,7 @@ pub fn UIBaseInventory() {
         context.query_world::<Res<Binding<UIItems>>, _, _>(move |ui_items| ui_items.clone());
     context.bind(&ui_items);
 
-    let inventory = ui_items.get().station_inventory_items;
+    let _inventory = ui_items.get().station_inventory_items;
 
     let inventory = ui_items.get().station_inventory_items;
     let container_styles = Some(Style {
@@ -128,7 +125,7 @@ pub struct UIInventoryItemProps {
 
 #[widget]
 pub fn UIInventoryItem(props: UIInventoryItemProps) {
-    let UIInventoryItemProps { item_id, item } = props.clone();
+    let UIInventoryItemProps { item_id: _, item } = props.clone();
 
     let background_styles = Style {
         layout_type: StyleProp::Value(LayoutType::Column),

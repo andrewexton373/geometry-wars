@@ -7,7 +7,7 @@ use bevy::prelude::*;
 use bevy::reflect::FromReflect;
 use bevy::utils::HashMap;
 use bevy_hanabi::ParticleEffect;
-use bevy_inspector_egui::{Inspectable, RegisterInspectable};
+use bevy_inspector_egui::{Inspectable};
 use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
 use bevy_rapier2d::prelude::*;
 use rand::seq::SliceRandom;

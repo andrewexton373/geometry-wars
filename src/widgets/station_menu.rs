@@ -14,13 +14,13 @@ use kayak_ui::widgets::{Background, Element, If, Text};
 use bevy::prelude::*;
 
 // use enum_iterator::{all, Sequence};
-use strum::IntoEnumIterator;
+
 use strum_macros::EnumIter;
 use strum_macros::FromRepr;
 
 use crate::factory::UpgradeComponent;
 use crate::game_ui::{ContextClue, UIItems};
-use crate::inventory::{Amount, Inventory, InventoryItem};
+use crate::inventory::{Amount, InventoryItem};
 use crate::widgets::crafting::UICraftingTabsView;
 use crate::widgets::inventory::UIBaseInventory;
 use crate::widgets::refinery::UIRequirements;
@@ -64,7 +64,7 @@ pub fn UIStationMenu() {
         ..Default::default()
     });
 
-    let on_menu_button_event = Some(OnEvent::new(move |ctx, event| match event.event_type {
+    let on_menu_button_event = Some(OnEvent::new(move |_ctx, event| match event.event_type {
         EventType::Click(..) => {
             println!("STATION MENU BUTTON CLICKED!");
             set_show(!show);
@@ -184,7 +184,7 @@ pub fn UIUpgradesMenu(props: UIUpgradesMenuProps) {
 
     rsx! {
         <Background styles={styles}>
-            {VecTracker::from(upgrades.clone().into_iter().enumerate().map(|(index, upgrade)| {
+            {VecTracker::from(upgrades.clone().into_iter().enumerate().map(|(_index, upgrade)| {
                 constructor! {
                     <UIUpgrade upgrade_type={Some(upgrade)} />
                 }
@@ -350,8 +350,8 @@ pub struct UpgradeEvent(pub UpgradeType);
 #[widget]
 pub fn UIUpgrade(props: UIUpgradeProps) {
     let UIUpgradeProps {
-        styles,
-        on_event,
+        styles: _,
+        on_event: _,
         upgrade_type,
     } = props.clone();
 

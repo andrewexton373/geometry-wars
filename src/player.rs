@@ -18,7 +18,7 @@ use bevy_prototype_lyon::prelude as lyon;
 use bevy_rapier2d::prelude::*;
 use std::f32::consts::PI;
 use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
+
 
 pub struct PlayerPlugin;
 
@@ -50,7 +50,7 @@ impl UpgradesComponent {
         player: &mut Player,
         ship_inventory: &mut Inventory,
     ) {
-        if let Some(mut to_upgrade) = self
+        if let Some(to_upgrade) = self
             .upgrades
             .iter_mut()
             .find(|upgrade| **upgrade == upgrade_type)
@@ -359,7 +359,7 @@ impl PlayerPlugin {
     ) {
         // should be just pressed, but it's fun with keyboard_input.pressed()d
         if keyboard_input.just_pressed(MouseButton::Left) {
-            let (player, transform, velocity) = player_query.single();
+            let (player, transform, _velocity) = player_query.single();
 
             // why does this work? https://www.reddit.com/r/rust_gamedev/comments/rphgsf/calculating_bullet_x_and_y_position_based_off_of/
             // FIXME: clean this up, it's confusing..., should also be using velocity here.
@@ -458,7 +458,7 @@ impl PlayerPlugin {
 
     fn ship_battery_is_empty_context_clue(
         mut context_clues_res: ResMut<ContextClues>,
-        player_query: Query<(&Player)>,
+        player_query: Query<&Player>,
     ) {
         for player in player_query.into_iter() {
             if player.battery.is_empty() {

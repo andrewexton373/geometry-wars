@@ -8,12 +8,12 @@ use kayak_ui::core::{
     WidgetProps,
 };
 use kayak_ui::core::{Binding, Bound};
-use kayak_ui::widgets::{Background, Element, Text, Window};
+use kayak_ui::widgets::{Background, Element, Text};
 
 use bevy::prelude::*;
 
 use crate::game_ui::{ContextClue, UIItems};
-use crate::{HEIGHT, RESOLUTION};
+
 
 #[widget]
 pub fn UIContextClueView(props: UIContextClueProps) {
@@ -48,7 +48,7 @@ pub struct UIContextCluesProps {
 pub fn UIContextClues(props: UIContextCluesProps) {
     let UIContextCluesProps { context_clues } = props.clone();
 
-    let size = Vec2 { x: 400., y: 120. };
+    let _size = Vec2 { x: 400., y: 120. };
 
     let context_clues_styles = Some(Style {
         position_type: StyleProp::Value(PositionType::SelfDirected),
@@ -64,7 +64,7 @@ pub fn UIContextClues(props: UIContextCluesProps) {
     rsx! {
         <Background styles={context_clues_styles}>
             <Text content={"Context Clues".to_string()} size={14.0} />
-            {VecTracker::from(context_clues.clone().into_iter().enumerate().map(|(index, context_clue)| {
+            {VecTracker::from(context_clues.clone().into_iter().enumerate().map(|(_index, context_clue)| {
                 constructor! {
                     <UIContextClue context_clue={context_clue.text()} />
 

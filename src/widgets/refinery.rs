@@ -7,7 +7,7 @@ use kayak_ui::core::{
     CursorIcon, EventType, OnEvent, WidgetProps,
 };
 use kayak_ui::core::{constructor, Binding, Bound, VecTracker};
-use kayak_ui::widgets::{Background, Clip, Element, ScrollBox, ScrollMode, Text};
+use kayak_ui::widgets::{Background, ScrollBox, ScrollMode, Text};
 
 use bevy::prelude::*;
 
@@ -23,7 +23,7 @@ use super::station_menu::UpgradeRequirements;
 pub fn UIRefineryView() {
     let (color, set_color, ..) = use_state!(Color::new(0.0781, 0.0898, 0.101, 1.0));
 
-    let background_styles = Some(Style {
+    let _background_styles = Some(Style {
         height: StyleProp::Value(Units::Auto),
         border_radius: StyleProp::Value(Corner::all(5.0)),
         background_color: StyleProp::Value(color),
@@ -33,7 +33,7 @@ pub fn UIRefineryView() {
         ..Style::default()
     });
 
-    let on_event = OnEvent::new(move |_, event| match event.event_type {
+    let _on_event = OnEvent::new(move |_, event| match event.event_type {
         EventType::MouseIn(..) => {
             set_color(Color::new(0.0791, 0.0998, 0.201, 1.0));
         }
@@ -110,7 +110,7 @@ pub struct SmeltEvent(pub Recipe);
 #[widget]
 pub fn Refineable(props: RefineableProps) {
     let RefineableProps {
-        refineable_id,
+        refineable_id: _,
         refinery_recipe,
         on_create,
     } = props.clone();
@@ -126,7 +126,7 @@ pub fn Refineable(props: RefineableProps) {
         ..Style::default()
     };
 
-    let on_create = on_create.clone();
+    let _on_create = on_create.clone();
     let on_event = OnEvent::new(move |ctx, event| match event.event_type {
         EventType::Click(..) => {
             println!("SMELT BUTTON CLICKED!");
@@ -159,7 +159,7 @@ pub struct UIRequirementsProps {
 pub fn UIRequirements(props: UIRequirementsProps) {
     let UIRequirementsProps {
         requirements,
-        required,
+        required: _,
     } = props.clone();
 
     if let Some(requirements) = requirements {

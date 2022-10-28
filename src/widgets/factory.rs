@@ -7,7 +7,7 @@ use kayak_ui::core::{
     CursorIcon, EventType, OnEvent, WidgetProps,
 };
 use kayak_ui::core::{constructor, Binding, Bound, VecTracker};
-use kayak_ui::widgets::{Background, Element, ScrollBox, ScrollMode, Text};
+use kayak_ui::widgets::{Background, ScrollBox, ScrollMode, Text};
 
 use bevy::prelude::*;
 
@@ -20,7 +20,7 @@ use crate::widgets::currently_processing::CurrentlyProcessing;
 pub fn UIFactoryView() {
     let (color, set_color, ..) = use_state!(Color::new(0.0781, 0.0898, 0.101, 1.0));
 
-    let background_styles = Some(Style {
+    let _background_styles = Some(Style {
         border_radius: StyleProp::Value(Corner::all(5.0)),
         background_color: StyleProp::Value(color),
         cursor: CursorIcon::Hand.into(),
@@ -29,7 +29,7 @@ pub fn UIFactoryView() {
         ..Style::default()
     });
 
-    let on_event = OnEvent::new(move |_, event| match event.event_type {
+    let _on_event = OnEvent::new(move |_, event| match event.event_type {
         EventType::MouseIn(..) => {
             set_color(Color::new(0.0791, 0.0998, 0.201, 1.0));
         }
@@ -101,7 +101,7 @@ pub struct CraftEvent(pub Recipe);
 #[widget]
 pub fn Craftable(props: CraftableProps) {
     let CraftableProps {
-        craftable_id,
+        craftable_id: _,
         factory_recipe,
         on_create,
     } = props.clone();
@@ -117,7 +117,7 @@ pub fn Craftable(props: CraftableProps) {
         ..Style::default()
     };
 
-    let on_create = on_create.clone();
+    let _on_create = on_create.clone();
     let on_event = OnEvent::new(move |ctx, event| match event.event_type {
         EventType::Click(..) => {
             println!("CRAFT BUTTON CLICKED!");

@@ -1,6 +1,6 @@
 use std::ops::Index;
 
-use kayak_ui::core::{render, rsx, use_state, widget, Fragment, Handler, KeyCode};
+use kayak_ui::core::{rsx, use_state, widget, Fragment, Handler, KeyCode};
 
 use kayak_ui::core::{
     color::Color,
@@ -9,14 +9,14 @@ use kayak_ui::core::{
     EventType, OnEvent, WidgetProps,
 };
 use kayak_ui::core::{constructor, Bound, VecTracker};
-use kayak_ui::widgets::{Background, Element, ScrollBox, ScrollMode, Text, Window};
+use kayak_ui::widgets::{Background, Element, Text};
 
 use bevy::prelude::*;
 
-use crate::game_ui::UIItems;
+
 use crate::widgets::factory::UIFactoryView;
 use crate::widgets::refinery::UIRefineryView;
-use crate::{HEIGHT, RESOLUTION};
+use crate::{HEIGHT};
 
 #[widget]
 pub fn UICraftingTabsView() {
@@ -45,7 +45,7 @@ pub fn UICraftingTabsView() {
 
     let size = Vec2 { x: 400.0, y: 400.0 };
     let offset = 200.0; // width of station inventory
-    let view_pos = (0.0 + offset, HEIGHT - size.y);
+    let _view_pos = (0.0 + offset, HEIGHT - size.y);
 
     let container_styles = Some(Style {
         width: StyleProp::Value(Units::Percentage(100.0)),
@@ -351,7 +351,7 @@ fn TabDemo() {
         TabData {
             name: "Refinery".to_string(),
             content: {
-                let text_style = text_style.clone();
+                let _text_style = text_style.clone();
                 constructor! {
                     <>
                         // <Text content={"Welcome to the refinery, smelt your ores here!".to_string()} size={14.0} styles={Some(text_style)} />
@@ -363,7 +363,7 @@ fn TabDemo() {
         TabData {
             name: "Factory".to_string(),
             content: {
-                let text_style = text_style.clone();
+                let _text_style = text_style.clone();
                 constructor! {
                     <>
                         // <Text content={"Welcome to the factory, refine your ingots into components here!".to_string()} size={14.0} styles={Some(text_style)} />

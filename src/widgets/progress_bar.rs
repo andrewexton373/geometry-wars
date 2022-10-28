@@ -1,22 +1,17 @@
-use kayak_ui::core::{rsx, use_state, widget, Handler, OnLayout};
+use kayak_ui::core::{rsx, widget};
 
 use kayak_ui::core::{
     color::Color,
-    render_command::RenderCommand,
-    styles::{Corner, Edge, LayoutType, Style, StyleProp, Units},
-    CursorIcon, EventType, OnEvent, WidgetProps,
+    styles::{LayoutType, Style, StyleProp, Units}, WidgetProps,
 };
-use kayak_ui::widgets::{Background, Element, Text, Window};
-use kayak_ui::{
-    core::{constructor, Binding, Bound, VecTracker},
-    widgets::If,
-};
+use kayak_ui::widgets::{Background};
 
-use bevy::prelude::*;
 
-use crate::game_ui::UIItems;
-use crate::inventory::{Amount, InventoryItem};
-use crate::{HEIGHT, RESOLUTION};
+
+
+
+
+
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct ProgressBarProps {

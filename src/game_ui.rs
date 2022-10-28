@@ -18,8 +18,7 @@ use crate::{
     refinery::Refinery,
     widgets::{
         context_clue::UIContextClueView,
-        crafting::UICraftingTabsView,
-        inventory::{UIBaseInventory, UIShipInventory},
+        inventory::{UIShipInventory},
     },
 };
 

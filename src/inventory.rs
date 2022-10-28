@@ -218,7 +218,7 @@ impl Inventory {
                 Amount::Weight(w) => {
                     gross_weight += w;
                 }
-                Amount::Quantity(q) => {
+                Amount::Quantity(_q) => {
                     // TODO: calculate weight with quantity * item_weight
                 }
                 Amount::None => {}

@@ -2,10 +2,10 @@ use kayak_ui::core::{rsx, widget};
 
 use kayak_ui::core::{
     color::Color,
-    styles::{Edge, LayoutType, Style, StyleProp, Units},
+    styles::{LayoutType, Style, StyleProp, Units},
     WidgetProps,
 };
-use kayak_ui::widgets::{Element, If, Text};
+use kayak_ui::widgets::{If, Text};
 
 use crate::recipe::Recipe;
 use crate::widgets::progress_bar::ProgressBar;
