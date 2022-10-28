@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
+use bevy_inspector_egui::Inspectable;
 
 use crate::{
     base_station::BaseStation,
@@ -11,7 +12,7 @@ use crate::{
     widgets::factory::CraftEvent,
 };
 
-#[derive(Default, Debug, Clone, Copy, PartialEq)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Inspectable)]
 pub enum UpgradeComponent {
     #[default]
     Cog,
@@ -131,7 +132,8 @@ pub struct FactoryPlugin;
 
 impl Plugin for FactoryPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<CraftEvent>()
+        app
+            .add_event::<CraftEvent>()
             .insert_resource(FactoryTimer(None))
             .add_system(Self::on_craft_event)
             .add_system(Self::update_factory_processing);

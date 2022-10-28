@@ -6,6 +6,7 @@ use crate::inventory::{Capacity, Inventory, InventoryPlugin};
 use crate::particles::PlayerShipTrailParticles;
 use crate::player_stats_bar::PlayerStatsBarPlugin;
 use crate::projectile::ProjectilePlugin;
+use crate::widgets::station_menu::{UpgradeEvent, UpgradeType, UpgradeLevel};
 use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
@@ -14,6 +15,8 @@ use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use bevy_prototype_lyon::prelude as lyon;
 use bevy_rapier2d::prelude::*;
 use std::f32::consts::PI;
+use strum_macros::EnumIter;
+use strum::IntoEnumIterator;
 
 pub struct PlayerPlugin;
 
@@ -35,6 +38,39 @@ impl Battery {
     }
 }
 
+#[derive(Component, Default, Inspectable)]
+pub struct UpgradesComponent {
+    pub upgrades: Vec<UpgradeType>
+}
+
+impl UpgradesComponent {
+    pub fn new() -> Self {
+    
+        let mut upgrades = vec![];
+        for upgrade_type in UpgradeType::iter() {
+            if upgrade_type != UpgradeType::None {
+                upgrades.push(upgrade_type);
+            }
+        }
+
+        Self { upgrades: upgrades }
+
+    }
+
+    pub fn upgrade(&mut self, upgrade_type: UpgradeType) {
+        if let Some(mut to_upgrade) = self.upgrades.iter_mut().find(|upgrade| {**upgrade == upgrade_type}) {
+                *to_upgrade = match to_upgrade {
+                    UpgradeType::None => {UpgradeType::None},
+                    UpgradeType::Health(level) => {UpgradeType::Health(UpgradeLevel::Level1(None))},
+                    UpgradeType::ShipCargoBay(_) =>  {UpgradeType::ShipCargoBay(UpgradeLevel::Level1(None))
+                }
+            }
+        }
+
+        println!("{:?}", self.upgrades);
+    }
+}
+
 #[derive(Component, Inspectable, Default)]
 pub struct Player {
     // TODO: refactor into velocity Vec2
@@ -43,6 +79,7 @@ pub struct Player {
     pub delta_rotation: f32,
     pub health: Health,
     pub battery: Battery,
+    // pub upgrades: UpgradesComponent
 }
 
 impl Player {
@@ -59,6 +96,7 @@ impl Player {
                 current_capacity: 1000.0,
                 maximum_capacity: 1000.0,
             },
+            // upgrades: UpgradesComponent::new()
         }
     }
 
@@ -88,7 +126,9 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         // add things to your app here
 
-        app.add_startup_system(Self::spawn_player.label("spawn_player"))
+        app
+            .add_event::<UpgradeEvent>()
+            .add_startup_system(Self::spawn_player.label("spawn_player"))
             .add_system(Self::update_player_mass)
             .add_system(Self::player_movement.after(Self::update_player_mass))
             .add_system(Self::ship_rotate_towards_mouse.after(Self::player_movement))
@@ -98,6 +138,7 @@ impl Plugin for PlayerPlugin {
             .add_system(Self::gravitate_collectibles)
             .add_system(Self::keep_player_on_top)
             .add_system(Self::ship_battery_is_empty_context_clue)
+            .add_system(Self::on_upgrade_event)
             .register_inspectable::<Player>();
     }
 }
@@ -163,6 +204,7 @@ impl PlayerPlugin {
             .insert(Transform::default())
             .insert(ActiveEvents::COLLISION_EVENTS)
             .insert(Restitution::coefficient(1.0))
+            .insert(UpgradesComponent::new())
             .insert(Name::new("Player"))
             .id();
 
@@ -421,4 +463,39 @@ impl PlayerPlugin {
             }
         }
     }
+
+    /// Perfom a smelt action with a recipe provided by the SmeltEvent.
+    fn on_upgrade_event(
+        mut reader: EventReader<UpgradeEvent>,
+        mut base_station_query: Query<
+            (&BaseStation, &mut Inventory),
+            With<BaseStation>,
+        >,
+        mut player_query: Query<(&Player, &mut UpgradesComponent), Without<BaseStation>>
+        // mut refinery_timer: ResMut<RefineryTimer>,
+    ) {
+        for event in reader.iter() {
+            println!("Upgrade Event Detected!");
+            let (_base_station, inventory) = base_station_query.single_mut();
+            let (_player, mut upgrades) = player_query.single_mut();
+
+            let upgrade = event.0.clone();
+            println!("{:?}", upgrade);
+
+            upgrades.upgrade(upgrade);
+
+            // match &upgrade {
+            //     crate::widgets::station_menu::UpgradeType::Health(level) => {
+                    
+            //     },
+            //     crate::widgets::station_menu::UpgradeType::ShipCargoBay(level) => {
+                    
+            //     },
+            //     _ => {}
+            // }
+
+            // Self::smelt_materials(inventory, &recipe, refinery, &mut refinery_timer);
+        }
+    }
+
 }

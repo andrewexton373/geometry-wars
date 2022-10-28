@@ -2,6 +2,7 @@ use crate::astroid::AstroidMaterial;
 use crate::factory::UpgradeComponent;
 use crate::refinery::MetalIngot;
 use bevy::prelude::*;
+use bevy_inspector_egui::Inspectable;
 use std::fmt;
 use std::ops::{AddAssign, SubAssign};
 
@@ -16,8 +17,10 @@ pub struct Inventory {
     pub capacity: Capacity,
 }
 
-#[derive(Clone, Copy, PartialEq, PartialOrd)]
+#[derive(Default, Clone, Copy, PartialEq, PartialOrd, Inspectable)]
 pub enum Amount {
+    #[default]
+    None,
     Weight(f32),
     Quantity(u32),
 }
@@ -30,6 +33,9 @@ impl fmt::Debug for Amount {
             }
             Self::Quantity(arg0) => {
                 write!(f, "x{}", arg0)
+            },
+            _ => {
+                write!(f, "None")
             }
         }
     }
@@ -46,6 +52,9 @@ impl AddAssign for Amount {
                 Amount::Quantity(q) => *quantity += q,
                 _ => {}
             },
+            Amount::None => {
+
+            }
         }
     }
 }
@@ -61,11 +70,14 @@ impl SubAssign for Amount {
                 Amount::Quantity(q) => *quantity -= q,
                 _ => {}
             },
+            Amount::None => {
+
+            }
         }
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Inspectable)]
 
 pub enum InventoryItem {
     Material(AstroidMaterial, Amount),
@@ -142,6 +154,9 @@ impl Inventory {
             Amount::Quantity(_) => {
                 // TODO: calculate weight with quantity * item_weight
                 return true;
+            },
+            Amount::None => {
+                return true; // Always has room for nothing?
             }
         }
     }
@@ -158,9 +173,12 @@ impl Inventory {
             match item.amount() {
                 Amount::Weight(w) => {
                     gross_weight += w;
-                }
+                },
                 Amount::Quantity(q) => {
                     // TODO: calculate weight with quantity * item_weight
+                },
+                Amount::None => {
+
                 }
             }
         }

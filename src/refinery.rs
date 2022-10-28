@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
+use bevy_inspector_egui::Inspectable;
 
 use crate::{
     astroid::AstroidMaterial,
@@ -11,7 +12,7 @@ use crate::{
     widgets::refinery::SmeltEvent,
 };
 
-#[derive(Default, Debug, Clone, Copy, PartialEq)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Inspectable)]
 pub enum MetalIngot {
     #[default]
     IronIngot,

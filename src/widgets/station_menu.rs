@@ -1,5 +1,6 @@
 
 
+use bevy_inspector_egui::Inspectable;
 use kayak_ui::core::styles::{PositionType, LayoutType};
 use kayak_ui::core::{rsx, use_state, widget, constructor};
 
@@ -36,6 +37,8 @@ pub fn UIStationMenu() {
 
     let context_clues = ui_items.get().context_clues; // TODO!
     let near_base_station = context_clues.contains(&ContextClue::NearBaseStation);
+
+    let upgrades = ui_items.get().upgrades;
     
     if !near_base_station {
         set_show(false);
@@ -79,7 +82,7 @@ pub fn UIStationMenu() {
                         <Background styles={station_menu_styles}>
                             <Text content={"Base Station Menu".to_string()} size={14.0} />
                             <Text content={"Upgrades".to_string()} size={12.0} />
-                            <UIUpgradesMenu />
+                            <UIUpgradesMenu upgrades={upgrades}/>
 
                             <Text content={"Crafting".to_string()} size={12.0} />
                             <UICraftingTabsView />
@@ -147,29 +150,27 @@ pub fn StationMenuButton(props: StationMenuButtonProps) {
     }
 }
 
+#[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
+pub struct UIUpgradesMenuProps {
+    pub upgrades: Vec<UpgradeType>
+}
+
 #[widget]
-pub fn UIUpgradesMenu() {
-
-    let mut upgrade_list = vec![];
-    // for upgrade_type in UpgradeType::iter() {
-    //     upgrade_list.push(upgrade_type);
-    // }
-
-    upgrade_list.push(UpgradeType::Health(UpgradeLevel::Level3(None)));
-
-    // println!("{:?}", upgrade_list);
-
+pub fn UIUpgradesMenu(props: UIUpgradesMenuProps) {
+    let UIUpgradesMenuProps {
+        upgrades
+    } = props.clone();
 
     rsx! {
         <>
 
-            {VecTracker::from(upgrade_list.clone().into_iter().enumerate().map(|(index, upgrade)| {
+            {VecTracker::from(upgrades.clone().into_iter().enumerate().map(|(index, upgrade)| {
                 constructor! {
                     <UIUpgrade upgrade_type={Some(upgrade)} />
                 }
             }))}
             // List Upgrades
-            <UIUpgrade />
+            // <UIUpgrade />
 
         </>
     }
@@ -190,13 +191,13 @@ pub struct UIUpgradeProps {
 //     Health(usize, Vec<InventoryItem>)
 // }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Inspectable)]
 pub struct UpgradeRequirements {
     requirements: Vec<InventoryItem>
 }
 
 
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq, Inspectable)]
 #[repr(u8)]
 pub enum UpgradeLevel {
     #[default]
@@ -217,8 +218,10 @@ impl UpgradeLevel {
     }
 }
 
-#[derive(EnumIter, Clone, Debug, PartialEq)]
+#[derive(Default, EnumIter, Clone, Debug, PartialEq, Inspectable)]
 pub enum UpgradeType {
+   #[default]
+    None,
     Health(UpgradeLevel),
     ShipCargoBay(UpgradeLevel)
 }
@@ -228,9 +231,12 @@ impl ToString for UpgradeType {
         match self {
             UpgradeType::Health(_) => "Health",
             UpgradeType::ShipCargoBay(_) => "Ship Cargo Bay",
+            UpgradeType::None => "NONE UPGRADE."
         }.to_string()
     }
 }
+
+pub struct UpgradeEvent(pub UpgradeType);
 
 #[widget]
 pub fn UIUpgrade(props: UIUpgradeProps) {
@@ -255,9 +261,9 @@ pub fn UIUpgrade(props: UIUpgradeProps) {
             println!("UPGRADE BUTTON CLICKED! {:?}", cloned);
 
             // TODO Implement Events for Upgrades
-            // ctx.query_world::<EventWriter<CraftEvent>, _, ()>(|mut writer| {
-            //     writer.send(CraftEvent(clone.clone()))
-            // });
+            ctx.query_world::<EventWriter<UpgradeEvent>, _, ()>(|mut writer| {
+                writer.send(UpgradeEvent(cloned.clone().unwrap()));
+            });
             // on_create.call(refineable_id);
         }
         _ => (),

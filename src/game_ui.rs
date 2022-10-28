@@ -7,8 +7,9 @@ use kayak_ui::widgets::App as KayakApp;
 
 use bevy::{prelude::*, utils::HashSet};
 
+use crate::player::UpgradesComponent;
 use crate::widgets::ship_information::{UIShipInformationView, ShipInformation};
-use crate::widgets::station_menu::UIStationMenu;
+use crate::widgets::station_menu::{UIStationMenu, UpgradeType};
 use crate::{
     base_station::BaseStation,
     factory::Factory,
@@ -30,7 +31,8 @@ pub struct UIItems {
     pub factory: Factory,
     pub remaining_refinery_time: f32,
     pub context_clues: HashSet<ContextClue>,
-    pub ship_info: ShipInformation
+    pub ship_info: ShipInformation,
+    pub upgrades: Vec<UpgradeType>
 }
 
 #[derive(Default, Debug, Clone, Copy, Eq, PartialEq, Hash)]
@@ -90,7 +92,7 @@ impl GameUIPlugin {
                     <UICraftingTabsView />
                     <UIShipInformationView />
                     <UIStationMenu />
-                    
+
                 </KayakApp>
             }
         });
@@ -100,7 +102,7 @@ impl GameUIPlugin {
 
     fn update_ui_data(
 
-        player_query: Query<(&Inventory, &Velocity), (With<Player>, Without<BaseStation>)>,
+        player_query: Query<(&UpgradesComponent, &Inventory, &Velocity), (With<Player>, Without<BaseStation>)>,
         base_station_query: Query<
             (&Inventory, &Refinery, &Factory),
             (With<BaseStation>, Without<Player>),
@@ -108,7 +110,7 @@ impl GameUIPlugin {
         context_clues_res: Res<ContextClues>,
         ui_items: Res<Binding<UIItems>>,
     ) {
-        let (ship_inventory, ship_velocity) = player_query.single();
+        let (upgrades, ship_inventory, ship_velocity) = player_query.single();
         let (station_inventory, station_refinery, station_factory) = base_station_query.single();
 
         // update ui by updating binding object
@@ -123,7 +125,8 @@ impl GameUIPlugin {
                 net_weight: ship_inventory.gross_material_weight(),
                 speed: ship_velocity.linvel.length(),
                 direction: ship_velocity.linvel.angle_between(Vec2::Y) // FIXME: In Rads for now, also wrong
-            }
+            },
+            upgrades: upgrades.upgrades.clone()
         });
     }
 }
