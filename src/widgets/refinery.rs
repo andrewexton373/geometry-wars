@@ -17,6 +17,8 @@ use crate::item_producer::ItemProducer;
 use crate::recipe::Recipe;
 use crate::widgets::currently_processing::CurrentlyProcessing;
 
+use super::station_menu::UpgradeRequirements;
+
 #[widget]
 pub fn UIRefineryView() {
     let (color, set_color, ..) = use_state!(Color::new(0.0781, 0.0898, 0.101, 1.0));
@@ -149,18 +151,25 @@ pub fn Refineable(props: RefineableProps) {
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct UIRequirementsProps {
+    pub requirements: Option<UpgradeRequirements>,
     pub required: Vec<InventoryItem>,
 }
 
 #[widget]
 pub fn UIRequirements(props: UIRequirementsProps) {
-    let UIRequirementsProps { required } = props.clone();
+    let UIRequirementsProps {requirements, required } = props.clone();
 
-    rsx! {
-        <Text size={14.0} content={"REQUIREMENTS: TODO!".to_string()} />
-
-        // <Text size={14.0} content={format!("Requirements: {:?}", required)} />
+    if let Some(requirements) = requirements {
+        rsx! {
+            <Text size={14.0} content={format!("REQUIREMENTS: {:?}", requirements.requirements)} />
+        }
+    } else {
+        rsx! {
+            <Text size={14.0} content={"REQUIREMENTS: NO REQUIREMENTS FOUND!".to_string()} />
+        }
     }
+
+
 }
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]

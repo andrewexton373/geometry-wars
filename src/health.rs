@@ -40,11 +40,11 @@ impl Upgradeable for Health {
     fn upgrade_effect(&self) -> f32 {
         match self.upgrade_level {
             UpgradeLevel::Level0 => 1.0,
-            UpgradeLevel::Level1(_) => 1.5,
-            UpgradeLevel::Level2(_) => 2.0,
-            UpgradeLevel::Level3(_) => 3.0,
-            UpgradeLevel::Level4(_) => 4.0,
-            UpgradeLevel::MaxLevel(_) => 5.0,
+            UpgradeLevel::Level1 => 1.5,
+            UpgradeLevel::Level2 => 2.0,
+            UpgradeLevel::Level3 => 3.0,
+            UpgradeLevel::Level4 => 4.0,
+            UpgradeLevel::MaxLevel => 5.0,
         }
     }
 }

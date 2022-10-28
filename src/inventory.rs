@@ -142,6 +142,65 @@ impl InventoryItem {
 }
 
 impl Inventory {
+
+
+    // TODO: find a way to clean this up.
+    pub fn has_items(&self, items: Vec<InventoryItem>) -> bool {
+
+
+        for item in items.iter() {
+            // FIXME: this fells messy and error prone.. not even sure its right haha... maybe use the macro from discord
+
+            match item {
+                InventoryItem::Component(needed_comp, amount) => {
+                    if let Some(inventory_comp) =
+                        self.items.iter().find_map(|item| match item {
+                            InventoryItem::Component(c, _) if c == needed_comp => Some(item),
+                            _ => None,
+                        })
+                    {
+                        if inventory_comp.amount() < *amount {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                },
+                InventoryItem::Ingot(needed_ingot, amount) => {
+                    if let Some(inventory_ingot) =
+                        self.items.iter().find_map(|item| match item {
+                            InventoryItem::Ingot(i, _) if i == needed_ingot => Some(item),
+                            _ => None,
+                        })
+                    {
+                        if inventory_ingot.amount() < *amount {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                },
+                InventoryItem::Material(needed_mat, amount) => {
+                    if let Some(inventory_mat) =
+                        self.items.iter().find_map(|item| match item {
+                            InventoryItem::Material(m, _) if m == needed_mat => Some(item),
+                            _ => None,
+                        })
+                    {
+                        if inventory_mat.amount() < *amount {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                },
+            }
+        }
+
+
+        true
+    }
+
     pub fn has_capacity_for(&self, item: InventoryItem) -> bool {
         match item.amount() {
             Amount::Weight(w) => {
@@ -222,6 +281,18 @@ impl Inventory {
         true
     }
 
+    pub fn remove_all_from_inventory(&mut self, items: Vec<InventoryItem>) -> bool {
+
+        let mut all_removed = true;
+
+        for item in items {
+            all_removed &= self.remove_from_inventory(item);
+        }
+
+        println!("ALLREMOVED: {}", all_removed);
+        all_removed
+    }
+
     pub fn remove_from_inventory(&mut self, item_to_remove: InventoryItem) -> bool {
         match item_to_remove {
             InventoryItem::Material(to_find, _) => {
@@ -278,6 +349,8 @@ impl Inventory {
                         })
                 {
                     if found_item.amount() >= item_to_remove.amount() {
+                        found_item.remove_amount(item_to_remove.amount());
+
                         if found_item.amount() == Amount::Quantity(0) {
                             self.items.remove(index);
                         }
@@ -320,6 +393,14 @@ impl InventoryPlugin {
         // TODO: REMOVE ONLY FOR TESTING.
         inventory.add_to_inventory(InventoryItem::Ingot(
             MetalIngot::IronIngot,
+            Amount::Quantity(2),
+        ));
+        inventory.add_to_inventory(InventoryItem::Component(
+            UpgradeComponent::Cog,
+            Amount::Quantity(2),
+        ));
+        inventory.add_to_inventory(InventoryItem::Component(
+            UpgradeComponent::IronPlate,
             Amount::Quantity(2),
         ));
         commands.entity(entity).insert(inventory);

@@ -20,7 +20,7 @@ use strum_macros::FromRepr;
 
 use crate::factory::UpgradeComponent;
 use crate::game_ui::{ContextClue, UIItems};
-use crate::inventory::{Amount, InventoryItem};
+use crate::inventory::{Amount, InventoryItem, Inventory};
 use crate::widgets::crafting::UICraftingTabsView;
 use crate::widgets::inventory::UIBaseInventory;
 use crate::widgets::refinery::UIRequirements;
@@ -157,15 +157,11 @@ pub fn UIUpgradesMenu(props: UIUpgradesMenuProps) {
 
     rsx! {
         <>
-
             {VecTracker::from(upgrades.clone().into_iter().enumerate().map(|(index, upgrade)| {
                 constructor! {
                     <UIUpgrade upgrade_type={Some(upgrade)} />
                 }
             }))}
-            // List Upgrades
-            // <UIUpgrade />
-
         </>
     }
 }
@@ -179,37 +175,32 @@ pub struct UIUpgradeProps {
     pub upgrade_type: Option<UpgradeType>,
 }
 
-// #[derive(Clone, PartialEq)]
-// pub enum UpgradeLevelRequriements {
-//     Health(usize, Vec<InventoryItem>)
-// }
-
 #[derive(Debug, Clone, PartialEq, Inspectable)]
 pub struct UpgradeRequirements {
-    requirements: Vec<InventoryItem>,
+    pub requirements: Vec<InventoryItem>,
 }
 
-#[derive(FromRepr, EnumIter, Debug, Clone, Default, PartialEq, Inspectable)]
+#[derive(FromRepr, EnumIter, Debug, Clone, Copy, Default, PartialEq, Inspectable)]
 #[repr(u8)]
 pub enum UpgradeLevel {
     #[default]
     Level0 = 0,
-    Level1(Option<UpgradeRequirements>) = 1,
-    Level2(Option<UpgradeRequirements>) = 2,
-    Level3(Option<UpgradeRequirements>) = 3,
-    Level4(Option<UpgradeRequirements>) = 4,
-    MaxLevel(Option<UpgradeRequirements>) = 5,
+    Level1 = 1,
+    Level2 = 2,
+    Level3 = 3,
+    Level4 = 4,
+    MaxLevel = 5,
 }
 
 impl UpgradeLevel {
     pub fn as_u8(&self) -> u8 {
         match self {
             UpgradeLevel::Level0 => 0,
-            UpgradeLevel::Level1(_) => 1,
-            UpgradeLevel::Level2(_) => 2,
-            UpgradeLevel::Level3(_) => 3,
-            UpgradeLevel::Level4(_) => 4,
-            UpgradeLevel::MaxLevel(_) => 5,
+            UpgradeLevel::Level1 => 1,
+            UpgradeLevel::Level2 => 2,
+            UpgradeLevel::Level3 => 3,
+            UpgradeLevel::Level4 => 4,
+            UpgradeLevel::MaxLevel => 5,
         }
     }
 
@@ -219,7 +210,7 @@ impl UpgradeLevel {
     }
 }
 
-#[derive(Default, EnumIter, Clone, Debug, PartialEq, Inspectable)]
+#[derive(Default, EnumIter, Clone, Copy, Debug, PartialEq, Inspectable)]
 pub enum UpgradeType {
     #[default]
     None,
@@ -235,6 +226,84 @@ impl ToString for UpgradeType {
             UpgradeType::None => "NONE UPGRADE.",
         }
         .to_string()
+    }
+}
+
+impl UpgradeType {
+    pub fn requirements(&self) -> Option<UpgradeRequirements> {
+        let mut requirements = vec![];
+
+        match self {
+            UpgradeType::None => {return None; },
+            UpgradeType::Health(level) => {
+                requirements = match level {
+                    UpgradeLevel::Level0 => vec![],
+                    UpgradeLevel::Level1 => vec![
+                        InventoryItem::Component(UpgradeComponent::Cog, Amount::Quantity(1)),
+                        InventoryItem::Component(UpgradeComponent::IronPlate, Amount::Quantity(2)),
+                    ],
+                    UpgradeLevel::Level2 => vec![
+                        InventoryItem::Component(UpgradeComponent::Cog, Amount::Quantity(2)),
+                        InventoryItem::Component(UpgradeComponent::IronPlate, Amount::Quantity(3)),
+                    ],
+                    UpgradeLevel::Level3 => vec![
+                        InventoryItem::Component(UpgradeComponent::Cog, Amount::Quantity(1)),
+                        InventoryItem::Component(UpgradeComponent::IronPlate, Amount::Quantity(2)),
+                        InventoryItem::Component(UpgradeComponent::SilverConduit, Amount::Quantity(1)),
+                    ],
+                    UpgradeLevel::Level4 => vec![
+                        InventoryItem::Component(UpgradeComponent::Cog, Amount::Quantity(3)),
+                        InventoryItem::Component(UpgradeComponent::IronPlate, Amount::Quantity(5)),
+                        InventoryItem::Component(UpgradeComponent::SilverConduit, Amount::Quantity(3)),
+                        InventoryItem::Component(UpgradeComponent::GoldLeaf, Amount::Quantity(1)),
+                    ],
+                    UpgradeLevel::MaxLevel => vec![
+                        InventoryItem::Component(UpgradeComponent::Cog, Amount::Quantity(10)),
+                        InventoryItem::Component(UpgradeComponent::IronPlate, Amount::Quantity(5)),
+                        InventoryItem::Component(UpgradeComponent::SilverConduit, Amount::Quantity(5)),
+                        InventoryItem::Component(UpgradeComponent::GoldLeaf, Amount::Quantity(3)),
+                    ],
+                }
+            }
+            UpgradeType::ShipCargoBay(level) => {
+                requirements = match level {
+                    UpgradeLevel::Level0 => vec![],
+                    UpgradeLevel::Level1 => vec![
+                        InventoryItem::Component(UpgradeComponent::Cog, Amount::Quantity(2)),
+                        InventoryItem::Component(UpgradeComponent::IronPlate, Amount::Quantity(3)),
+                    ],
+                    UpgradeLevel::Level2 => todo!(),
+                    UpgradeLevel::Level3 => todo!(),
+                    UpgradeLevel::Level4 => todo!(),
+                    UpgradeLevel::MaxLevel => todo!(),
+                }
+            },
+        }
+
+        return Some(UpgradeRequirements {
+            requirements
+        });
+    }
+
+    pub fn next(&self) -> Self {
+        match self {
+            UpgradeType::None => { return self.clone(); },
+            UpgradeType::Health(level) => {
+                if let Some(next_level) = level.next() {
+                    UpgradeType::Health(next_level)
+                } else {
+                    self.clone()
+                }
+                
+            }
+            UpgradeType::ShipCargoBay(level) => {
+                if let Some(next_level) = level.next() {
+                    UpgradeType::ShipCargoBay(next_level)
+                } else {
+                    self.clone()
+                }
+            },
+        }
     }
 }
 
@@ -270,18 +339,24 @@ pub fn UIUpgrade(props: UIUpgradeProps) {
         _ => (),
     });
 
-    let requirements = vec![InventoryItem::Component(
-        UpgradeComponent::Cog,
-        Amount::Quantity(1),
-    )];
+    // let requirements = vec![InventoryItem::Component(
+    //     UpgradeComponent::Cog,
+    //     Amount::Quantity(1),
+    // )];
 
     if let Some(upgrade_type) = upgrade_type.clone() {
         match upgrade_type.clone() {
-            UpgradeType::Health(level) | UpgradeType::ShipCargoBay(level) => {
+            upgrade_type @ (
+                UpgradeType::Health(level) |
+                UpgradeType::ShipCargoBay(level)
+            ) => {
+
+                let next_upgrade_level = upgrade_type.next();
+                
                 rsx! {
                     <Element styles={styles}>
-                        <Text content={format!("Upgrade Type: {}", upgrade_type.to_string())} />
-                        <UIRequirements required={requirements} />
+                        <Text content={format!("Upgrade Type: {}", upgrade_type.clone().to_string())} />
+                        <UIRequirements requirements={next_upgrade_level.requirements().clone()} />
                         <UpgradeButton on_event={Some(on_event)} />
 
                         <UIUpgradeLevel upgrade_level={level.clone()} />
