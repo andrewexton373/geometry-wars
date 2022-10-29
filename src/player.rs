@@ -189,10 +189,10 @@ impl PlayerPlugin {
             ),
             (With<Player>, Without<Crosshair>),
         >,
-        mut effect: Query<
-            (&mut ParticleEffect, &mut Transform),
-            (With<PlayerShipTrailParticles>, Without<Player>),
-        >,
+        // mut effect: Query<
+        //     (&mut ParticleEffect, &mut Transform),
+        //     (With<PlayerShipTrailParticles>, Without<Player>),
+        // >,
     ) {
         const ACCELERATION: f32 = 12000.0 * PIXELS_PER_METER;
 
@@ -225,12 +225,12 @@ impl PlayerPlugin {
 
             ext_force.force = force;
 
-            if force.length() > 0.0 {
-                if let (mut effect, mut effect_trans) = effect.single_mut() {
-                    effect_trans.translation = transform.translation;
-                    effect.maybe_spawner().unwrap().reset();
-                }
-            }
+            // if force.length() > 0.0 {
+            //     if let (mut effect, mut effect_trans) = effect.single_mut() {
+            //         effect_trans.translation = transform.translation;
+            //         effect.maybe_spawner().unwrap().reset();
+            //     }
+            // }
         }
 
         velocity.angvel = 0.0; // Prevents spin on astrid impact

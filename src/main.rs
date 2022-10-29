@@ -96,7 +96,7 @@ fn main() {
             ..default()
         })
         .add_plugin(GameUIPlugin)
-        .add_plugin(ParticlePlugin)
+        // .add_plugin(ParticlePlugin)
         .add_system(screen_print_debug_text)
         .run();
 }

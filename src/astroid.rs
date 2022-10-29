@@ -354,14 +354,14 @@ impl AstroidPlugin {
         rapier_context: Res<RapierContext>,
         mut astroid_query: Query<(Entity, &Astroid, &ReadMassProperties), With<Astroid>>,
         mut player_query: Query<(Entity, &mut Player, &mut Inventory), With<Player>>,
-        mut effect: Query<
-            (&mut ParticleEffect, &mut Transform),
-            (
-                With<ShipAstroidImpactParticles>,
-                Without<Astroid>,
-                Without<Player>,
-            ),
-        >,
+        // mut effect: Query<
+        //     (&mut ParticleEffect, &mut Transform),
+        //     (
+        //         With<ShipAstroidImpactParticles>,
+        //         Without<Astroid>,
+        //         Without<Player>,
+        //     ),
+        // >,
         mut inventory_full_notification: ResMut<InventoryFullNotificationTimer>,
     ) {
         let (player_ent, mut player, mut inventory) = player_query.single_mut();
@@ -411,12 +411,12 @@ impl AstroidPlugin {
                             }
                         }
 
-                        if astroid_collision {
-                            let (mut effect, mut effect_translation) = effect.single_mut();
-                            effect_translation.translation =
-                                (solver_contact.point() * crate::PIXELS_PER_METER).extend(200.0);
-                            effect.maybe_spawner().unwrap().reset();
-                        }
+                        // if astroid_collision {
+                        //     let (mut effect, mut effect_translation) = effect.single_mut();
+                        //     effect_translation.translation =
+                        //         (solver_contact.point() * crate::PIXELS_PER_METER).extend(200.0);
+                        //     effect.maybe_spawner().unwrap().reset();
+                        // }
                     }
                 }
             }

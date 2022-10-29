@@ -59,14 +59,14 @@ impl ParticlePlugin {
             .render(ColorOverLifetimeModifier { gradient }),
         );
 
-        commands
-            .spawn_bundle(ParticleEffectBundle {
-                // Assign the Z layer so it appears in the egui inspector and can be modified at runtime
-                effect: ParticleEffect::new(effect).with_z_layer_2d(Some(50.0)),
-                ..default()
-            })
-            .insert(ProjectileImpactParticles)
-            .insert(Name::new("ProjectileImpactParticleEffect"));
+        // commands
+        //     .spawn_bundle(ParticleEffectBundle {
+        //         // Assign the Z layer so it appears in the egui inspector and can be modified at runtime
+        //         effect: ParticleEffect::new(effect).with_z_layer_2d(Some(50.0)),
+        //         ..default()
+        //     })
+        //     .insert(ProjectileImpactParticles)
+        //     .insert(Name::new("ProjectileImpactParticleEffect"));
     }
 
     fn setup_player_ship_trail_particle_system(
@@ -109,14 +109,14 @@ impl ParticlePlugin {
             .render(ColorOverLifetimeModifier { gradient }),
         );
 
-        commands
-            .spawn_bundle(ParticleEffectBundle {
-                // Assign the Z layer so it appears in the egui inspector and can be modified at runtime
-                effect: ParticleEffect::new(effect).with_z_layer_2d(Some(50.0)),
-                ..default()
-            })
-            .insert(PlayerShipTrailParticles)
-            .insert(Name::new("PlayerShipTrailParticleEffect"));
+        // commands
+        //     .spawn_bundle(ParticleEffectBundle {
+        //         // Assign the Z layer so it appears in the egui inspector and can be modified at runtime
+        //         effect: ParticleEffect::new(effect).with_z_layer_2d(Some(50.0)),
+        //         ..default()
+        //     })
+        //     .insert(PlayerShipTrailParticles)
+        //     .insert(Name::new("PlayerShipTrailParticleEffect"));
     }
 
     fn setup_ship_astroid_impact_particle_system(
@@ -148,13 +148,13 @@ impl ParticlePlugin {
             .render(ColorOverLifetimeModifier { gradient }),
         );
 
-        commands
-            .spawn_bundle(ParticleEffectBundle {
-                // Assign the Z layer so it appears in the egui inspector and can be modified at runtime
-                effect: ParticleEffect::new(effect).with_z_layer_2d(Some(200.0)),
-                ..default()
-            })
-            .insert(ShipAstroidImpactParticles)
-            .insert(Name::new("ShipAstroidImpactParticleEffect"));
+        // commands
+        //     .spawn_bundle(ParticleEffectBundle {
+        //         // Assign the Z layer so it appears in the egui inspector and can be modified at runtime
+        //         effect: ParticleEffect::new(effect).with_z_layer_2d(Some(200.0)),
+        //         ..default()
+        //     })
+        //     .insert(ShipAstroidImpactParticles)
+        //     .insert(Name::new("ShipAstroidImpactParticleEffect"));
     }
 }

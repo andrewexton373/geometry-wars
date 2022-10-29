@@ -60,14 +60,14 @@ impl ProjectilePlugin {
     fn handle_projectile_collision_event(
         mut astroid_query: Query<(Entity, &Astroid, &Transform, &Velocity), With<Astroid>>,
         projectile_query: Query<(Entity, &Projectile, &Velocity), With<Projectile>>,
-        mut effect: Query<
-            (&mut ParticleEffect, &mut Transform),
-            (
-                With<ProjectileImpactParticles>,
-                Without<Astroid>,
-                Without<Projectile>,
-            ),
-        >,
+        // mut effect: Query<
+        //     (&mut ParticleEffect, &mut Transform),
+        //     (
+        //         With<ProjectileImpactParticles>,
+        //         Without<Astroid>,
+        //         Without<Projectile>,
+        //     ),
+        // >,
         mut commands: Commands,
         rapier_context: Res<RapierContext>,
     ) {
@@ -85,11 +85,11 @@ impl ProjectilePlugin {
                             // Keep in mind that all the solver contact data are expressed in world-space.
                             println!("PROJECTILE COLLISION WITH ASTROID");
 
-                            let (mut effect, mut effect_translation) = effect.single_mut();
+                            // let (mut effect, mut effect_translation) = effect.single_mut();
 
-                            effect_translation.translation =
-                                (solver_contact.point() * crate::PIXELS_PER_METER).extend(200.0);
-                            effect.maybe_spawner().unwrap().reset();
+                            // effect_translation.translation =
+                            //     (solver_contact.point() * crate::PIXELS_PER_METER).extend(200.0);
+                            // effect.maybe_spawner().unwrap().reset();
 
                             AstroidPlugin::split_astroid(
                                 &mut commands,
