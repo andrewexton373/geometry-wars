@@ -31,7 +31,7 @@ impl Plugin for ParticlePlugin {
 
 impl ParticlePlugin {
     fn setup_projectile_impact_particle_system(
-        mut commands: Commands,
+        _commands: Commands,
         mut effects: ResMut<Assets<EffectAsset>>,
     ) {
         let mut gradient = Gradient::new();
@@ -39,7 +39,7 @@ impl ParticlePlugin {
         gradient.add_key(1.0, Vec4::new(1.0, 0.5, 0.0, 0.0));
 
         let spawner = Spawner::once(100.0.into(), false);
-        let effect = effects.add(
+        let _effect = effects.add(
             EffectAsset {
                 name: "Projectile Impact".into(),
                 capacity: 32768,
@@ -70,7 +70,7 @@ impl ParticlePlugin {
     }
 
     fn setup_player_ship_trail_particle_system(
-        mut commands: Commands,
+        _commands: Commands,
         mut effects: ResMut<Assets<EffectAsset>>,
     ) {
         let mut gradient = Gradient::new();
@@ -88,7 +88,7 @@ impl ParticlePlugin {
         );
 
         let spawner = Spawner::once(50.0.into(), false);
-        let effect = effects.add(
+        let _effect = effects.add(
             EffectAsset {
                 name: "Ship Trail".into(),
                 capacity: 32768,
@@ -120,7 +120,7 @@ impl ParticlePlugin {
     }
 
     fn setup_ship_astroid_impact_particle_system(
-        mut commands: Commands,
+        _commands: Commands,
         mut effects: ResMut<Assets<EffectAsset>>,
     ) {
         let mut gradient = Gradient::new();
@@ -128,7 +128,7 @@ impl ParticlePlugin {
         gradient.add_key(1.0, Vec4::new(1.0, 0.5, 0.0, 0.0));
 
         let spawner = Spawner::once(20.0.into(), false);
-        let effect = effects.add(
+        let _effect = effects.add(
             EffectAsset {
                 name: "Ship-Astroid Impact".into(),
                 capacity: 32768,

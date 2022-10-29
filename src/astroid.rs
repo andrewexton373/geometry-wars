@@ -1,12 +1,12 @@
 use crate::base_station::BaseStation;
 use crate::game_ui::{ContextClue, ContextClues};
 use crate::inventory::{Amount, Inventory, InventoryItem};
-use crate::particles::ShipAstroidImpactParticles;
+
 use crate::{Player, PIXELS_PER_METER};
 use bevy::prelude::*;
 use bevy::reflect::FromReflect;
 use bevy::utils::HashMap;
-use bevy_hanabi::ParticleEffect;
+
 use bevy_inspector_egui::Inspectable;
 use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
 use bevy_rapier2d::prelude::*;
@@ -372,7 +372,7 @@ impl AstroidPlugin {
                 for manifold in contact_pair_view.manifolds() {
                     // Read the solver contacts.
 
-                    for solver_contact in manifold.solver_contacts() {
+                    for _solver_contact in manifold.solver_contacts() {
                         // Keep in mind that all the solver contact data are expressed in world-space.
 
                         let mut astroid_collision = false;

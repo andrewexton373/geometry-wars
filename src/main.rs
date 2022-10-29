@@ -17,7 +17,7 @@ use crosshair::CrosshairPlugin;
 use factory::FactoryPlugin;
 use game_ui::GameUIPlugin;
 use inventory::InventoryPlugin;
-use particles::ParticlePlugin;
+
 use player::{Player, PlayerPlugin};
 use player_stats_bar::PlayerStatsBarPlugin;
 use projectile::ProjectilePlugin;

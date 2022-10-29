@@ -1,9 +1,6 @@
-use crate::{
-    astroid::{Astroid, AstroidPlugin},
-    particles::ProjectileImpactParticles,
-};
+use crate::astroid::{Astroid, AstroidPlugin};
 use bevy::prelude::*;
-use bevy_hanabi::ParticleEffect;
+
 use bevy_prototype_lyon::prelude as lyon;
 use bevy_rapier2d::prelude::*;
 
@@ -81,7 +78,7 @@ impl ProjectilePlugin {
                     for manifold in contact_pair_view.manifolds() {
                         // Read the solver contacts.
 
-                        for solver_contact in manifold.solver_contacts() {
+                        for _solver_contact in manifold.solver_contacts() {
                             // Keep in mind that all the solver contact data are expressed in world-space.
                             println!("PROJECTILE COLLISION WITH ASTROID");
 

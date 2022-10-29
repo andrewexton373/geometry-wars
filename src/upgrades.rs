@@ -1,23 +1,13 @@
-use crate::astroid::Collectible;
-use crate::base_station::{BaseStation, CanDeposit};
-use crate::battery::Battery;
-use crate::crosshair::Crosshair;
-use crate::game_ui::{ContextClue, ContextClues};
-use crate::health::Health;
-use crate::inventory::{Capacity, Inventory, InventoryPlugin};
-use crate::particles::PlayerShipTrailParticles;
+use crate::inventory::Inventory;
+
 use crate::player::Player;
-use crate::player_stats_bar::PlayerStatsBarPlugin;
-use crate::projectile::ProjectilePlugin;
-use crate::widgets::station_menu::{UpgradeEvent, UpgradeLevel, UpgradeType};
-use crate::{GameCamera, PIXELS_PER_METER};
+
+use crate::widgets::station_menu::{UpgradeLevel, UpgradeType};
+
 use bevy::prelude::*;
-use bevy::render::camera::RenderTarget;
-use bevy_hanabi::ParticleEffect;
-use bevy_inspector_egui::{Inspectable, RegisterInspectable};
-use bevy_prototype_lyon::prelude as lyon;
-use bevy_rapier2d::prelude::*;
-use std::f32::consts::PI;
+
+use bevy_inspector_egui::Inspectable;
+
 use strum::IntoEnumIterator;
 
 pub trait Upgradeable {

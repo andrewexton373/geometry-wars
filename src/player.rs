@@ -5,15 +5,15 @@ use crate::crosshair::Crosshair;
 use crate::game_ui::{ContextClue, ContextClues};
 use crate::health::Health;
 use crate::inventory::{Capacity, Inventory, InventoryPlugin};
-use crate::particles::PlayerShipTrailParticles;
+
 use crate::player_stats_bar::PlayerStatsBarPlugin;
 use crate::projectile::ProjectilePlugin;
 use crate::upgrades::UpgradesComponent;
-use crate::widgets::station_menu::{UpgradeEvent, UpgradeLevel, UpgradeType};
+use crate::widgets::station_menu::UpgradeEvent;
 use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
-use bevy_hanabi::ParticleEffect;
+
 use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use bevy_prototype_lyon::prelude as lyon;
 use bevy_rapier2d::prelude::*;
@@ -365,7 +365,7 @@ impl PlayerPlugin {
         mut empty_deposit_timer: ResMut<EmptyInventoryDepositTimer>,
         time: Res<Time>,
     ) {
-        if let Some(mut timer) = empty_deposit_timer.0.as_mut() {
+        if let Some(timer) = empty_deposit_timer.0.as_mut() {
             timer.tick(time.delta());
             context_clues.0.insert(ContextClue::ShipInventoryEmpty);
 
