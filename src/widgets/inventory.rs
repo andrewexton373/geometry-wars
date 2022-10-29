@@ -3,18 +3,16 @@ use kayak_ui::core::{rsx, widget};
 
 use kayak_ui::core::{
     color::Color,
-    styles::{Edge, LayoutType, Style, StyleProp, Units}, WidgetProps,
+    styles::{Edge, LayoutType, Style, StyleProp, Units},
+    WidgetProps,
 };
+use kayak_ui::core::{constructor, Binding, Bound, VecTracker};
 use kayak_ui::widgets::{Background, Element, Text};
-use kayak_ui::{
-    core::{constructor, Binding, Bound, VecTracker},
-};
 
 use bevy::prelude::*;
 
 use crate::game_ui::UIItems;
 use crate::inventory::{Amount, InventoryItem};
-
 
 #[widget]
 pub fn UIShipInventory() {

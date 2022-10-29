@@ -4,11 +4,11 @@ use bevy_rapier2d::prelude::{ActiveEvents, Collider, RapierContext, Sensor, Slee
 
 use crate::{
     astroid::Astroid,
-    factory::{FactoryPlugin},
+    factory::FactoryPlugin,
     game_ui::{ContextClue, ContextClues},
     inventory::{Capacity, Inventory, InventoryPlugin},
     player::Player,
-    refinery::{RefineryPlugin},
+    refinery::RefineryPlugin,
     PIXELS_PER_METER,
 };
 

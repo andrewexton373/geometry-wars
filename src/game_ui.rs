@@ -16,10 +16,7 @@ use crate::{
     inventory::{Inventory, InventoryItem},
     player::Player,
     refinery::Refinery,
-    widgets::{
-        context_clue::UIContextClueView,
-        inventory::{UIShipInventory},
-    },
+    widgets::{context_clue::UIContextClueView, inventory::UIShipInventory},
 };
 
 #[derive(Default, Debug, Clone, PartialEq)]

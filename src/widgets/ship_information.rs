@@ -1,11 +1,10 @@
-
-
 use kayak_ui::core::styles::PositionType;
 use kayak_ui::core::{rsx, widget};
 
 use kayak_ui::core::{
     color::Color,
-    styles::{Edge, Style, StyleProp, Units}, WidgetProps,
+    styles::{Edge, Style, StyleProp, Units},
+    WidgetProps,
 };
 use kayak_ui::core::{Binding, Bound};
 use kayak_ui::widgets::{Background, Text};
@@ -14,9 +13,6 @@ use bevy::prelude::*;
 
 use crate::game_ui::UIItems;
 use crate::item_producer::ItemProducer;
-
-
-
 
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
 pub struct ShipInformation {

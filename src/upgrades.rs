@@ -20,7 +20,6 @@ use bevy_rapier2d::prelude::*;
 use std::f32::consts::PI;
 use strum::IntoEnumIterator;
 
-
 pub trait Upgradeable {
     fn set_upgrade_level(&mut self, upgrade_level: UpgradeLevel);
     fn upgrade_effect(&self) -> f32;

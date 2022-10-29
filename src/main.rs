@@ -18,28 +18,28 @@ use factory::FactoryPlugin;
 use game_ui::GameUIPlugin;
 use inventory::InventoryPlugin;
 use particles::ParticlePlugin;
-use player::{PlayerPlugin, Player};
+use player::{Player, PlayerPlugin};
 use player_stats_bar::PlayerStatsBarPlugin;
 use projectile::ProjectilePlugin;
 use refinery::RefineryPlugin;
 
-mod upgrades;
+mod astroid;
+mod base_station;
 mod battery;
+mod crosshair;
 mod factory;
 mod game_ui;
 mod health;
+mod inventory;
 mod item_producer;
 mod particles;
+mod player;
+mod player_stats_bar;
+mod projectile;
 mod recipe;
 mod refinery;
+mod upgrades;
 mod widgets;
-mod player;
-mod astroid;
-mod projectile;
-mod crosshair;
-mod player_stats_bar;
-mod base_station;
-mod inventory;
 
 // Defines the amount of time that should elapse between each physics step.
 // const TIME_STEP: f32 = 1.0 / 60.0;
@@ -101,10 +101,7 @@ fn main() {
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-    mut rapier_config: ResMut<RapierConfiguration>,
-) {
+fn setup(mut commands: Commands, mut rapier_config: ResMut<RapierConfiguration>) {
     commands
         .spawn_bundle(Camera2dBundle::default())
         .insert(GameCamera)

@@ -91,8 +91,6 @@ pub fn UIStationMenu() {
         _ => (),
     }));
 
-
-
     rsx! {
         <>
             <If condition={near_base_station}>
@@ -369,13 +367,12 @@ pub fn UIUpgrade(props: UIUpgradeProps) {
         ..Default::default()
     });
 
-    let bg_color = Some(Style{
+    let bg_color = Some(Style {
         background_color: StyleProp::Value(Color::new(0.176, 0.196, 0.215, 1.0)),
         height: StyleProp::Value(Units::Auto),
         padding: StyleProp::Value(Edge::all(Units::Pixels(8.0))),
         ..Default::default()
     });
-
 
     let cloned = upgrade_type.clone();
 

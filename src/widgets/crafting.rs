@@ -13,10 +13,9 @@ use kayak_ui::widgets::{Background, Element, Text};
 
 use bevy::prelude::*;
 
-
 use crate::widgets::factory::UIFactoryView;
 use crate::widgets::refinery::UIRefineryView;
-use crate::{HEIGHT};
+use crate::HEIGHT;
 
 #[widget]
 pub fn UICraftingTabsView() {

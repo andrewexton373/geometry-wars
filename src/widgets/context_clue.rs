@@ -14,7 +14,6 @@ use bevy::prelude::*;
 
 use crate::game_ui::{ContextClue, UIItems};
 
-
 #[widget]
 pub fn UIContextClueView(props: UIContextClueProps) {
     let ui_items =

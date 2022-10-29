@@ -24,7 +24,6 @@ pub struct PlayerPlugin;
 
 pub struct EmptyInventoryDepositTimer(Option<Timer>);
 
-
 #[derive(Component, Inspectable, Default)]
 pub struct Player {
     // TODO: refactor into velocity Vec2
@@ -337,7 +336,6 @@ impl PlayerPlugin {
         }
     }
 
-
     fn player_deposit_control(
         kb: Res<Input<KeyCode>>,
         can_deposit: Res<CanDeposit>,
@@ -365,7 +363,7 @@ impl PlayerPlugin {
     fn display_empty_ship_inventory_context_clue(
         mut context_clues: ResMut<ContextClues>,
         mut empty_deposit_timer: ResMut<EmptyInventoryDepositTimer>,
-        time: Res<Time>
+        time: Res<Time>,
     ) {
         if let Some(mut timer) = empty_deposit_timer.0.as_mut() {
             timer.tick(time.delta());
@@ -374,11 +372,9 @@ impl PlayerPlugin {
             if timer.finished() {
                 empty_deposit_timer.0 = None;
             }
-
         } else {
             context_clues.0.remove(&ContextClue::ShipInventoryEmpty);
         }
-
     }
 
     fn gravitate_collectibles(

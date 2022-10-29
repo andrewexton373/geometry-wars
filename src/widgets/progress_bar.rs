@@ -2,16 +2,10 @@ use kayak_ui::core::{rsx, widget};
 
 use kayak_ui::core::{
     color::Color,
-    styles::{LayoutType, Style, StyleProp, Units}, WidgetProps,
+    styles::{LayoutType, Style, StyleProp, Units},
+    WidgetProps,
 };
-use kayak_ui::widgets::{Background};
-
-
-
-
-
-
-
+use kayak_ui::widgets::Background;
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq)]
 pub struct ProgressBarProps {

@@ -1,4 +1,4 @@
-use crate::{widgets::station_menu::UpgradeLevel, upgrades::Upgradeable};
+use crate::{upgrades::Upgradeable, widgets::station_menu::UpgradeLevel};
 use bevy::prelude::*;
 use bevy_inspector_egui::Inspectable;
 
