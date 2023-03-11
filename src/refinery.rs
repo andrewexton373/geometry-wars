@@ -9,7 +9,7 @@ use crate::{
     inventory::{Amount, Inventory, InventoryItem},
     item_producer::ItemProducer,
     recipe::Recipe,
-    widgets::refinery::SmeltEvent,
+    // widgets::refinery::SmeltEvent,
 };
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Inspectable)]
@@ -203,6 +203,7 @@ impl RefineryPlugin {
         }
     }
 
+
     /// Perfom a smelt action with a recipe provided by the SmeltEvent.
     fn on_smelt_event(
         mut reader: EventReader<SmeltEvent>,
@@ -227,3 +228,6 @@ impl RefineryPlugin {
         commands.entity(ent).insert(Refinery::new());
     }
 }
+
+pub struct SmeltEvent(pub Recipe);
+

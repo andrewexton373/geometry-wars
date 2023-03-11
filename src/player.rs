@@ -8,8 +8,8 @@ use crate::inventory::{Capacity, Inventory, InventoryPlugin};
 use crate::particles::PlayerShipTrailParticles;
 use crate::player_stats_bar::PlayerStatsBarPlugin;
 use crate::projectile::ProjectilePlugin;
-use crate::upgrades::UpgradesComponent;
-use crate::widgets::station_menu::{UpgradeEvent, UpgradeLevel, UpgradeType};
+use crate::upgrades::{UpgradesComponent, UpgradeEvent};
+// use crate::widgets::station_menu::{UpgradeEvent, UpgradeLevel, UpgradeType};
 use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
@@ -24,6 +24,13 @@ pub struct PlayerPlugin;
 
 pub struct EmptyInventoryDepositTimer(Option<Timer>);
 
+
+#[derive(Default, Debug, Clone, Copy, PartialEq)]
+pub struct ShipInformation {
+    pub net_weight: f32,
+    pub speed: f32,
+    pub direction: f32,
+}
 
 #[derive(Component, Inspectable, Default)]
 pub struct Player {

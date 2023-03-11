@@ -1,5 +1,4 @@
 // #![feature(array_methods)]
-#![feature(arbitrary_enum_discriminant)]
 
 use astroid::AstroidPlugin;
 use base_station::BaseStationPlugin;
@@ -32,7 +31,7 @@ mod item_producer;
 mod particles;
 mod recipe;
 mod refinery;
-mod widgets;
+// mod widgets;
 mod player;
 mod astroid;
 mod projectile;

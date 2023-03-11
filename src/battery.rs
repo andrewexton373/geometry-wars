@@ -1,7 +1,9 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::Inspectable;
 
-use crate::{widgets::station_menu::UpgradeLevel, upgrades::Upgradeable};
+use crate::upgrades::{UpgradeLevel, Upgradeable};
+
+// use crate::{widgets::station_menu::UpgradeLevel, upgrades::Upgradeable};
 
 #[derive(Component, Inspectable, Default, Clone, Debug)]
 pub struct Battery {

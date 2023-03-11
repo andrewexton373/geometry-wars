@@ -9,7 +9,7 @@ use crate::{
     item_producer::ItemProducer,
     recipe::Recipe,
     refinery::MetalIngot,
-    widgets::factory::CraftEvent,
+    // widgets::factory::CraftEvent,
 };
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Inspectable)]
@@ -248,3 +248,5 @@ impl FactoryPlugin {
         commands.entity(ent).insert(Factory::new());
     }
 }
+
+pub struct CraftEvent(pub Recipe);
