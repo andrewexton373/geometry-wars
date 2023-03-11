@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
-use bevy_inspector_egui::Inspectable;
 
 use crate::{
     base_station::BaseStation,
@@ -12,7 +11,7 @@ use crate::{
     // widgets::factory::CraftEvent,
 };
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Inspectable)]
+#[derive(Default, Debug, Clone, Copy, PartialEq)]
 pub enum UpgradeComponent {
     #[default]
     Cog,
@@ -20,6 +19,8 @@ pub enum UpgradeComponent {
     SilverConduit,
     GoldLeaf,
 }
+
+#[derive(Resource)]
 
 pub struct FactoryTimer(pub Option<Timer>);
 
@@ -182,7 +183,7 @@ impl FactoryPlugin {
             factory.currently_processing = Some(recipe.clone());
             timer.0 = Some(Timer::new(
                 Duration::from_secs_f32(recipe.time_required),
-                false,
+                TimerMode::Once,
             ));
         } else {
             println!("We do not have the materials!");

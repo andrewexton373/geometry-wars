@@ -35,26 +35,26 @@ impl ProjectilePlugin {
         let bullet_velocity = player_velocity * BULLET_SPEED * crate::PIXELS_PER_METER;
 
         commands
-            .spawn()
-            .insert(Projectile {
-                timer: Timer::from_seconds(5.0, false),
-            })
-            .insert_bundle(lyon::GeometryBuilder::build_as(
-                &projectile_shape,
-                lyon::DrawMode::Fill(lyon::FillMode::color(Color::RED)),
-                Default::default(),
-            ))
-            .insert(RigidBody::Dynamic)
-            .insert(Velocity {
-                linvel: bullet_velocity * crate::PIXELS_PER_METER,
-                angvel: 0.0,
-            })
-            .insert(Sleeping::disabled())
-            .insert(Ccd::enabled())
-            .insert(Collider::ball(projectile_shape.radius))
-            .insert(Transform::from_translation(spawn_position.extend(0.0)))
-            .insert(ActiveEvents::COLLISION_EVENTS)
-            .insert(Restitution::coefficient(0.01));
+            .spawn((
+                Projectile {
+                    timer: Timer::from_seconds(5.0, TimerMode::Once),
+                },
+                lyon::GeometryBuilder::build_as(
+                    &projectile_shape,
+                    lyon::DrawMode::Fill(lyon::FillMode::color(Color::RED)),
+                    Transform::from_translation(spawn_position.extend(0.0)),
+                ),
+                RigidBody::Dynamic,
+                Velocity {
+                    linvel: bullet_velocity * crate::PIXELS_PER_METER,
+                    angvel: 0.0,
+                },
+                Sleeping::disabled(),
+                Ccd::enabled(),
+                Collider::ball(projectile_shape.radius),
+                ActiveEvents::COLLISION_EVENTS,
+                Restitution::coefficient(0.01),
+            )).id();
     }
 
     fn handle_projectile_collision_event(

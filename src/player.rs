@@ -6,7 +6,6 @@ use crate::game_ui::{ContextClue, ContextClues};
 use crate::health::Health;
 use crate::inventory::{Capacity, Inventory, InventoryPlugin};
 use crate::particles::PlayerShipTrailParticles;
-use crate::player_stats_bar::PlayerStatsBarPlugin;
 use crate::projectile::ProjectilePlugin;
 use crate::upgrades::{UpgradesComponent, UpgradeEvent};
 // use crate::widgets::station_menu::{UpgradeEvent, UpgradeLevel, UpgradeType};
@@ -14,7 +13,6 @@ use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
 use bevy_hanabi::ParticleEffect;
-use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use bevy_prototype_lyon::prelude as lyon;
 use bevy_rapier2d::prelude::*;
 use std::f32::consts::PI;
@@ -22,6 +20,7 @@ use strum::IntoEnumIterator;
 
 pub struct PlayerPlugin;
 
+#[derive(Resource)]
 pub struct EmptyInventoryDepositTimer(Option<Timer>);
 
 
@@ -32,7 +31,7 @@ pub struct ShipInformation {
     pub direction: f32,
 }
 
-#[derive(Component, Inspectable, Default)]
+#[derive(Component, Default)]
 pub struct Player {
     // TODO: refactor into velocity Vec2
     pub delta_x: f32,
@@ -92,8 +91,8 @@ impl Plugin for PlayerPlugin {
             .add_system(Self::ship_battery_is_empty_context_clue)
             .add_system(Self::display_empty_ship_inventory_context_clue)
             .add_system(Self::on_upgrade_event)
-            .insert_resource(EmptyInventoryDepositTimer(None))
-            .register_inspectable::<Player>();
+            .insert_resource(EmptyInventoryDepositTimer(None));
+            // .register_inspectable::<Player>();
     }
 }
 
@@ -120,47 +119,42 @@ impl PlayerPlugin {
         };
 
         let player = commands
-            .spawn()
-            .insert(Player::new())
-            .insert_bundle(lyon::GeometryBuilder::build_as(
-                &player_shape,
-                lyon::DrawMode::Outlined {
-                    fill_mode: lyon::FillMode::color(Color::CYAN),
-                    outline_mode: lyon::StrokeMode::new(Color::WHITE, 2.0),
+            .spawn((
+                Player::new(),
+                lyon::GeometryBuilder::build_as(
+                    &player_shape,
+                    lyon::DrawMode::Outlined {
+                        fill_mode: lyon::FillMode::color(Color::CYAN),
+                        outline_mode: lyon::StrokeMode::new(Color::WHITE, 2.0),
+                    },
+                    Transform {
+                        translation: Vec3 {
+                            x: 0.0,
+                            y: 0.0,
+                            z: 100.0,
+                        },
+                        ..Default::default()
+                    },
+                ),
+                RigidBody::Dynamic,
+                AdditionalMassProperties::Mass(10.0),
+                ExternalForce {
+                    force: Vec2::new(0.0, 0.0),
+                    torque: 0.0,
                 },
-                Transform {
-                    // translation: Vec3::new(0.0, 0.0, 100.0),
-                    ..Default::default()
+                Damping {
+                    linear_damping: 0.8,
+                    angular_damping: 0.0,
                 },
-            ))
-            .insert(Transform {
-                translation: Vec3 {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 100.0,
-                },
-                ..Default::default()
-            })
-            .insert(RigidBody::Dynamic)
-            .insert(AdditionalMassProperties::Mass(10.0))
-            .insert(ExternalForce {
-                force: Vec2::new(0.0, 0.0),
-                torque: 0.0,
-            })
-            .insert(Damping {
-                linear_damping: 0.8,
-                angular_damping: 0.0,
-            })
-            .insert(Velocity::zero())
-            .insert(Sleeping::disabled())
-            .insert(Ccd::enabled())
-            .insert(Collider::convex_hull(&player_shape.points).unwrap())
-            .insert(Transform::default())
-            .insert(ActiveEvents::COLLISION_EVENTS)
-            .insert(Restitution::coefficient(1.0))
-            .insert(UpgradesComponent::new())
-            .insert(Name::new("Player"))
-            .id();
+                Velocity::zero(),
+                Sleeping::disabled(),
+                Ccd::enabled(),
+                Collider::convex_hull(&player_shape.points).unwrap(),
+                ActiveEvents::COLLISION_EVENTS,
+                Restitution::coefficient(1.0),
+                UpgradesComponent::new(),
+                Name::new("Player"),
+            )).id();
 
         InventoryPlugin::attach_inventory_to_entity(
             &mut commands,
@@ -171,9 +165,9 @@ impl PlayerPlugin {
             player,
         );
 
-        PlayerStatsBarPlugin::spawn_player_health_statbar(&mut commands, player);
-        PlayerStatsBarPlugin::spawn_ship_capacity_statbar(&mut commands, player);
-        PlayerStatsBarPlugin::spawn_ship_battery_statbar(&mut commands, player);
+        // PlayerStatsBarPlugin::spawn_player_health_statbar(&mut commands, player);
+        // PlayerStatsBarPlugin::spawn_ship_capacity_statbar(&mut commands, player);
+        // PlayerStatsBarPlugin::spawn_ship_battery_statbar(&mut commands, player);
     }
 
     // FIXME: is this really the only way? I feel like rapier2d is messing with the z-value...
@@ -359,7 +353,7 @@ impl PlayerPlugin {
 
             if player_inventory.items.is_empty() {
                 let timer = empty_deposit_timer.as_mut();
-                *timer = EmptyInventoryDepositTimer(Some(Timer::from_seconds(3.0, false)));
+                *timer = EmptyInventoryDepositTimer(Some(Timer::from_seconds(3.0, TimerMode::Once)));
             }
 
             for item in player_inventory.clone().items.iter() {

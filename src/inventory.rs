@@ -2,7 +2,6 @@ use crate::astroid::AstroidMaterial;
 use crate::factory::UpgradeComponent;
 use crate::refinery::MetalIngot;
 use bevy::prelude::*;
-use bevy_inspector_egui::Inspectable;
 use std::fmt;
 use std::ops::{AddAssign, SubAssign};
 
@@ -17,7 +16,7 @@ pub struct Inventory {
     pub capacity: Capacity,
 }
 
-#[derive(Default, Clone, Copy, PartialEq, PartialOrd, Inspectable)]
+#[derive(Default, Clone, Copy, PartialEq, PartialOrd)]
 pub enum Amount {
     #[default]
     None,
@@ -73,7 +72,7 @@ impl SubAssign for Amount {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Inspectable)]
+#[derive(Clone, Copy, PartialEq)]
 
 pub enum InventoryItem {
     Material(AstroidMaterial, Amount),

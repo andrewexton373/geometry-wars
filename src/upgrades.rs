@@ -8,14 +8,12 @@ use crate::health::Health;
 use crate::inventory::{Capacity, Inventory, InventoryPlugin, InventoryItem, Amount};
 use crate::particles::PlayerShipTrailParticles;
 use crate::player::Player;
-use crate::player_stats_bar::PlayerStatsBarPlugin;
 use crate::projectile::ProjectilePlugin;
 // use crate::widgets::station_menu::{UpgradeEvent, UpgradeLevel, UpgradeType};
 use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
 use bevy_hanabi::ParticleEffect;
-use bevy_inspector_egui::{Inspectable, RegisterInspectable};
 use bevy_prototype_lyon::prelude as lyon;
 use bevy_rapier2d::prelude::*;
 use strum_macros::{FromRepr, EnumIter};
@@ -28,7 +26,7 @@ pub trait Upgradeable {
     fn upgrade_effect(&self) -> f32;
 }
 
-#[derive(Component, Default, Inspectable)]
+#[derive(Component, Default)]
 pub struct UpgradesComponent {
     pub upgrades: Vec<UpgradeType>,
 }
@@ -86,7 +84,7 @@ impl UpgradesComponent {
     }
 }
 
-#[derive(FromRepr, EnumIter, Debug, Clone, Copy, Default, PartialEq, Inspectable)]
+#[derive(FromRepr, EnumIter, Debug, Clone, Copy, Default, PartialEq)]
 #[repr(u8)]
 pub enum UpgradeLevel {
     #[default]
@@ -116,7 +114,7 @@ impl UpgradeLevel {
     }
 }
 
-#[derive(Default, EnumIter, Clone, Copy, Debug, PartialEq, Inspectable)]
+#[derive(Default, EnumIter, Clone, Copy, Debug, PartialEq)]
 pub enum UpgradeType {
     #[default]
     None,
@@ -225,7 +223,7 @@ impl UpgradeType {
 
 pub struct UpgradeEvent(pub UpgradeType);
 
-#[derive(Debug, Clone, PartialEq, Inspectable)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UpgradeRequirements {
     pub requirements: Vec<InventoryItem>,
 }

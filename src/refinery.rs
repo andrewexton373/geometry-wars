@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
-use bevy_inspector_egui::Inspectable;
 
 use crate::{
     astroid::AstroidMaterial,
@@ -12,7 +11,7 @@ use crate::{
     // widgets::refinery::SmeltEvent,
 };
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Inspectable)]
+#[derive(Default, Debug, Clone, Copy, PartialEq)]
 pub enum MetalIngot {
     #[default]
     IronIngot,
@@ -20,6 +19,7 @@ pub enum MetalIngot {
     GoldIngot,
 }
 
+#[derive(Resource)]
 pub struct RefineryTimer(pub Option<Timer>);
 
 // A component you can add to the base station in order to smelt ore.
@@ -161,7 +161,7 @@ impl RefineryPlugin {
             refinery.currently_processing = Some(recipe.clone());
             timer.0 = Some(Timer::new(
                 Duration::from_secs_f32(recipe.time_required),
-                false,
+                TimerMode::Once,
             ));
         } else {
             println!("We do not have the materials!");

@@ -58,6 +58,7 @@ impl ContextClue {
     }
 }
 
+#[derive(Resource)]
 pub struct ContextClues(pub HashSet<ContextClue>);
 
 pub struct GameUIPlugin;

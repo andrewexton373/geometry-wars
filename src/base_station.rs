@@ -22,6 +22,7 @@ pub struct BaseStationPlugin;
 #[derive(Component)]
 pub struct BaseStation;
 
+#[derive(Resource)]
 pub struct CanDeposit(pub bool);
 
 impl Plugin for BaseStationPlugin {
@@ -46,26 +47,27 @@ impl BaseStationPlugin {
         };
 
         let base_station = commands
-            .spawn()
-            .insert_bundle(lyon::GeometryBuilder::build_as(
-                &base_shape,
-                lyon::DrawMode::Outlined {
-                    fill_mode: lyon::FillMode::color(Color::MIDNIGHT_BLUE),
-                    outline_mode: lyon::StrokeMode::new(Color::WHITE, 5.0),
-                },
-                Transform {
-                    translation: Vec3::new(0.0, 0.0, -100.0),
-                    ..Default::default()
-                },
-            ))
-            .insert(Sleeping::disabled())
-            .insert(Collider::ball(crate::PIXELS_PER_METER * BASE_STATION_SIZE))
-            .insert(Sensor)
-            .insert(Transform::default())
-            .insert(ActiveEvents::COLLISION_EVENTS)
-            .insert(BaseStation)
-            .insert(Name::new("Base Station"))
-            .id();
+            .spawn((
+                lyon::GeometryBuilder::build_as(
+                    &base_shape,
+                    lyon::DrawMode::Outlined {
+                        fill_mode: lyon::FillMode::color(Color::MIDNIGHT_BLUE),
+                        outline_mode: lyon::StrokeMode::new(Color::WHITE, 5.0),
+                    },
+                    Transform {
+                        translation: Vec3::new(0.0, 0.0, -100.0),
+                        ..Default::default()
+                    },
+                ),
+                Sleeping::disabled(),
+                Collider::ball(crate::PIXELS_PER_METER * BASE_STATION_SIZE),
+                Sensor,
+                // Transform::default(),
+                ActiveEvents::COLLISION_EVENTS,
+                BaseStation,
+                Name::new("Base Station"),
+
+            )).id();
 
         InventoryPlugin::attach_inventory_to_entity(
             &mut commands,
@@ -87,18 +89,32 @@ impl BaseStationPlugin {
         };
 
         let _direction_indicator = commands
-            .spawn()
-            .insert(BaseStationDirectionIndicator)
-            .insert_bundle(lyon::GeometryBuilder::build_as(
-                &direction_indicator_shape,
-                lyon::DrawMode::Outlined {
-                    fill_mode: lyon::FillMode::color(Color::RED),
-                    outline_mode: lyon::StrokeMode::new(Color::WHITE, 1.0),
-                },
-                Default::default(),
-            ))
-            .insert(Name::new("BaseStationDirectionIndicator"))
-            .id();
+            .spawn((
+                BaseStationDirectionIndicator,
+                lyon::GeometryBuilder::build_as(
+                    &direction_indicator_shape,
+                    lyon::DrawMode::Outlined {
+                        fill_mode: lyon::FillMode::color(Color::RED),
+                        outline_mode: lyon::StrokeMode::new(Color::WHITE, 1.0),
+                    },
+                    Default::default(),
+                ),
+                Name::new("BaseStationDirectionIndicator")
+            )).id();
+
+
+            // .spawn()
+            // .insert(BaseStationDirectionIndicator)
+            // .insert_bundle(lyon::GeometryBuilder::build_as(
+            //     &direction_indicator_shape,
+            //     lyon::DrawMode::Outlined {
+            //         fill_mode: lyon::FillMode::color(Color::RED),
+            //         outline_mode: lyon::StrokeMode::new(Color::WHITE, 1.0),
+            //     },
+            //     Default::default(),
+            // ))
+            // .insert(Name::new("BaseStationDirectionIndicator"))
+            // .id();
     }
 
     fn guide_player_to_base_station(

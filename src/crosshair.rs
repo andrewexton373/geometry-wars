@@ -21,21 +21,22 @@ impl CrosshairPlugin {
         let line = shapes::Line(Vec2::new(0.0, 0.0), Vec2::new(0.0, 0.0));
 
         let _crosshair = commands
-            .spawn()
-            .insert(Crosshair {})
-            .insert_bundle(GeometryBuilder::build_as(
-                &line,
-                DrawMode::Outlined {
-                    fill_mode: FillMode::color(Color::rgba(1.0, 1.0, 1.0, 0.45)),
-                    outline_mode: StrokeMode::new(Color::rgba(1.0, 1.0, 1.0, 0.1), 1.2),
-                },
-                Transform {
-                    scale: Vec3::new(1.0, 1.0, 1.0),
-                    ..Default::default()
-                },
-            ))
-            .insert(Name::new("Crosshair"))
-            .id();
+            .spawn((
+                Crosshair {},
+                GeometryBuilder::build_as(
+                    &line,
+                    DrawMode::Outlined {
+                        fill_mode: FillMode::color(Color::rgba(1.0, 1.0, 1.0, 0.45)),
+                        outline_mode: StrokeMode::new(Color::rgba(1.0, 1.0, 1.0, 0.1), 1.2),
+                    },
+                    Transform {
+                        scale: Vec3::new(1.0, 1.0, 1.0),
+                        ..Default::default()
+                    },
+                ),
+                Name::new("Crosshair")
+            )).id();
+
     }
 
     fn draw_crasshair(

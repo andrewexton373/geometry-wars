@@ -1,10 +1,9 @@
 // use crate::{widgets::station_menu::UpgradeLevel, upgrades::Upgradeable};
 use bevy::prelude::*;
-use bevy_inspector_egui::Inspectable;
 
 use crate::upgrades::{UpgradeLevel, Upgradeable};
 
-#[derive(Component, Inspectable, Default, Clone, Debug)]
+#[derive(Component, Default, Clone, Debug)]
 pub struct Health {
     current: f32,
     maximum: f32,

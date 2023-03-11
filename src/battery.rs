@@ -1,11 +1,10 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::Inspectable;
 
 use crate::upgrades::{UpgradeLevel, Upgradeable};
 
 // use crate::{widgets::station_menu::UpgradeLevel, upgrades::Upgradeable};
 
-#[derive(Component, Inspectable, Default, Clone, Debug)]
+#[derive(Component, Default, Clone, Debug)]
 pub struct Battery {
     _current_capacity: f32,
     _maximum_capacity: f32,

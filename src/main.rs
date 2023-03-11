@@ -1,5 +1,7 @@
 // #![feature(array_methods)]
 
+use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
+
 use astroid::AstroidPlugin;
 use base_station::BaseStationPlugin;
 use bevy::{
@@ -7,9 +9,7 @@ use bevy::{
     prelude::*,
     window::PresentMode,
 };
-use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
-
-use bevy_inspector_egui::WorldInspectorPlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 use crosshair::CrosshairPlugin;
@@ -18,7 +18,6 @@ use game_ui::GameUIPlugin;
 use inventory::InventoryPlugin;
 use particles::ParticlePlugin;
 use player::{PlayerPlugin, Player};
-use player_stats_bar::PlayerStatsBarPlugin;
 use projectile::ProjectilePlugin;
 use refinery::RefineryPlugin;
 
@@ -63,15 +62,18 @@ pub struct GameCamera;
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            title: "ASTROID MINER".to_string(),
-            width: HEIGHT * RESOLUTION,
-            height: HEIGHT,
-            present_mode: PresentMode::AutoVsync,
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            window: WindowDescriptor {
+                title: "ASTROID MINER".to_string(),
+                width: HEIGHT * RESOLUTION,
+                height: HEIGHT,
+                present_mode: PresentMode::AutoVsync,
+              ..default()
+            },
             ..default()
-        })
-        .add_plugins(DefaultPlugins)
-        .add_plugin(WorldInspectorPlugin::new())
+          }))
+        .add_plugin(OverlayPlugin { font_size: 32.0, ..default() })
+        // .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(ShapePlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(InventoryPlugin)
@@ -84,16 +86,12 @@ fn main() {
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_startup_system(setup)
         .add_system(camera_follows_player)
-        .add_plugin(PlayerStatsBarPlugin)
+        // .add_plugin(PlayerStatsBarPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PIXELS_PER_METER,
         ))
         .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugin(OverlayPlugin {
-            font_size: 18.0,
-            ..default()
-        })
         .add_plugin(GameUIPlugin)
         .add_plugin(ParticlePlugin)
         .add_system(screen_print_debug_text)

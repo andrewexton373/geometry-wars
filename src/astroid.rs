@@ -7,7 +7,6 @@ use bevy::prelude::*;
 use bevy::reflect::FromReflect;
 use bevy::utils::HashMap;
 use bevy_hanabi::ParticleEffect;
-use bevy_inspector_egui::{Inspectable};
 use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
 use bevy_rapier2d::prelude::*;
 use rand::seq::SliceRandom;
@@ -17,6 +16,7 @@ use std::cmp::Ordering;
 use std::f32::consts::PI;
 use std::fmt;
 
+#[derive(Resource)]
 pub struct InventoryFullNotificationTimer(pub Option<Timer>);
 
 pub struct AstroidPlugin;
@@ -111,7 +111,7 @@ fn test_most_abundant() {
     );
 }
 
-#[derive(Clone, Copy, Inspectable, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AstroidSize {
     OreChunk,
     Small,
@@ -144,7 +144,6 @@ impl AstroidSize {
 
 #[derive(
     Component,
-    Inspectable,
     Reflect,
     FromReflect,
     Default,
@@ -175,7 +174,7 @@ impl fmt::Display for AstroidMaterial {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Resource)]
 pub struct AstroidSpawner {
     timer: Timer,
 }
@@ -183,7 +182,7 @@ pub struct AstroidSpawner {
 impl Plugin for AstroidPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(AstroidSpawner {
-            timer: Timer::from_seconds(0.25, false),
+            timer: Timer::from_seconds(0.25, TimerMode::Once),
         })
         .insert_resource(InventoryFullNotificationTimer(None))
         .add_system(Self::spawn_astroids_aimed_at_ship)
@@ -298,27 +297,26 @@ impl AstroidPlugin {
         };
 
         let astroid_ent = commands
-            .spawn()
-            .insert(astroid.clone())
-            .insert_bundle(lyon::GeometryBuilder::build_as(
-                &astroid_shape,
-                lyon::DrawMode::Fill(lyon::FillMode::color(Color::DARK_GRAY)),
-                Default::default(),
-            ))
-            .insert(RigidBody::Dynamic)
-            .insert(Velocity {
-                linvel: astroid.velocity,
-                angvel: 0.0,
-            })
-            .insert(Sleeping::disabled())
-            .insert(Ccd::enabled())
-            .insert(Collider::convex_hull(&astroid_shape.points).unwrap())
-            .insert(Transform::from_xyz(position.x, position.y, 0.0))
-            .insert(ActiveEvents::COLLISION_EVENTS)
-            .insert(ReadMassProperties(MassProperties::default()))
-            .insert(Restitution::coefficient(0.01))
-            .insert(Name::new("Astroid"))
-            .id();
+            .spawn((
+                astroid.clone(),
+                lyon::GeometryBuilder::build_as(
+                    &astroid_shape,
+                    lyon::DrawMode::Fill(lyon::FillMode::color(Color::DARK_GRAY)),
+                    Transform::from_xyz(position.x, position.y, 0.0),
+                ),
+                RigidBody::Dynamic,
+                Velocity {
+                    linvel: astroid.velocity,
+                    angvel: 0.0,
+                },
+                Sleeping::disabled(),
+                Ccd::enabled(),
+                Collider::convex_hull(&astroid_shape.points).unwrap(),
+                ActiveEvents::COLLISION_EVENTS,
+                ReadMassProperties(MassProperties::default()),
+                Restitution::coefficient(0.01),
+                Name::new("Astroid"),
+            )).id();
 
         // If the astroid is an ore chunk, add Collectible Tag
         if astroid.clone().size == AstroidSize::OreChunk {
@@ -387,7 +385,7 @@ impl AstroidPlugin {
                                         Amount::Weight(comp.1 * ore_chunk_mass),
                                     )) {
                                         inventory_full_notification.0 =
-                                            Some(Timer::from_seconds(3.0, false));
+                                            Some(Timer::from_seconds(3.0, TimerMode::Once));
                                     }
                                 }
 
