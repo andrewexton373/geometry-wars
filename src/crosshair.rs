@@ -2,6 +2,7 @@ use crate::player::Player;
 use crate::GameCamera;
 use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
+use bevy::window::PrimaryWindow;
 use bevy_prototype_lyon::prelude::*;
 
 #[derive(Component)]
@@ -23,24 +24,23 @@ impl CrosshairPlugin {
         let _crosshair = commands
             .spawn((
                 Crosshair {},
-                GeometryBuilder::build_as(
-                    &line,
-                    DrawMode::Outlined {
-                        fill_mode: FillMode::color(Color::rgba(1.0, 1.0, 1.0, 0.45)),
-                        outline_mode: StrokeMode::new(Color::rgba(1.0, 1.0, 1.0, 0.1), 1.2),
-                    },
-                    Transform {
+                ShapeBundle {
+                    path: GeometryBuilder::build_as(&line),
+                    transform: Transform {
                         scale: Vec3::new(1.0, 1.0, 1.0),
                         ..Default::default()
                     },
-                ),
+                    ..default()
+                },
+                Fill::color(Color::rgba(1.0, 1.0, 1.0, 0.45)),
+                Stroke::new(Color::rgba(1.0, 1.0, 1.0, 0.1), 1.2),
                 Name::new("Crosshair")
             )).id();
 
     }
 
     fn draw_crasshair(
-        wnds: Res<Windows>,
+        window_query: Query<&Window, With<PrimaryWindow>>,
         q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
         player_query: Query<(&Player, &Transform), Without<Crosshair>>,
         mut crosshair_query: Query<(&mut Crosshair, &mut Path)>,
@@ -52,10 +52,9 @@ impl CrosshairPlugin {
         let (_crosshair, mut path) = crosshair_query.single_mut();
 
         // get the window that the camera is displaying to (or the primary window)
-        let wnd = if let RenderTarget::Window(id) = camera.target {
-            wnds.get(id).unwrap()
-        } else {
-            wnds.get_primary().unwrap()
+        let Ok(wnd) = window_query.get_single() else {
+            println!("Couldn't query window!");
+            return;
         };
 
         // check if the cursor is inside the window and get its position

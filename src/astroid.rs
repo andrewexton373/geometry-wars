@@ -7,7 +7,7 @@ use bevy::prelude::*;
 use bevy::reflect::FromReflect;
 use bevy::utils::HashMap;
 use bevy_hanabi::ParticleEffect;
-use bevy_prototype_lyon::prelude::{self as lyon, DrawMode};
+use bevy_prototype_lyon::prelude::{self as lyon, GeometryBuilder, Fill, ShapeBundle, FillOptions};
 use bevy_rapier2d::prelude::*;
 use rand::seq::SliceRandom;
 use rand::Rng;
@@ -299,11 +299,12 @@ impl AstroidPlugin {
         let astroid_ent = commands
             .spawn((
                 astroid.clone(),
-                lyon::GeometryBuilder::build_as(
-                    &astroid_shape,
-                    lyon::DrawMode::Fill(lyon::FillMode::color(Color::DARK_GRAY)),
-                    Transform::from_xyz(position.x, position.y, 0.0),
-                ),
+                ShapeBundle {
+                    path: GeometryBuilder::build_as(&astroid_shape),
+                    transform: Transform::from_xyz(position.x, position.y, 0.0),
+                    ..default()
+                },
+                Fill::color(Color::DARK_GRAY),
                 RigidBody::Dynamic,
                 Velocity {
                     linvel: astroid.velocity,
@@ -325,24 +326,38 @@ impl AstroidPlugin {
     }
 
     fn update_collectible_material_color(
-        mut astroid_query: Query<(&Astroid, &mut DrawMode), With<Astroid>>,
+        mut astroid_query: Query<(&Astroid, &mut Fill), With<Astroid>>,
     ) {
-        for (astroid, mut draw_mode) in astroid_query.iter_mut() {
+        for (astroid, mut fill) in astroid_query.iter_mut() {
             if astroid.size == AstroidSize::OreChunk {
-                if let DrawMode::Fill(ref mut fill_mode) = *draw_mode {
+                // if let DrawMode::Fill(ref mut fill_mode) = *draw_mode {
                     match astroid.primary_composition() {
                         AstroidMaterial::Iron => {
-                            fill_mode.color = Color::GRAY;
+                            *fill = Fill{
+                                color: Color::GRAY,
+                                options: FillOptions::default(),
+                            };
+                            // fill_mode.color = Color::GRAY;
                         }
                         AstroidMaterial::Silver => {
-                            fill_mode.color = Color::SILVER;
+                            *fill = Fill{
+                                color: Color::SILVER,
+                                options: FillOptions::default(),
+                            };
+
+                            // fill_mode.color = Color::SILVER;
                         }
                         AstroidMaterial::Gold => {
-                            fill_mode.color = Color::GOLD;
+                            *fill = Fill{
+                                color: Color::GOLD,
+                                options: FillOptions::default()
+                            };
+
+                            // fill_mode.color = Color::GOLD;
                         }
                         _ => {}
                     }
-                }
+                // }
             }
         }
     }

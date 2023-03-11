@@ -16,12 +16,13 @@ pub struct ShipAstroidImpactParticles;
 
 impl Plugin for ParticlePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        let mut options = WgpuSettings::default();
-        options
-            .features
-            .set(WgpuFeatures::VERTEX_WRITABLE_STORAGE, true);
+        // let mut options = WgpuSettings::default();
+        // options
+        //     .features
+        //     .set(WgpuFeatures::VERTEX_WRITABLE_STORAGE, true);
 
-        app.insert_resource(options)
+        app
+            // .insert_resource(options)
             .add_plugin(HanabiPlugin)
             .add_startup_system(Self::setup_projectile_impact_particle_system)
             .add_startup_system(Self::setup_player_ship_trail_particle_system)
@@ -39,34 +40,47 @@ impl ParticlePlugin {
         gradient.add_key(1.0, Vec4::new(1.0, 0.5, 0.0, 0.0));
 
         let spawner = Spawner::once(100.0.into(), false);
+
         let effect = effects.add(
             EffectAsset {
-                name: "Projectile Impact".into(),
+                name: "ProjectileImpact".to_string(),
+                // Maximum number of particles alive at a time
                 capacity: 32768,
-                spawner,
+                // Spawn at a rate of 5 particles per second
+                spawner: spawner,
                 ..Default::default()
             }
-            .init(PositionSphereModifier {
+            .init(InitPositionSphereModifier {
+                center: Vec3::ZERO,
                 radius: 0.05 * crate::PIXELS_PER_METER,
-                speed: (5.0 * crate::PIXELS_PER_METER).into(),
                 dimension: ShapeDimension::Surface,
                 ..Default::default()
             })
-            .init(ParticleLifetimeModifier { lifetime: 1.5 })
+            .init(InitVelocitySphereModifier {
+                center: Vec3::ZERO,
+                speed: 6.0.into(),
+            })
+            .init(InitLifetimeModifier {
+                lifetime: bevy_hanabi::Value::Single(1.5)
+            })
             .render(SizeOverLifetimeModifier {
                 gradient: Gradient::constant(Vec2::splat(0.25 * crate::PIXELS_PER_METER)),
             })
-            .render(ColorOverLifetimeModifier { gradient }),
+            .render(ColorOverLifetimeModifier {
+                gradient: gradient
+            })
         );
 
         commands
-            .spawn_bundle(ParticleEffectBundle {
-                // Assign the Z layer so it appears in the egui inspector and can be modified at runtime
-                effect: ParticleEffect::new(effect).with_z_layer_2d(Some(50.0)),
-                ..default()
-            })
-            .insert(ProjectileImpactParticles)
-            .insert(Name::new("ProjectileImpactParticleEffect"));
+            .spawn((
+                ParticleEffectBundle {
+                    // Assign the Z layer so it appears in the egui inspector and can be modified at runtime
+                    effect: ParticleEffect::new(effect).with_z_layer_2d(Some(50.0)),
+                    ..default()
+                },
+                ProjectileImpactParticles,
+                Name::new("ProjectileImpactParticleEffect")
+            ));
     }
 
     fn setup_player_ship_trail_particle_system(
@@ -88,35 +102,47 @@ impl ParticlePlugin {
         );
 
         let spawner = Spawner::once(50.0.into(), false);
+
         let effect = effects.add(
             EffectAsset {
-                name: "Ship Trail".into(),
+                name: "ShipTrail".to_string(),
+                // Maximum number of particles alive at a time
                 capacity: 32768,
-                spawner,
+                // Spawn at a rate of 5 particles per second
+                spawner: spawner,
                 ..Default::default()
             }
-            .init(PositionSphereModifier {
+            .init(InitPositionSphereModifier {
+                center: Vec3::ZERO,
                 radius: 0.1 * crate::PIXELS_PER_METER,
-                speed: (1.2 * crate::PIXELS_PER_METER).into(),
                 dimension: ShapeDimension::Surface,
                 ..Default::default()
             })
-            .init(ParticleLifetimeModifier { lifetime: 2.0 })
+            .init(InitVelocitySphereModifier {
+                center: Vec3::ZERO,
+                speed: (1.2 * crate::PIXELS_PER_METER).into(),
+            })
+            .init(InitLifetimeModifier {
+                lifetime: bevy_hanabi::Value::Single(2.0)
+            })
             .render(SizeOverLifetimeModifier {
-                // gradient: Gradient::constant(Vec2::splat(0.5 * crate::PIXELS_PER_METER)),
                 gradient: size_gradient,
             })
-            .render(ColorOverLifetimeModifier { gradient }),
+            .render(ColorOverLifetimeModifier {
+                gradient: gradient
+            })
         );
 
         commands
-            .spawn_bundle(ParticleEffectBundle {
-                // Assign the Z layer so it appears in the egui inspector and can be modified at runtime
-                effect: ParticleEffect::new(effect).with_z_layer_2d(Some(50.0)),
-                ..default()
-            })
-            .insert(PlayerShipTrailParticles)
-            .insert(Name::new("PlayerShipTrailParticleEffect"));
+            .spawn((
+                ParticleEffectBundle {
+                    // Assign the Z layer so it appears in the egui inspector and can be modified at runtime
+                    effect: ParticleEffect::new(effect).with_z_layer_2d(Some(50.0)),
+                    ..default()
+                },
+                PlayerShipTrailParticles,
+                Name::new("PlayerShipTrailParticleEffect")
+            ));
     }
 
     fn setup_ship_astroid_impact_particle_system(
@@ -128,33 +154,45 @@ impl ParticlePlugin {
         gradient.add_key(1.0, Vec4::new(1.0, 0.5, 0.0, 0.0));
 
         let spawner = Spawner::once(20.0.into(), false);
+
         let effect = effects.add(
             EffectAsset {
-                name: "Ship-Astroid Impact".into(),
+                name: "Astroid Impact".to_string(),
+                // Maximum number of particles alive at a time
                 capacity: 32768,
-                spawner,
+                // Spawn at a rate of 5 particles per second
+                spawner: spawner,
                 ..Default::default()
             }
-            .init(PositionSphereModifier {
+            .init(InitPositionSphereModifier {
                 radius: 0.05 * crate::PIXELS_PER_METER,
-                speed: (4.0 * crate::PIXELS_PER_METER).into(),
                 dimension: ShapeDimension::Surface,
                 ..Default::default()
             })
-            .init(ParticleLifetimeModifier { lifetime: 1.0 })
+            .init(InitVelocitySphereModifier {
+                center: Vec3::ZERO,
+                speed: (4.0 * crate::PIXELS_PER_METER).into(),
+            })
+            .init(InitLifetimeModifier {
+                lifetime: bevy_hanabi::Value::Single(1.0)
+            })
             .render(SizeOverLifetimeModifier {
                 gradient: Gradient::constant(Vec2::splat(0.25 * crate::PIXELS_PER_METER)),
             })
-            .render(ColorOverLifetimeModifier { gradient }),
+            .render(ColorOverLifetimeModifier {
+                gradient: gradient
+            })
         );
 
         commands
-            .spawn_bundle(ParticleEffectBundle {
-                // Assign the Z layer so it appears in the egui inspector and can be modified at runtime
-                effect: ParticleEffect::new(effect).with_z_layer_2d(Some(200.0)),
-                ..default()
-            })
-            .insert(ShipAstroidImpactParticles)
-            .insert(Name::new("ShipAstroidImpactParticleEffect"));
+            .spawn((
+                ParticleEffectBundle {
+                    // Assign the Z layer so it appears in the egui inspector and can be modified at runtime
+                    effect: ParticleEffect::new(effect).with_z_layer_2d(Some(200.0)),
+                    ..default()
+                },
+                ShipAstroidImpactParticles,
+                Name::new("ShipAstroidImpactParticleEffect")
+            ));
     }
 }

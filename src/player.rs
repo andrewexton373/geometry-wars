@@ -12,8 +12,9 @@ use crate::upgrades::{UpgradesComponent, UpgradeEvent};
 use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
+use bevy::window::PrimaryWindow;
 use bevy_hanabi::ParticleEffect;
-use bevy_prototype_lyon::prelude as lyon;
+use bevy_prototype_lyon::prelude::{self as lyon, Fill, Stroke, GeometryBuilder, ShapeBundle};
 use bevy_rapier2d::prelude::*;
 use std::f32::consts::PI;
 use strum::IntoEnumIterator;
@@ -79,7 +80,7 @@ impl Plugin for PlayerPlugin {
         // add things to your app here
 
         app.add_event::<UpgradeEvent>()
-            .add_startup_system(Self::spawn_player.label("spawn_player"))
+            .add_startup_system(Self::spawn_player)
             .add_system(Self::update_player_mass)
             .add_system(Self::player_movement.after(Self::update_player_mass))
             .add_system(Self::ship_rotate_towards_mouse.after(Self::player_movement))
@@ -121,13 +122,9 @@ impl PlayerPlugin {
         let player = commands
             .spawn((
                 Player::new(),
-                lyon::GeometryBuilder::build_as(
-                    &player_shape,
-                    lyon::DrawMode::Outlined {
-                        fill_mode: lyon::FillMode::color(Color::CYAN),
-                        outline_mode: lyon::StrokeMode::new(Color::WHITE, 2.0),
-                    },
-                    Transform {
+                ShapeBundle {
+                    path: GeometryBuilder::build_as(&player_shape),
+                    transform: Transform {
                         translation: Vec3 {
                             x: 0.0,
                             y: 0.0,
@@ -135,7 +132,10 @@ impl PlayerPlugin {
                         },
                         ..Default::default()
                     },
-                ),
+                    ..default()
+                },
+                Fill::color(Color::CYAN),
+                Stroke::new(Color::WHITE, 2.0),
                 RigidBody::Dynamic,
                 AdditionalMassProperties::Mass(10.0),
                 ExternalForce {
@@ -151,7 +151,7 @@ impl PlayerPlugin {
                 Ccd::enabled(),
                 Collider::convex_hull(&player_shape.points).unwrap(),
                 ActiveEvents::COLLISION_EVENTS,
-                Restitution::coefficient(1.0),
+                // Restitution::coefficient(1.0),
                 UpgradesComponent::new(),
                 Name::new("Player"),
             )).id();
@@ -199,6 +199,7 @@ impl PlayerPlugin {
 
         let (mut player, mut transform, mut velocity, mut ext_force) = player_query.single_mut();
 
+
         let mut thrust = Vec2::ZERO;
 
         if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
@@ -241,8 +242,7 @@ impl PlayerPlugin {
     }
 
     fn ship_rotate_towards_mouse(
-        wnds: Res<Windows>,
-        // query to get camera transform
+        window_query: Query<&Window, With<PrimaryWindow>>,
         q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
         mut player_query: Query<(&mut Player, &mut Transform, &mut Velocity), Without<Crosshair>>,
     ) {
@@ -250,11 +250,8 @@ impl PlayerPlugin {
         // assuming there is exactly one main camera entity, so query::single() is OK
         let (camera, camera_transform) = q_camera.single();
 
-        // get the window that the camera is displaying to (or the primary window)
-        let wnd = if let RenderTarget::Window(id) = camera.target {
-            wnds.get(id).unwrap()
-        } else {
-            wnds.get_primary().unwrap()
+        let Ok(wnd) = window_query.get_single() else {
+            return;
         };
 
         const SPIN_ACCELERATION: f32 = 0.4;

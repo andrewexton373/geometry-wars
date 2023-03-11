@@ -62,16 +62,17 @@ pub struct GameCamera;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
-            window: WindowDescriptor {
-                title: "ASTROID MINER".to_string(),
-                width: HEIGHT * RESOLUTION,
-                height: HEIGHT,
-                present_mode: PresentMode::AutoVsync,
-              ..default()
-            },
-            ..default()
-          }))
+        // .add_plugins(DefaultPlugins.set(WindowPlugin {
+        //     window: WindowDescriptor {
+        //         title: "ASTROID MINER".to_string(),
+        //         width: HEIGHT * RESOLUTION,
+        //         height: HEIGHT,
+        //         present_mode: PresentMode::AutoVsync,
+        //       ..default()
+        //     },
+        //     ..default()
+        //   }))
+        .add_plugins(DefaultPlugins)
         .add_plugin(OverlayPlugin { font_size: 32.0, ..default() })
         // .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(ShapePlugin)
@@ -103,9 +104,11 @@ fn setup(
     mut rapier_config: ResMut<RapierConfiguration>,
 ) {
     commands
-        .spawn_bundle(Camera2dBundle::default())
-        .insert(GameCamera)
-        .insert(Name::new("GameCamera"));
+        .spawn((
+            Camera2dBundle::default(),
+            GameCamera,
+            Name::new("GameCamera"),
+        ));
 
     rapier_config.gravity = Vec2::new(0.0, 0.0);
 }
@@ -119,9 +122,13 @@ fn camera_follows_player(
 
     // TODO: seems sloppy, is there another way?
     let player_to_camera = camera_trans.translation() - player_trans.translation;
-    let mut_trans = camera_trans.translation_mut();
-    mut_trans.x -= player_to_camera.x;
-    mut_trans.y -= player_to_camera.y;
+    // let mut_trans = camera_trans.translation_mut();
+    // mut_trans.x -= player_to_camera.x;
+    // mut_trans.y -= player_to_camera.y;
+
+    camera_trans.translation().x -= player_to_camera.x;
+    camera_trans.translation().y -= player_to_camera.y;
+
 }
 
 fn screen_print_debug_text(diagnostics: Res<Diagnostics>) {

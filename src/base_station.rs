@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::{self as lyon, DrawMode, FillMode};
+use bevy_prototype_lyon::prelude::{self as lyon, Fill, Stroke, GeometryBuilder, ShapeBundle, FillOptions};
 use bevy_rapier2d::prelude::{ActiveEvents, Collider, RapierContext, Sensor, Sleeping, Velocity};
 
 use crate::{
@@ -48,17 +48,16 @@ impl BaseStationPlugin {
 
         let base_station = commands
             .spawn((
-                lyon::GeometryBuilder::build_as(
-                    &base_shape,
-                    lyon::DrawMode::Outlined {
-                        fill_mode: lyon::FillMode::color(Color::MIDNIGHT_BLUE),
-                        outline_mode: lyon::StrokeMode::new(Color::WHITE, 5.0),
-                    },
-                    Transform {
+                ShapeBundle {
+                    path: GeometryBuilder::build_as(&base_shape),
+                    transform: Transform {
                         translation: Vec3::new(0.0, 0.0, -100.0),
                         ..Default::default()
                     },
-                ),
+                    ..default()
+                },
+                Fill::color(Color::MIDNIGHT_BLUE),
+                Stroke::new(Color::WHITE, 5.0),
                 Sleeping::disabled(),
                 Collider::ball(crate::PIXELS_PER_METER * BASE_STATION_SIZE),
                 Sensor,
@@ -91,15 +90,13 @@ impl BaseStationPlugin {
         let _direction_indicator = commands
             .spawn((
                 BaseStationDirectionIndicator,
-                lyon::GeometryBuilder::build_as(
-                    &direction_indicator_shape,
-                    lyon::DrawMode::Outlined {
-                        fill_mode: lyon::FillMode::color(Color::RED),
-                        outline_mode: lyon::StrokeMode::new(Color::WHITE, 1.0),
-                    },
-                    Default::default(),
-                ),
-                Name::new("BaseStationDirectionIndicator")
+                ShapeBundle {
+                    path: GeometryBuilder::build_as(&direction_indicator_shape),
+                    ..default()
+                },
+                Fill::color(Color::RED),
+                Stroke::new(Color::WHITE, 1.0),
+                Name::new("BaseStationDirectionIndicator"),
             )).id();
 
 
@@ -119,7 +116,7 @@ impl BaseStationPlugin {
 
     fn guide_player_to_base_station(
         mut dir_indicator_query: Query<
-            (&mut Transform, &mut DrawMode),
+            (&mut Transform, &mut Fill),
             (
                 With<BaseStationDirectionIndicator>,
                 Without<BaseStation>,
@@ -131,7 +128,7 @@ impl BaseStationPlugin {
     ) {
         const FADE_DISTANCE: f32 = 500.0;
 
-        let (mut dir_indicator_transform, mut dir_indicator_draw_mode) =
+        let (mut dir_indicator_transform, mut dir_indicator_fill) =
             dir_indicator_query.single_mut();
         let (_player, player_trans) = player_query.single();
         let (_base_station, base_station_trans) = base_query.single();
@@ -149,12 +146,17 @@ impl BaseStationPlugin {
         dir_indicator_transform.scale = Vec3::new(0.3, 1.0, 1.0);
 
         let opacity = (distance_to_base / FADE_DISTANCE).powi(2).clamp(0.0, 1.0);
-        *dir_indicator_draw_mode = DrawMode::Fill(FillMode::color(Color::Rgba {
-            red: 255.0,
-            green: 0.0,
-            blue: 0.0,
-            alpha: opacity,
-        }));
+
+        *dir_indicator_fill = Fill {
+            color: Color::Rgba { 
+                red: 255.0,
+                green: 0.0,
+                blue: 0.0,
+                alpha: opacity,
+            },
+            options: FillOptions::default(),
+        }
+
     }
 
     fn repel_astroids_from_base_station(

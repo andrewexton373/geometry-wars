@@ -4,7 +4,7 @@ use crate::{
 };
 use bevy::prelude::*;
 use bevy_hanabi::ParticleEffect;
-use bevy_prototype_lyon::prelude as lyon;
+use bevy_prototype_lyon::prelude::{self as lyon, GeometryBuilder, Fill, ShapeBundle};
 use bevy_rapier2d::prelude::*;
 
 const PROJECTILE_RADIUS: f32 = 0.5;
@@ -39,11 +39,12 @@ impl ProjectilePlugin {
                 Projectile {
                     timer: Timer::from_seconds(5.0, TimerMode::Once),
                 },
-                lyon::GeometryBuilder::build_as(
-                    &projectile_shape,
-                    lyon::DrawMode::Fill(lyon::FillMode::color(Color::RED)),
-                    Transform::from_translation(spawn_position.extend(0.0)),
-                ),
+                ShapeBundle {
+                    path: GeometryBuilder::build_as(&projectile_shape),
+                    transform: Transform::from_translation(spawn_position.extend(0.0)),
+                    ..default()
+                },
+                Fill::color(Color::RED),
                 RigidBody::Dynamic,
                 Velocity {
                     linvel: bullet_velocity * crate::PIXELS_PER_METER,
