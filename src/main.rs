@@ -1,6 +1,7 @@
 // #![feature(array_methods)]
 
 use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
+use bevy_egui::{egui, EguiContexts, EguiPlugin};
 
 use astroid::AstroidPlugin;
 use base_station::BaseStationPlugin;
@@ -73,6 +74,7 @@ fn main() {
         //     ..default()
         //   }))
         .add_plugins(DefaultPlugins)
+        .add_plugin(EguiPlugin)
         .add_plugin(OverlayPlugin { font_size: 32.0, ..default() })
         // .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(ShapePlugin)
@@ -96,6 +98,7 @@ fn main() {
         .add_plugin(GameUIPlugin)
         .add_plugin(ParticlePlugin)
         .add_system(screen_print_debug_text)
+        .add_system(ui_example_system)
         .run();
 }
 
@@ -137,4 +140,10 @@ fn screen_print_debug_text(diagnostics: Res<Diagnostics>) {
             screen_print!(col: Color::WHITE, "fps: {average}");
         }
     }
+}
+
+fn ui_example_system(mut contexts: EguiContexts) {
+    egui::Window::new("Hello").show(contexts.ctx_mut(), |ui| {
+        ui.label("world");
+    });
 }
