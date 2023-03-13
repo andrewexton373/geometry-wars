@@ -1,4 +1,6 @@
-use bevy_egui::{egui, EguiContexts, EguiPlugin};
+use std::fmt::format;
+
+use bevy_egui::{egui::{self, Pos2, Align2, Vec2}, EguiContexts, EguiPlugin};
 
 use bevy_rapier2d::prelude::Velocity;
 use bevy::{prelude::*, utils::HashSet};
@@ -59,9 +61,10 @@ impl Plugin for GameUIPlugin {
             .insert_resource(ContextClues(HashSet::new()))
             .add_system(Self::ui_ship_information)
             .add_system(Self::ui_ship_inventory)
-            .add_system(Self::ui_station_inventory)
-            .add_system(Self::ui_crafting_menu)
-            .add_system(Self::ui_refinery_menu)
+            // .add_system(Self::ui_station_inventory)
+            // .add_system(Self::ui_crafting_menu)
+            // .add_system(Self::ui_refinery_menu)
+            .add_system(Self::ui_station_menu)
             .add_system(Self::ui_context_clue);
     }
 }
@@ -84,14 +87,115 @@ impl GameUIPlugin {
                 .collect::<String>()
         );
     }
+
+    fn ui_station_menu(
+        mut contexts: EguiContexts,
+        cc_res: Res<ContextClues>,
+        inventory_query: Query<&Inventory, With<BaseStation>>,
+        factory_query: Query<&Factory>,
+        mut craft_events: EventWriter<CraftEvent>,
+        refinery_query: Query<&Refinery>,
+        mut smelt_events: EventWriter<SmeltEvent>
+    ) {
+        let inventory = inventory_query.single() else {
+            return;
+        };
+
+        let cc = cc_res.0.clone();
+        if cc.contains(&ContextClue::NearBaseStation) {
+            egui::SidePanel::right("BaseStation Contextual Menu").show(contexts.ctx_mut(), |ui| {
+
+                ui.heading("Base Station Inventory:");
+                ui.vertical(|ui| {
+                    for item in inventory.items.clone() {
+                        ui.label(format!("{:?}", item));
+                    }
+                });
+
+
+                let refinery = refinery_query.single() else { return; };
+    
+                match &refinery.currently_processing {
+                    Some(recipe) => {
+                        ui.heading("Refinery Processing:");
+
+                        ui.label(format!("Currently Refining: {:?}", recipe));
+                        ui.label(format!("Time Remaining: {}", refinery.remaining_processing_time));
+                        ui.label(Self::progress_string( (recipe.time_required - refinery.remaining_processing_time) / recipe.time_required));
+                    },
+                    None => {}
+                }
+        
+                ui.heading("Refine Raw Ores:");
+
+                for recipe in &refinery.recipes {
+                    ui.vertical(|ui| {
+                        ui.horizontal(|ui| {
+                            ui.label(format!("{:?}", recipe.item_created));
+                            ui.label(format!("Requires: {:?}", recipe.items_required));
+                            
+                        });
+
+                        ui.horizontal(|ui| {
+                            ui.label(format!("Time Required: {}", recipe.time_required));
+
+                            if ui.button("Smelt").clicked() {
+                                smelt_events.send(SmeltEvent(recipe.clone()));
+                            }
+                        })
+                    });
+                }
+
+                let factory = factory_query.single() else { return; };
+    
+                match &factory.currently_processing {
+                    Some(recipe) => {
+                        ui.heading("Factory Processing:");
+                        ui.label(format!("Currently Crafting: {:?}", recipe.item_created));
+                        ui.label(format!("Time Remaining: {}", factory.remaining_processing_time));
+                        ui.label(Self::progress_string( (recipe.time_required - factory.remaining_processing_time) / recipe.time_required));
+                    },
+                    None => {}
+                }
+        
+                ui.heading("Factory Recipes:");
+                for recipe in &factory.recipes {
+
+                    ui.vertical(|ui| {
+                        ui.horizontal(|ui| {
+                            ui.label(format!("{:?}", recipe.item_created));
+                            ui.label(format!("Requires: {:?}", recipe.items_required));
+                            
+                        });
+    
+                        ui.horizontal(|ui| {
+                            ui.label(format!("Time Required: {}", recipe.time_required));
+    
+                            if ui.button("Craft").clicked() {
+                                craft_events.send(CraftEvent(recipe.clone()));
+                            }
+                        })
+                    });
+
+                }
+
+                
+            
+            
+            });
+        }
+
+    }
     
     fn ui_ship_information(
         mut contexts: EguiContexts,
         mut player_query: Query<(&mut Player, &mut Velocity)>,
     ) {
         let player = player_query.single() else { return; };
+
+        let top_left = Pos2::new(0.0, 0.0);
     
-        egui::Window::new("Ship Information").show(contexts.ctx_mut(), |ui| {
+        egui::Window::new("Ship Information").anchor(Align2::LEFT_TOP, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
             ui.label(format!("Health: {:.2}%", player.0.health.current()));
             let health_percent = player.0.health.current() / 100.0;
             ui.label(Self::progress_string(health_percent));
@@ -101,19 +205,22 @@ impl GameUIPlugin {
             ui.label(Self::progress_string(battery_percent));
     
             ui.label(format!("Speed: {:.2}", player.1.linvel.length()));
-            ui.label(format!("Direction: {:.2}", player.1.linvel.angle_between(Vec2::X)));
+            // ui.label(format!("Direction: {:.2}", player.1.linvel.angle_between(Vec2::X)));
         });
     }
     
     fn ui_ship_inventory(
         mut contexts: EguiContexts,
         inventory_query: Query<&Inventory, With<Player>>,
+        window_query: Query<&Window>
     ) {
         let inventory = inventory_query.single() else {
             return;
         };
+
+        let window = window_query.single();
     
-        egui::Window::new("Ship Inventory").show(contexts.ctx_mut(), |ui| {
+        egui::Window::new("Ship Inventory").anchor(Align2::LEFT_BOTTOM, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
             let inventory_capacity_percent = (1.0 - inventory.remaining_capacity() / inventory.capacity.maximum) * 100.0;
             ui.label(format!("Capacity: {:.2}%", inventory_capacity_percent));
             ui.label(Self::progress_string(inventory_capacity_percent));
@@ -127,89 +234,16 @@ impl GameUIPlugin {
         });
     }
     
-    fn ui_station_inventory(
-        mut contexts: EguiContexts,
-        inventory_query: Query<&Inventory, With<BaseStation>>,
-    ) {
-        let inventory = inventory_query.single() else {
-            return;
-        };
-    
-        egui::Window::new("Station Inventory").show(contexts.ctx_mut(), |ui| {
-            ui.label("Contents:");
-            ui.vertical(|ui| {
-                for item in inventory.items.clone() {
-                    ui.label(format!("{:?}", item));
-                }
-            });
-        });
-    }
-    
-    fn ui_refinery_menu(
-        mut contexts: EguiContexts,
-        refinery_query: Query<&Refinery>,
-        mut events: EventWriter<SmeltEvent>
-    ) {
-        let refinery = refinery_query.single() else { return; };
-    
-        egui::Window::new("Refinery Menu").show(contexts.ctx_mut(), |ui| {
-    
-            match &refinery.currently_processing {
-                Some(recipe) => {
-                    ui.label(format!("Currently Crafting: {:?}", recipe));
-                    ui.label(Self::progress_string( (recipe.time_required - refinery.remaining_processing_time) / recipe.time_required));
-                },
-                None => {}
-            }
-    
-            ui.label("Raw Ores:");
-            for recipe in &refinery.recipes {
-                ui.label(format!("{:?}", recipe));
-                if ui.button("Smelt").clicked() {
-                    events.send(SmeltEvent(recipe.clone()));
-                }
-            }
-    
-        });
-    }
-    
-    fn ui_crafting_menu(
-        mut contexts: EguiContexts,
-        factory_query: Query<&Factory>,
-        mut events: EventWriter<CraftEvent>
-    ) {
-    
-        let factory = factory_query.single() else { return; };
-    
-        egui::Window::new("Crafting Menu").show(contexts.ctx_mut(), |ui| {
-    
-            match &factory.currently_processing {
-                Some(recipe) => {
-                    ui.label(format!("Currently Crafting: {:?}", recipe));
-                    ui.label(Self::progress_string( (recipe.time_required - factory.remaining_processing_time) / recipe.time_required));
-                },
-                None => {}
-            }
-    
-            ui.label("Recipes:");
-            for recipe in &factory.recipes {
-                ui.label(format!("{:?}", recipe));
-                if ui.button("Craft").clicked() {
-                    events.send(CraftEvent(recipe.clone()));
-                }
-            }
-    
-        });
-    }
-    
     fn ui_context_clue(
         mut contexts: EguiContexts,
         context_clues_res: Res<ContextClues>,
+        window_query: Query<&Window>
     ) {
         let cc = &context_clues_res.0;
+        let window = window_query.single();
     
         if !cc.is_empty() {
-            egui::Window::new("Context Clue").show(contexts.ctx_mut(), |ui| {
+            egui::Window::new("Context Clue").anchor(Align2::CENTER_BOTTOM, Vec2::new(0.0, 100.0)).show(contexts.ctx_mut(), |ui| {
                 ui.vertical(|ui| {
                     for clue in cc {
                         ui.label(format!("{}", clue.text()));

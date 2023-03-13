@@ -9,7 +9,6 @@ use bevy::{
     prelude::*,
     window::PresentMode,
 };
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 use crosshair::CrosshairPlugin;

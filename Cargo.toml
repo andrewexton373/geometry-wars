@@ -11,7 +11,6 @@ bevy_egui = "0.20"
 bevy_rapier2d = { version = "0.21.0", features = ["debug-render-2d"] }
 bevy_prototype_lyon = "0.8.0"
 bevy_hanabi = { version = "0.6", default-features = false, features = [ "2d" ] }
-bevy-inspector-egui = "0.18.0"
 strum = "0.24"
 strum_macros = "0.24"
 rand = "0.8.5"
