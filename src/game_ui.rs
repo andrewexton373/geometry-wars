@@ -221,7 +221,7 @@ impl GameUIPlugin {
         egui::Window::new("Ship Inventory").anchor(Align2::LEFT_BOTTOM, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
             let inventory_capacity_percent = (1.0 - inventory.remaining_capacity() / inventory.capacity.maximum) * 100.0;
             ui.label(format!("Capacity: {:.2}%", inventory_capacity_percent));
-            ui.label(Self::progress_string(inventory_capacity_percent));
+            ui.label(Self::progress_string(inventory_capacity_percent / 100.0));
     
             ui.label("Contents:");
             ui.vertical(|ui| {
