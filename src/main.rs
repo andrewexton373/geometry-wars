@@ -4,7 +4,7 @@ use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 
 use astroid::AstroidPlugin;
-use base_station::BaseStationPlugin;
+use base_station::{BaseStationPlugin, BaseStation};
 use bevy::{
     diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
     prelude::*,
@@ -14,11 +14,11 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 use crosshair::CrosshairPlugin;
-use factory::FactoryPlugin;
-use game_ui::GameUIPlugin;
-use inventory::InventoryPlugin;
+use factory::{FactoryPlugin, Factory, CraftEvent};
+use game_ui::{GameUIPlugin, ContextClues};
+use inventory::{InventoryPlugin, Inventory};
 use particles::ParticlePlugin;
-use player::{PlayerPlugin, Player};
+use player::{PlayerPlugin, Player, ShipInformation};
 use projectile::ProjectilePlugin;
 use refinery::RefineryPlugin;
 
@@ -98,7 +98,12 @@ fn main() {
         .add_plugin(GameUIPlugin)
         .add_plugin(ParticlePlugin)
         .add_system(screen_print_debug_text)
-        .add_system(ui_example_system)
+        // .add_system(ui_example_system)
+        .add_system(ui_ship_information)
+        .add_system(ui_ship_inventory)
+        .add_system(ui_station_inventory)
+        .add_system(ui_crafting_menu)
+        .add_system(ui_context_clue)
         .run();
 }
 
@@ -142,8 +147,126 @@ fn screen_print_debug_text(diagnostics: Res<Diagnostics>) {
     }
 }
 
-fn ui_example_system(mut contexts: EguiContexts) {
-    egui::Window::new("Hello").show(contexts.ctx_mut(), |ui| {
-        ui.label("world");
+fn progress_string(progress: f32) -> String {
+    let progress_bar_len = 10;
+
+    return format!(
+        "{}",
+        (0..progress_bar_len)
+            .map(|i| {
+                let percent = i as f32 / progress_bar_len as f32;
+                if percent < progress {
+                    '◼'
+                } else {
+                    '◻'
+                }
+            })
+            .collect::<String>()
+    );
+}
+
+fn ui_ship_information(
+    mut contexts: EguiContexts,
+    mut player_query: Query<(&mut Player, &mut Velocity)>,
+) {
+    let player = player_query.single() else { return; };
+
+    egui::Window::new("Ship Information").show(contexts.ctx_mut(), |ui| {
+        ui.label(format!("Health: {:.2}%", player.0.health.current()));
+        let health_percent = player.0.health.current() / 100.0;
+        ui.label(progress_string(health_percent));
+
+        ui.label(format!("Battery: {:.2}KWh", player.0.battery.current()));
+        let battery_percent = player.0.battery.current() / 1000.0;
+        ui.label(progress_string(battery_percent));
+
+        ui.label(format!("Speed: {:.2}", player.1.linvel.length()));
+        ui.label(format!("Direction: {:.2}", player.1.linvel.angle_between(Vec2::X)));
     });
+}
+
+fn ui_ship_inventory(
+    mut contexts: EguiContexts,
+    inventory_query: Query<&Inventory, With<Player>>,
+) {
+    let inventory = inventory_query.single() else {
+        return;
+    };
+
+    egui::Window::new("Ship Inventory").show(contexts.ctx_mut(), |ui| {
+        let inventory_capacity_percent = (1.0 - inventory.remaining_capacity() / inventory.capacity.maximum) * 100.0;
+        ui.label(format!("Capacity: {:.2}%", inventory_capacity_percent));
+        ui.label(progress_string(inventory_capacity_percent));
+
+        ui.label("Contents:");
+        ui.vertical(|ui| {
+            for item in inventory.items.clone() {
+                ui.label(format!("ITEM: {:?}", item));
+            }
+        });
+    });
+}
+
+fn ui_station_inventory(
+    mut contexts: EguiContexts,
+    inventory_query: Query<&Inventory, With<BaseStation>>,
+) {
+    let inventory = inventory_query.single() else {
+        return;
+    };
+
+    egui::Window::new("Station Inventory").show(contexts.ctx_mut(), |ui| {
+        ui.label("Contents:");
+        ui.vertical(|ui| {
+            for item in inventory.items.clone() {
+                ui.label(format!("ITEM: {:?}", item));
+            }
+        });
+    });
+}
+
+fn ui_crafting_menu(
+    mut contexts: EguiContexts,
+    factory_query: Query<&Factory>,
+    mut events: EventWriter<CraftEvent>
+) {
+
+    let factory = factory_query.single() else { return; };
+
+    egui::Window::new("Crafting Menu").show(contexts.ctx_mut(), |ui| {
+
+        match &factory.currently_processing {
+            Some(recipe) => {
+                ui.label(format!("Currently Crafting: {:?}", recipe));
+                ui.label(progress_string( (recipe.time_required - factory.remaining_processing_time) / recipe.time_required));
+            },
+            None => {}
+        }
+
+        ui.label("Recipes:");
+        for recipe in &factory.recipes {
+            ui.label(format!("{:?}", recipe));
+            if ui.button("Craft").clicked() {
+                events.send(CraftEvent(recipe.clone()));
+            }
+        }
+
+    });
+}
+
+fn ui_context_clue(
+    mut contexts: EguiContexts,
+    context_clues_res: Res<ContextClues>,
+) {
+    let cc = &context_clues_res.0;
+
+    if !cc.is_empty() {
+        egui::Window::new("Context Clue").show(contexts.ctx_mut(), |ui| {
+            ui.vertical(|ui| {
+                for clue in cc {
+                    ui.label(format!("{}", clue.text()));
+                }
+            });
+        });
+    }    
 }
