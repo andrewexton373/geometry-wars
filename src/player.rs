@@ -13,7 +13,8 @@ use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
 use bevy::window::PrimaryWindow;
 use bevy_hanabi::ParticleEffect;
-use bevy_prototype_lyon::prelude::{self as lyon, Fill, Stroke, GeometryBuilder, ShapeBundle};
+use bevy_prototype_lyon::prelude::{self as lyon, Fill, Stroke, GeometryBuilder, ShapeBundle, Path, ShapePath};
+use bevy_prototype_lyon::shapes;
 use bevy_rapier2d::prelude::*;
 use std::f32::consts::PI;
 use strum::IntoEnumIterator;
@@ -23,6 +24,9 @@ pub struct PlayerPlugin;
 #[derive(Resource)]
 pub struct EmptyInventoryDepositTimer(Option<Timer>);
 
+
+#[derive(Component)]
+pub struct Laser {}
 
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
 pub struct ShipInformation {
@@ -84,6 +88,7 @@ impl Plugin for PlayerPlugin {
             .add_system(Self::player_movement.after(Self::update_player_mass))
             .add_system(Self::ship_rotate_towards_mouse.after(Self::player_movement))
             .add_system(Self::player_fire_weapon)
+            .add_system(Self::player_fire_laser)
             .add_system(Self::player_camera_control)
             .add_system(Self::player_deposit_control)
             .add_system(Self::gravitate_collectibles)
@@ -284,6 +289,56 @@ impl PlayerPlugin {
                 velocity.angvel += -SPIN_ACCELERATION * (2.0 * PI - ship_angle_difference.abs());
             }
         }
+    }
+
+
+    fn update_laser(
+
+    ) {
+
+    }
+
+    // TODO: I think a laser might be better, need to do some raycasting though.
+    fn player_fire_laser(
+        mut commands: Commands,
+        keyboard_input: Res<Input<MouseButton>>,
+        player_query: Query<(Entity, &mut Player, &mut Transform, &GlobalTransform, &Velocity)>,
+        mut laser_query: Query<(&mut Laser, &mut Stroke, &mut Transform, &mut Path), Without<Player>> 
+    ) {
+
+        let line = shapes::Line(Vec2::ZERO, Vec2::X);
+
+        // Create Laser if it Doesn't Exist
+        let Ok((laser, laser_stroke, mut laser_trans, mut laser_path)) = laser_query.get_single_mut() else {
+            let _laser = commands
+                .spawn((
+                    Laser {},
+                    ShapeBundle {
+                        path: GeometryBuilder::build_as(&line),
+                        transform: Transform {
+                            scale: Vec3::new(1.0, 1.0, 1.0),
+                            ..Default::default()
+                        },
+                        ..default()
+                    },
+                    Stroke::new(Color::rgba(1.0, 0.0, 0.0, 0.9), 5.0),
+                    Name::new("Laser")
+                )).id();
+                return;
+        };
+
+        let (ent, player, transform, global_trans, _velocity) = player_query.single();
+        let player_direction = (transform.rotation * Vec3::Y).normalize();
+
+        // Update Line and Opacity When Fired
+        if keyboard_input.pressed(MouseButton::Left) {
+            let line = shapes::Line(global_trans.translation().truncate(), global_trans.translation().truncate() + player_direction.truncate() * 10000.0);
+            *laser_path = ShapePath::build_as(&line);
+        } else {
+            let line = shapes::Line(global_trans.translation().truncate(), global_trans.translation().truncate() + player_direction.truncate() * 1.0);
+            *laser_path = ShapePath::build_as(&line);
+        }
+
     }
 
     fn player_fire_weapon(
