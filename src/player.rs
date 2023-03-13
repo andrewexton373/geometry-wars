@@ -1,12 +1,12 @@
-use crate::astroid::Collectible;
+use crate::astroid::{Collectible, Astroid};
 use crate::base_station::{BaseStation, CanDeposit};
 use crate::battery::Battery;
 use crate::crosshair::Crosshair;
 use crate::game_ui::{ContextClue, ContextClues};
 use crate::health::Health;
 use crate::inventory::{Capacity, Inventory, InventoryPlugin};
-use crate::particles::PlayerShipTrailParticles;
-use crate::projectile::ProjectilePlugin;
+use crate::particles::{PlayerShipTrailParticles, ProjectileImpactParticles};
+use crate::projectile::{ProjectilePlugin, Projectile};
 use crate::upgrades::{UpgradesComponent, UpgradeEvent};
 use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
@@ -298,12 +298,25 @@ impl PlayerPlugin {
 
     }
 
+    
+
     // TODO: I think a laser might be better, need to do some raycasting though.
     fn player_fire_laser(
         mut commands: Commands,
         keyboard_input: Res<Input<MouseButton>>,
         player_query: Query<(Entity, &mut Player, &mut Transform, &GlobalTransform, &Velocity)>,
-        mut laser_query: Query<(&mut Laser, &mut Stroke, &mut Transform, &mut Path), Without<Player>> 
+        mut laser_query: Query<(&mut Laser, &mut Stroke, &mut Transform, &mut Path), Without<Player>>,
+        rapier_context: Res<RapierContext>,
+        mut effect: Query<
+        (&mut ParticleEffect, &mut Transform),
+        (
+            With<ProjectileImpactParticles>,
+            Without<Astroid>,
+            Without<Projectile>,
+            Without<Player>,
+            Without<Laser>
+        ),
+    >, 
     ) {
 
         let line = shapes::Line(Vec2::ZERO, Vec2::X);
@@ -332,8 +345,48 @@ impl PlayerPlugin {
 
         // Update Line and Opacity When Fired
         if keyboard_input.pressed(MouseButton::Left) {
+
+            // Raycast to Find Target
+            let ray_dir = player_direction.truncate();
+            let ray_pos = global_trans.translation().truncate() + ray_dir * 100.0; // move racasting ray ahead of ship to avoid contact (there's probably a better way lol)
+
+            let max_toi = 10000.0;
+            let solid = false; // i think?
+            let filter = QueryFilter::default();
+        
+            if let Some((entity, toi)) = rapier_context.cast_ray(
+                ray_pos, ray_dir, max_toi, solid, filter
+            ) {
+                // The first collider hit has the entity `entity` and it hit after
+                // the ray travelled a distance equal to `ray_dir * toi`.
+                let hit_point = ray_pos + ray_dir * toi;
+                println!("Entity {:?} hit at point {}", entity, hit_point);
+            }
+        
+        
             let line = shapes::Line(global_trans.translation().truncate(), global_trans.translation().truncate() + player_direction.truncate() * 10000.0);
             *laser_path = ShapePath::build_as(&line);
+
+            if let Some((entity, intersection)) = rapier_context.cast_ray_and_get_normal(
+                ray_pos, ray_dir, max_toi, solid, filter
+            ) {
+                // This is similar to `RapierContext::cast_ray` illustrated above except
+                // that it also returns the normal of the collider shape at the hit point.
+                let hit_point = intersection.point;
+                let hit_normal = intersection.normal;
+                println!("Entity {:?} hit at point {} with normal {}", entity, hit_point, hit_normal);
+                let (mut effect, mut effect_translation) = effect.single_mut();
+
+                effect_translation.translation =
+                    (hit_point).extend(200.0);
+                effect.maybe_spawner().unwrap().reset();
+
+                let line = shapes::Line(global_trans.translation().truncate(), hit_point);
+                *laser_path = ShapePath::build_as(&line);
+                
+            }
+
+
         } else {
             let line = shapes::Line(global_trans.translation().truncate(), global_trans.translation().truncate() + player_direction.truncate() * 1.0);
             *laser_path = ShapePath::build_as(&line);

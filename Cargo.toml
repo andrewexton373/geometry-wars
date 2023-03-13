@@ -4,7 +4,7 @@ version = "0.2.0"
 edition = "2021"
 
 [dependencies]
-bevy = { version = "0.10" }
+bevy = { version = "0.10", features = ["dynamic_linking"] }
 bevy_egui = "0.20"
 bevy_rapier2d = { version = "0.21.0", features = ["debug-render-2d"] }
 bevy_prototype_lyon = "0.8.0"
