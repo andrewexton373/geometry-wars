@@ -102,88 +102,86 @@ impl GameUIPlugin {
         };
 
         let cc = cc_res.0.clone();
-        if cc.contains(&ContextClue::NearBaseStation) {
-            egui::SidePanel::right("BaseStation Contextual Menu").show(contexts.ctx_mut(), |ui| {
+        egui::SidePanel::right("BaseStation Contextual Menu").show_animated(contexts.ctx_mut(), cc.contains(&ContextClue::NearBaseStation),|ui| {
 
-                ui.heading("Base Station Inventory:");
+            ui.heading("Base Station Inventory:");
+            ui.vertical(|ui| {
+                for item in inventory.items.clone() {
+                    ui.label(format!("{:?}", item));
+                }
+            });
+
+
+            let refinery = refinery_query.single() else { return; };
+
+            match &refinery.currently_processing {
+                Some(recipe) => {
+                    ui.heading("Refinery Processing:");
+
+                    ui.label(format!("Currently Refining: {:?}", recipe));
+                    ui.label(format!("Time Remaining: {}", refinery.remaining_processing_time));
+                    ui.label(Self::progress_string( (recipe.time_required - refinery.remaining_processing_time) / recipe.time_required));
+                },
+                None => {}
+            }
+    
+            ui.heading("Refine Raw Ores:");
+
+            for recipe in &refinery.recipes {
                 ui.vertical(|ui| {
-                    for item in inventory.items.clone() {
-                        ui.label(format!("{:?}", item));
-                    }
+                    ui.horizontal(|ui| {
+                        ui.label(format!("{:?}", recipe.item_created));
+                        ui.label(format!("Requires: {:?}", recipe.items_required));
+                        
+                    });
+
+                    ui.horizontal(|ui| {
+                        ui.label(format!("Time Required: {}", recipe.time_required));
+
+                        if ui.button("Smelt").clicked() {
+                            smelt_events.send(SmeltEvent(recipe.clone()));
+                        }
+                    })
+                });
+            }
+
+            let factory = factory_query.single() else { return; };
+
+            match &factory.currently_processing {
+                Some(recipe) => {
+                    ui.heading("Factory Processing:");
+                    ui.label(format!("Currently Crafting: {:?}", recipe.item_created));
+                    ui.label(format!("Time Remaining: {}", factory.remaining_processing_time));
+                    ui.label(Self::progress_string( (recipe.time_required - factory.remaining_processing_time) / recipe.time_required));
+                },
+                None => {}
+            }
+    
+            ui.heading("Factory Recipes:");
+            for recipe in &factory.recipes {
+
+                ui.vertical(|ui| {
+                    ui.horizontal(|ui| {
+                        ui.label(format!("{:?}", recipe.item_created));
+                        ui.label(format!("Requires: {:?}", recipe.items_required));
+                        
+                    });
+
+                    ui.horizontal(|ui| {
+                        ui.label(format!("Time Required: {}", recipe.time_required));
+
+                        if ui.button("Craft").clicked() {
+                            craft_events.send(CraftEvent(recipe.clone()));
+                        }
+                    })
                 });
 
+            }
 
-                let refinery = refinery_query.single() else { return; };
-    
-                match &refinery.currently_processing {
-                    Some(recipe) => {
-                        ui.heading("Refinery Processing:");
-
-                        ui.label(format!("Currently Refining: {:?}", recipe));
-                        ui.label(format!("Time Remaining: {}", refinery.remaining_processing_time));
-                        ui.label(Self::progress_string( (recipe.time_required - refinery.remaining_processing_time) / recipe.time_required));
-                    },
-                    None => {}
-                }
-        
-                ui.heading("Refine Raw Ores:");
-
-                for recipe in &refinery.recipes {
-                    ui.vertical(|ui| {
-                        ui.horizontal(|ui| {
-                            ui.label(format!("{:?}", recipe.item_created));
-                            ui.label(format!("Requires: {:?}", recipe.items_required));
-                            
-                        });
-
-                        ui.horizontal(|ui| {
-                            ui.label(format!("Time Required: {}", recipe.time_required));
-
-                            if ui.button("Smelt").clicked() {
-                                smelt_events.send(SmeltEvent(recipe.clone()));
-                            }
-                        })
-                    });
-                }
-
-                let factory = factory_query.single() else { return; };
-    
-                match &factory.currently_processing {
-                    Some(recipe) => {
-                        ui.heading("Factory Processing:");
-                        ui.label(format!("Currently Crafting: {:?}", recipe.item_created));
-                        ui.label(format!("Time Remaining: {}", factory.remaining_processing_time));
-                        ui.label(Self::progress_string( (recipe.time_required - factory.remaining_processing_time) / recipe.time_required));
-                    },
-                    None => {}
-                }
-        
-                ui.heading("Factory Recipes:");
-                for recipe in &factory.recipes {
-
-                    ui.vertical(|ui| {
-                        ui.horizontal(|ui| {
-                            ui.label(format!("{:?}", recipe.item_created));
-                            ui.label(format!("Requires: {:?}", recipe.items_required));
-                            
-                        });
-    
-                        ui.horizontal(|ui| {
-                            ui.label(format!("Time Required: {}", recipe.time_required));
-    
-                            if ui.button("Craft").clicked() {
-                                craft_events.send(CraftEvent(recipe.clone()));
-                            }
-                        })
-                    });
-
-                }
-
-                
             
-            
-            });
-        }
+        
+        
+        });
 
     }
     

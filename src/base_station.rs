@@ -56,7 +56,8 @@ impl BaseStationPlugin {
                     },
                     ..default()
                 },
-                Fill::color(Color::MIDNIGHT_BLUE),
+                //TODO: Fill and Stroke aren't applying for some reason
+                Fill::color(Color::BLUE),
                 Stroke::new(Color::WHITE, 5.0),
                 Sleeping::disabled(),
                 Collider::ball(crate::PIXELS_PER_METER * BASE_STATION_SIZE),
