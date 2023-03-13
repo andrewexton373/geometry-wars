@@ -95,23 +95,9 @@ impl BaseStationPlugin {
                     ..default()
                 },
                 Fill::color(Color::RED),
-                Stroke::new(Color::WHITE, 1.0),
                 Name::new("BaseStationDirectionIndicator"),
             )).id();
 
-
-            // .spawn()
-            // .insert(BaseStationDirectionIndicator)
-            // .insert_bundle(lyon::GeometryBuilder::build_as(
-            //     &direction_indicator_shape,
-            //     lyon::DrawMode::Outlined {
-            //         fill_mode: lyon::FillMode::color(Color::RED),
-            //         outline_mode: lyon::StrokeMode::new(Color::WHITE, 1.0),
-            //     },
-            //     Default::default(),
-            // ))
-            // .insert(Name::new("BaseStationDirectionIndicator"))
-            // .id();
     }
 
     fn guide_player_to_base_station(

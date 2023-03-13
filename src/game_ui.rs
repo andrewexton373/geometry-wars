@@ -1,25 +1,14 @@
+use bevy_egui::{egui, EguiContexts, EguiPlugin};
+
 use bevy_rapier2d::prelude::Velocity;
-// use kayak_ui::core::{Binding, MutableBound};
-
-// use kayak_ui::bevy::{BevyContext, BevyKayakUIPlugin, FontMapping, UICameraBundle};
-// use kayak_ui::core::{bind, render};
-// use kayak_ui::widgets::App as KayakApp;
-
 use bevy::{prelude::*, utils::HashSet};
 
-// use crate::upgrades::UpgradesComponent;
-// use crate::widgets::ship_information::{ShipInformation, UIShipInformationView};
-// use crate::widgets::station_menu::{UIStationMenu, UpgradeType};
 use crate::{
     base_station::BaseStation,
-    factory::Factory,
+    factory::{Factory, CraftEvent},
     inventory::{Inventory, InventoryItem},
     player::{Player, ShipInformation},
-    refinery::Refinery, upgrades::UpgradeType,
-    // widgets::{
-    //     context_clue::UIContextClueView,
-    //     inventory::{UIShipInventory},
-    // },
+    refinery::{Refinery, SmeltEvent}, upgrades::UpgradeType,
 };
 
 #[derive(Default, Debug, Clone, PartialEq)]
@@ -66,72 +55,167 @@ pub struct GameUIPlugin;
 impl Plugin for GameUIPlugin {
     fn build(&self, app: &mut bevy::app::App) {
         app
-            // .add_plugin(BevyKayakUIPlugin)
-            // .add_startup_system(Self::setup_game_ui)
-            .insert_resource(ContextClues(HashSet::new()));
-            // .add_system(Self::update_ui_data);
+            .add_plugin(EguiPlugin)
+            .insert_resource(ContextClues(HashSet::new()))
+            .add_system(Self::ui_ship_information)
+            .add_system(Self::ui_ship_inventory)
+            .add_system(Self::ui_station_inventory)
+            .add_system(Self::ui_crafting_menu)
+            .add_system(Self::ui_refinery_menu)
+            .add_system(Self::ui_context_clue);
     }
 }
 
-// impl GameUIPlugin {
-//     fn setup_game_ui(
-//         mut commands: Commands,
-//         mut font_mapping: ResMut<FontMapping>,
-//         asset_server: Res<AssetServer>,
-//     ) {
-//         commands
-//             .spawn_bundle(UICameraBundle::new())
-//             .insert(Name::new("UICamera"));
-
-//         font_mapping.set_default(asset_server.load("roboto.kayak_font"));
-//         commands.insert_resource(bind(UIItems::default()));
-
-//         let context = BevyContext::new(|context| {
-//             render! {
-//                 <KayakApp>
-//                     <UIShipInventory />
-//                     // <UIBaseInventory />
-//                     <UIContextClueView />
-//                     // <UICraftingTabsView />
-//                     <UIShipInformationView />
-//                     <UIStationMenu />
-
-//                 </KayakApp>
-//             }
-//         });
-
-//         commands.insert_resource(context);
-//     }
-
-//     fn update_ui_data(
-//         player_query: Query<
-//             (&UpgradesComponent, &Inventory, &Velocity),
-//             (With<Player>, Without<BaseStation>),
-//         >,
-//         base_station_query: Query<
-//             (&Inventory, &Refinery, &Factory),
-//             (With<BaseStation>, Without<Player>),
-//         >,
-//         context_clues_res: Res<ContextClues>,
-//         ui_items: Res<Binding<UIItems>>,
-//     ) {
-//         let (upgrades, ship_inventory, ship_velocity) = player_query.single();
-//         let (station_inventory, station_refinery, station_factory) = base_station_query.single();
-
-//         // update ui by updating binding object
-//         ui_items.set(UIItems {
-//             ship_inventory_items: ship_inventory.items.clone(),
-//             station_inventory_items: station_inventory.items.clone(),
-//             refinery: station_refinery.clone(),
-//             factory: station_factory.clone(),
-//             remaining_refinery_time: 0.0,
-//             context_clues: context_clues_res.into_inner().0.clone(),
-//             ship_info: ShipInformation {
-//                 net_weight: ship_inventory.gross_material_weight(),
-//                 speed: ship_velocity.linvel.length(),
-//                 direction: ship_velocity.linvel.angle_between(Vec2::Y), // FIXME: In Rads for now, also wrong
-//             },
-//             upgrades: upgrades.upgrades.clone(),
-//         });
-//     }
-// }
+impl GameUIPlugin {
+    fn progress_string(progress: f32) -> String {
+        let progress_bar_len = 10;
+    
+        return format!(
+            "{}",
+            (0..progress_bar_len)
+                .map(|i| {
+                    let percent = i as f32 / progress_bar_len as f32;
+                    if percent < progress {
+                        '◼'
+                    } else {
+                        '◻'
+                    }
+                })
+                .collect::<String>()
+        );
+    }
+    
+    fn ui_ship_information(
+        mut contexts: EguiContexts,
+        mut player_query: Query<(&mut Player, &mut Velocity)>,
+    ) {
+        let player = player_query.single() else { return; };
+    
+        egui::Window::new("Ship Information").show(contexts.ctx_mut(), |ui| {
+            ui.label(format!("Health: {:.2}%", player.0.health.current()));
+            let health_percent = player.0.health.current() / 100.0;
+            ui.label(Self::progress_string(health_percent));
+    
+            ui.label(format!("Battery: {:.2}KWh", player.0.battery.current()));
+            let battery_percent = player.0.battery.current() / 1000.0;
+            ui.label(Self::progress_string(battery_percent));
+    
+            ui.label(format!("Speed: {:.2}", player.1.linvel.length()));
+            ui.label(format!("Direction: {:.2}", player.1.linvel.angle_between(Vec2::X)));
+        });
+    }
+    
+    fn ui_ship_inventory(
+        mut contexts: EguiContexts,
+        inventory_query: Query<&Inventory, With<Player>>,
+    ) {
+        let inventory = inventory_query.single() else {
+            return;
+        };
+    
+        egui::Window::new("Ship Inventory").show(contexts.ctx_mut(), |ui| {
+            let inventory_capacity_percent = (1.0 - inventory.remaining_capacity() / inventory.capacity.maximum) * 100.0;
+            ui.label(format!("Capacity: {:.2}%", inventory_capacity_percent));
+            ui.label(Self::progress_string(inventory_capacity_percent));
+    
+            ui.label("Contents:");
+            ui.vertical(|ui| {
+                for item in inventory.items.clone() {
+                    ui.label(format!("{:?}", item));
+                }
+            });
+        });
+    }
+    
+    fn ui_station_inventory(
+        mut contexts: EguiContexts,
+        inventory_query: Query<&Inventory, With<BaseStation>>,
+    ) {
+        let inventory = inventory_query.single() else {
+            return;
+        };
+    
+        egui::Window::new("Station Inventory").show(contexts.ctx_mut(), |ui| {
+            ui.label("Contents:");
+            ui.vertical(|ui| {
+                for item in inventory.items.clone() {
+                    ui.label(format!("{:?}", item));
+                }
+            });
+        });
+    }
+    
+    fn ui_refinery_menu(
+        mut contexts: EguiContexts,
+        refinery_query: Query<&Refinery>,
+        mut events: EventWriter<SmeltEvent>
+    ) {
+        let refinery = refinery_query.single() else { return; };
+    
+        egui::Window::new("Refinery Menu").show(contexts.ctx_mut(), |ui| {
+    
+            match &refinery.currently_processing {
+                Some(recipe) => {
+                    ui.label(format!("Currently Crafting: {:?}", recipe));
+                    ui.label(Self::progress_string( (recipe.time_required - refinery.remaining_processing_time) / recipe.time_required));
+                },
+                None => {}
+            }
+    
+            ui.label("Raw Ores:");
+            for recipe in &refinery.recipes {
+                ui.label(format!("{:?}", recipe));
+                if ui.button("Smelt").clicked() {
+                    events.send(SmeltEvent(recipe.clone()));
+                }
+            }
+    
+        });
+    }
+    
+    fn ui_crafting_menu(
+        mut contexts: EguiContexts,
+        factory_query: Query<&Factory>,
+        mut events: EventWriter<CraftEvent>
+    ) {
+    
+        let factory = factory_query.single() else { return; };
+    
+        egui::Window::new("Crafting Menu").show(contexts.ctx_mut(), |ui| {
+    
+            match &factory.currently_processing {
+                Some(recipe) => {
+                    ui.label(format!("Currently Crafting: {:?}", recipe));
+                    ui.label(Self::progress_string( (recipe.time_required - factory.remaining_processing_time) / recipe.time_required));
+                },
+                None => {}
+            }
+    
+            ui.label("Recipes:");
+            for recipe in &factory.recipes {
+                ui.label(format!("{:?}", recipe));
+                if ui.button("Craft").clicked() {
+                    events.send(CraftEvent(recipe.clone()));
+                }
+            }
+    
+        });
+    }
+    
+    fn ui_context_clue(
+        mut contexts: EguiContexts,
+        context_clues_res: Res<ContextClues>,
+    ) {
+        let cc = &context_clues_res.0;
+    
+        if !cc.is_empty() {
+            egui::Window::new("Context Clue").show(contexts.ctx_mut(), |ui| {
+                ui.vertical(|ui| {
+                    for clue in cc {
+                        ui.label(format!("{}", clue.text()));
+                    }
+                });
+            });
+        }    
+    }
+}

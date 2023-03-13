@@ -8,7 +8,6 @@ use crate::inventory::{Capacity, Inventory, InventoryPlugin};
 use crate::particles::PlayerShipTrailParticles;
 use crate::projectile::ProjectilePlugin;
 use crate::upgrades::{UpgradesComponent, UpgradeEvent};
-// use crate::widgets::station_menu::{UpgradeEvent, UpgradeLevel, UpgradeType};
 use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
@@ -135,7 +134,6 @@ impl PlayerPlugin {
                     ..default()
                 },
                 Fill::color(Color::CYAN),
-                Stroke::new(Color::WHITE, 2.0),
                 RigidBody::Dynamic,
                 AdditionalMassProperties::Mass(10.0),
                 ExternalForce {
@@ -151,7 +149,6 @@ impl PlayerPlugin {
                 Ccd::enabled(),
                 Collider::convex_hull(&player_shape.points).unwrap(),
                 ActiveEvents::COLLISION_EVENTS,
-                // Restitution::coefficient(1.0),
                 UpgradesComponent::new(),
                 Name::new("Player"),
             )).id();
@@ -165,9 +162,6 @@ impl PlayerPlugin {
             player,
         );
 
-        // PlayerStatsBarPlugin::spawn_player_health_statbar(&mut commands, player);
-        // PlayerStatsBarPlugin::spawn_ship_capacity_statbar(&mut commands, player);
-        // PlayerStatsBarPlugin::spawn_ship_battery_statbar(&mut commands, player);
     }
 
     // FIXME: is this really the only way? I feel like rapier2d is messing with the z-value...

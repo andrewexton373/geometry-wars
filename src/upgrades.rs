@@ -9,7 +9,6 @@ use crate::inventory::{Capacity, Inventory, InventoryPlugin, InventoryItem, Amou
 use crate::particles::PlayerShipTrailParticles;
 use crate::player::Player;
 use crate::projectile::ProjectilePlugin;
-// use crate::widgets::station_menu::{UpgradeEvent, UpgradeLevel, UpgradeType};
 use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
 use bevy::render::camera::RenderTarget;
@@ -54,9 +53,6 @@ impl UpgradesComponent {
             .iter_mut()
             .find(|upgrade| **upgrade == upgrade_type)
         {
-            // TODO if the ship inventory has the required components, perform the upgrade.
-            // if to_upgrade.requirements()
-
             let upgrade_requirements = to_upgrade.next().requirements().unwrap().requirements;
 
             if ship_inventory.has_items(upgrade_requirements.clone()) {
