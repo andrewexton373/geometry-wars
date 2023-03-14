@@ -4,6 +4,7 @@ use bevy_egui::{egui::{self, Pos2, Align2, Vec2}, EguiContexts, EguiPlugin};
 
 use bevy_rapier2d::prelude::Velocity;
 use bevy::{prelude::*, utils::HashSet};
+use rand_distr::num_traits::ops::inv;
 
 use crate::{
     base_station::BaseStation,
@@ -118,7 +119,7 @@ impl GameUIPlugin {
                     ui.heading("Refinery Processing:");
 
                     ui.label(format!("Currently Refining: {:?}", recipe));
-                    ui.label(format!("Time Remaining: {}", refinery.remaining_processing_time));
+                    ui.label(format!("Time Remaining: {:.1} sec", refinery.remaining_processing_time));
                     ui.label(Self::progress_string( (recipe.time_required - refinery.remaining_processing_time) / recipe.time_required));
                 },
                 None => {}
@@ -131,11 +132,11 @@ impl GameUIPlugin {
                     ui.horizontal(|ui| {
                         ui.label(format!("{:?}", recipe.item_created));
                         ui.label(format!("Requires: {:?}", recipe.items_required));
-                        
+                        if inventory.has_items(recipe.items_required.clone()) { ui.label("👍");}
                     });
 
                     ui.horizontal(|ui| {
-                        ui.label(format!("Time Required: {}", recipe.time_required));
+                        ui.label(format!("Time Required: {:.1} sec", recipe.time_required));
 
                         if ui.button("Smelt").clicked() {
                             smelt_events.send(SmeltEvent(recipe.clone()));
@@ -150,7 +151,7 @@ impl GameUIPlugin {
                 Some(recipe) => {
                     ui.heading("Factory Processing:");
                     ui.label(format!("Currently Crafting: {:?}", recipe.item_created));
-                    ui.label(format!("Time Remaining: {}", factory.remaining_processing_time));
+                    ui.label(format!("Time Remaining: {:.1} sec", factory.remaining_processing_time));
                     ui.label(Self::progress_string( (recipe.time_required - factory.remaining_processing_time) / recipe.time_required));
                 },
                 None => {}
@@ -162,12 +163,14 @@ impl GameUIPlugin {
                 ui.vertical(|ui| {
                     ui.horizontal(|ui| {
                         ui.label(format!("{:?}", recipe.item_created));
+                        
                         ui.label(format!("Requires: {:?}", recipe.items_required));
+                        if inventory.has_items(recipe.items_required.clone()) { ui.label("👍");}
                         
                     });
 
                     ui.horizontal(|ui| {
-                        ui.label(format!("Time Required: {}", recipe.time_required));
+                        ui.label(format!("Time Required: {:.1} sec", recipe.time_required));
 
                         if ui.button("Craft").clicked() {
                             craft_events.send(CraftEvent(recipe.clone()));
@@ -186,7 +189,6 @@ impl GameUIPlugin {
                     ui.horizontal(|ui| {
                         ui.label(format!("{:?}", upgrade));
                         ui.label(format!("Requires: {:?}", upgrade.requirements()));
-                        
                     });
 
                     ui.horizontal(|ui| {

@@ -296,21 +296,24 @@ impl PlayerPlugin {
     fn player_fire_laser(
         mut commands: Commands,
         keyboard_input: Res<Input<MouseButton>>,
-        player_query: Query<(Entity, &mut Player, &mut Transform, &GlobalTransform, &Velocity)>,
+        mut player_query: Query<(Entity, &mut Player, &mut Transform, &GlobalTransform, &Velocity)>,
         mut laser_event_writer:EventWriter<LaserEvent>
     ) {
 
-        let (ent, player, transform, global_trans, _velocity) = player_query.single();
+        let (ent, mut player, transform, global_trans, _velocity) = player_query.single_mut();
         let player_direction = (transform.rotation * Vec3::Y).normalize();
 
         // Update Line and Opacity When Fired
         if keyboard_input.pressed(MouseButton::Left) {
 
+            if player.battery.is_empty() { return; }
+
             // Raycast to Find Target
             let ray_dir = player_direction.truncate();
             let ray_pos = global_trans.translation().truncate() + ray_dir * 100.0; // move racasting ray ahead of ship to avoid contact (there's probably a better way lol)
-
+            
             laser_event_writer.send(LaserEvent(true, ray_pos, ray_dir));
+            player.drain_battery(1.0);
 
         } else {
             // Raycast to Find Target
