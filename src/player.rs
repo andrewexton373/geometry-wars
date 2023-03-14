@@ -493,18 +493,6 @@ impl PlayerPlugin {
             println!("{:?}", upgrade);
 
             upgrades.upgrade(upgrade, &mut player, &mut inventory);
-
-            // match &upgrade {
-            //     crate::widgets::station_menu::UpgradeType::Health(level) => {
-
-            //     },
-            //     crate::widgets::station_menu::UpgradeType::ShipCargoBay(level) => {
-
-            //     },
-            //     _ => {}
-            // }
-
-            // Self::smelt_materials(inventory, &recipe, refinery, &mut refinery_timer);
         }
     }
 }
