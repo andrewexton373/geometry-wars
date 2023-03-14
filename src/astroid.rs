@@ -1,5 +1,6 @@
 use crate::base_station::BaseStation;
 use crate::game_ui::{ContextClue, ContextClues};
+use crate::health::Health;
 use crate::inventory::{Amount, Inventory, InventoryItem};
 use crate::particles::ShipAstroidImpactParticles;
 use crate::{Player, PIXELS_PER_METER};
@@ -25,7 +26,7 @@ pub struct AstroidPlugin;
 pub struct Astroid {
     pub velocity: Vec2,
     pub size: AstroidSize,
-    // pub health: Health,
+    pub health: Health,
     pub composition: Composition,
 }
 
@@ -180,8 +181,6 @@ pub struct AstroidSpawner {
 }
 
 pub struct AblateEvent(pub Entity, pub Vec2, pub Vec2);
-pub struct SpawnAstroid(pub Vec2, pub Vec2);
-
 
 impl Plugin for AstroidPlugin {
     fn build(&self, app: &mut App) {
@@ -190,7 +189,6 @@ impl Plugin for AstroidPlugin {
         })
         .insert_resource(InventoryFullNotificationTimer(None))
         .add_event::<AblateEvent>()
-        .add_event::<SpawnAstroid>()
         .add_system(Self::spawn_astroids_aimed_at_ship)
         .add_system(Self::despawn_far_astroids)
         .add_system(Self::handle_astroid_collision_event)
@@ -300,6 +298,11 @@ impl AstroidPlugin {
         let astroid = Astroid {
             velocity,
             size,
+            health: Health {
+                current: 100.0,
+                maximum: 100.0,
+                upgrade_level: crate::upgrades::UpgradeLevel::Level0,
+            },
             composition: composition,
         };
 
@@ -463,7 +466,7 @@ impl AstroidPlugin {
 
     pub fn ablate_astroids(
         mut commands: Commands,
-        mut astroids_query: Query<(Entity, &Astroid), With<Astroid>>,
+        mut astroids_query: Query<(Entity, &mut Astroid), With<Astroid>>,
         mut ablate_event_reader: EventReader<AblateEvent>,
         // mut spawn_astroid_writer: EventWriter<SpawnAstroid>
     ) {
@@ -473,11 +476,20 @@ impl AstroidPlugin {
             let mut rng = rand::thread_rng();
             let split_angle = rng.gen_range(0.0..PI / 4.0);
 
-            // let (mut ent, mut astroid_to_ablate) = astroids_query.get(ablate_event.0);
-
-            match astroids_query.get(ablate_event.0) {
+            match astroids_query.get_mut(ablate_event.0) {
                 Ok((mut ent, mut astroid_to_ablate)) => {
-                    // spawn_astroid_writer.send(SpawnAstroid(ablate_event.1, ablate_event.2));
+
+                    let damaged_health = astroid_to_ablate.health.current() - 1.0;
+                    astroid_to_ablate.health.set_current(damaged_health);
+                    println!("CURRENT HEALTH: {}", damaged_health);
+
+                    if damaged_health < 0.0 {
+                        commands.entity(ent).despawn_recursive();                    }
+
+                    let n: u8 = rng.gen();
+                    if n > 10 {
+                        return;
+                    }
 
                     let astroid_shape = lyon::shapes::Polygon {
                         points: Self::make_valtr_convex_polygon_coords(
@@ -491,6 +503,11 @@ impl AstroidPlugin {
                     let astroid = Astroid {
                         velocity: ablate_event.2,
                         size: AstroidSize::OreChunk,
+                        health: Health {
+                            current: 100.0,
+                            maximum: 100.0,
+                            upgrade_level: crate::upgrades::UpgradeLevel::Level0,
+                        },
                         composition: Composition::new_with_distance(100.0),
                     };
             

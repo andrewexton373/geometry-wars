@@ -5,9 +5,9 @@ use crate::upgrades::{UpgradeLevel, Upgradeable};
 
 #[derive(Component, Default, Clone, Debug)]
 pub struct Health {
-    current: f32,
-    maximum: f32,
-    upgrade_level: UpgradeLevel,
+    pub current: f32,
+    pub maximum: f32,
+    pub upgrade_level: UpgradeLevel,
 }
 
 impl Health {

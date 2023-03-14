@@ -15,6 +15,7 @@ use crosshair::CrosshairPlugin;
 use factory::{FactoryPlugin, Factory, CraftEvent};
 use game_ui::{GameUIPlugin, ContextClues};
 use inventory::{InventoryPlugin, Inventory};
+use laser::LaserPlugin;
 use particles::ParticlePlugin;
 use player::{PlayerPlugin, Player, ShipInformation};
 use projectile::ProjectilePlugin;
@@ -33,6 +34,7 @@ mod refinery;
 mod player;
 mod astroid;
 mod projectile;
+mod laser;
 mod crosshair;
 mod player_stats_bar;
 mod base_station;
@@ -71,6 +73,7 @@ fn main() {
         .add_plugin(FactoryPlugin)
         .add_plugin(AstroidPlugin)
         .add_plugin(ProjectilePlugin)
+        .add_plugin(LaserPlugin)
         .add_plugin(CrosshairPlugin)
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_startup_system(setup)

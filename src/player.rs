@@ -5,6 +5,7 @@ use crate::crosshair::Crosshair;
 use crate::game_ui::{ContextClue, ContextClues};
 use crate::health::Health;
 use crate::inventory::{Capacity, Inventory, InventoryPlugin};
+use crate::laser::{LaserEvent};
 use crate::particles::{PlayerShipTrailParticles, ProjectileImpactParticles};
 use crate::projectile::{ProjectilePlugin, Projectile};
 use crate::upgrades::{UpgradesComponent, UpgradeEvent};
@@ -18,6 +19,7 @@ use bevy_prototype_lyon::shapes;
 use bevy_rapier2d::prelude::*;
 use std::f32::consts::PI;
 use strum::IntoEnumIterator;
+use rand::prelude::*;
 
 pub struct PlayerPlugin;
 
@@ -25,8 +27,6 @@ pub struct PlayerPlugin;
 pub struct EmptyInventoryDepositTimer(Option<Timer>);
 
 
-#[derive(Component)]
-pub struct Laser {}
 
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
 pub struct ShipInformation {
@@ -82,7 +82,8 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         // add things to your app here
 
-        app.add_event::<UpgradeEvent>()
+        app
+            .add_event::<UpgradeEvent>()
             .add_startup_system(Self::spawn_player)
             .add_system(Self::update_player_mass)
             .add_system(Self::player_movement.after(Self::update_player_mass))
@@ -296,41 +297,8 @@ impl PlayerPlugin {
         mut commands: Commands,
         keyboard_input: Res<Input<MouseButton>>,
         player_query: Query<(Entity, &mut Player, &mut Transform, &GlobalTransform, &Velocity)>,
-        mut laser_query: Query<(&mut Laser, &mut Stroke, &mut Transform, &mut Path), Without<Player>>,
-        rapier_context: Res<RapierContext>,
-        mut ablate_event_writer: EventWriter<AblateEvent>,
-        mut effect: Query<
-        (&mut ParticleEffect, &mut Transform),
-        (
-            With<ProjectileImpactParticles>,
-            Without<Astroid>,
-            Without<Projectile>,
-            Without<Player>,
-            Without<Laser>
-        ),
-    >, 
+        mut laser_event_writer:EventWriter<LaserEvent>
     ) {
-
-        let line = shapes::Line(Vec2::ZERO, Vec2::X);
-
-        // Create Laser if it Doesn't Exist
-        let Ok((laser, laser_stroke, mut laser_trans, mut laser_path)) = laser_query.get_single_mut() else {
-            let _laser = commands
-                .spawn((
-                    Laser {},
-                    ShapeBundle {
-                        path: GeometryBuilder::build_as(&line),
-                        transform: Transform {
-                            scale: Vec3::new(1.0, 1.0, 1.0),
-                            ..Default::default()
-                        },
-                        ..default()
-                    },
-                    Stroke::new(Color::rgba(1.0, 0.0, 0.0, 0.9), 5.0),
-                    Name::new("Laser")
-                )).id();
-                return;
-        };
 
         let (ent, player, transform, global_trans, _velocity) = player_query.single();
         let player_direction = (transform.rotation * Vec3::Y).normalize();
@@ -342,57 +310,19 @@ impl PlayerPlugin {
             let ray_dir = player_direction.truncate();
             let ray_pos = global_trans.translation().truncate() + ray_dir * 100.0; // move racasting ray ahead of ship to avoid contact (there's probably a better way lol)
 
-            let max_toi = 10000.0;
-            let solid = false; // i think?
-            let filter = QueryFilter::default();
-        
-            if let Some((entity, toi)) = rapier_context.cast_ray(
-                ray_pos, ray_dir, max_toi, solid, filter
-            ) {
-                // The first collider hit has the entity `entity` and it hit after
-                // the ray travelled a distance equal to `ray_dir * toi`.
-                let hit_point = ray_pos + ray_dir * toi;
-                println!("Entity {:?} hit at point {}", entity, hit_point);
-            }
-        
-            let line = shapes::Line(global_trans.translation().truncate(), global_trans.translation().truncate() + player_direction.truncate() * 10000.0);
-            *laser_path = ShapePath::build_as(&line);
-
-            if let Some((entity, intersection)) = rapier_context.cast_ray_and_get_normal(
-                ray_pos, ray_dir, max_toi, solid, filter
-            ) {
-                // This is similar to `RapierContext::cast_ray` illustrated above except
-                // that it also returns the normal of the collider shape at the hit point.
-                let hit_point = intersection.point;
-                let hit_normal = intersection.normal;
-                println!("Entity {:?} hit at point {} with normal {}", entity, hit_point, hit_normal);
-                let (mut effect, mut effect_translation) = effect.single_mut();
-
-                effect_translation.translation =
-                    (hit_point).extend(200.0);
-                effect.maybe_spawner().unwrap().reset();
-
-                let line = shapes::Line(global_trans.translation().truncate(), hit_point);
-                *laser_path = ShapePath::build_as(&line);
-
-                ablate_event_writer.send(AblateEvent(entity, hit_point, hit_normal));
-
-                // AstroidPlugin::ablate_astroid(
-                //     &mut commands,
-                //     entity,
-                //     hit_point,
-                //     hit_normal,
-                // );
-                
-            }
-
+            laser_event_writer.send(LaserEvent(true, ray_pos, ray_dir));
 
         } else {
-            let line = shapes::Line(global_trans.translation().truncate(), global_trans.translation().truncate() + player_direction.truncate() * 1.0);
-            *laser_path = ShapePath::build_as(&line);
+            // Raycast to Find Target
+            let ray_dir = player_direction.truncate();
+            let ray_pos = global_trans.translation().truncate() + ray_dir * 100.0; // move racasting ray ahead of ship to avoid contact (there's probably a better way lol)
+
+            laser_event_writer.send(LaserEvent(false, ray_pos, ray_dir));
         }
 
+
     }
+
 
     fn player_fire_weapon(
         mut commands: Commands,
