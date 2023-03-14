@@ -10,7 +10,7 @@ use crate::{
     factory::{Factory, CraftEvent},
     inventory::{Inventory, InventoryItem},
     player::{Player, ShipInformation},
-    refinery::{Refinery, SmeltEvent}, upgrades::UpgradeType,
+    refinery::{Refinery, SmeltEvent}, upgrades::{UpgradeType, UpgradesComponent, UpgradeEvent},
 };
 
 #[derive(Default, Debug, Clone, PartialEq)]
@@ -91,11 +91,13 @@ impl GameUIPlugin {
     fn ui_station_menu(
         mut contexts: EguiContexts,
         cc_res: Res<ContextClues>,
+        player_query: Query<(&Player, &UpgradesComponent)>,
         inventory_query: Query<&Inventory, With<BaseStation>>,
         factory_query: Query<&Factory>,
-        mut craft_events: EventWriter<CraftEvent>,
         refinery_query: Query<&Refinery>,
-        mut smelt_events: EventWriter<SmeltEvent>
+        mut craft_events: EventWriter<CraftEvent>,
+        mut smelt_events: EventWriter<SmeltEvent>,
+        mut upgrade_events: EventWriter<UpgradeEvent>,
     ) {
         let inventory = inventory_query.single() else {
             return;
@@ -178,8 +180,27 @@ impl GameUIPlugin {
 
             }
 
-            
-        
+            let (_, upgrades) = player_query.single();
+
+            ui.heading("Ship Upgrades:");
+
+            for upgrade in &upgrades.upgrades {
+                ui.vertical(|ui| {
+                    ui.horizontal(|ui| {
+                        ui.label(format!("{:?}", upgrade));
+                        ui.label(format!("Requires: {:?}", upgrade.requirements()));
+                        
+                    });
+
+                    ui.horizontal(|ui| {
+                        // ui.label(format!("Time Required: {}", recipe.time_required));
+
+                        if ui.button("Upgrade").clicked() {
+                            upgrade_events.send(UpgradeEvent(upgrade.clone()));
+                        }
+                    })
+                });
+            }
         
         });
 
