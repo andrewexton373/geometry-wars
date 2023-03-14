@@ -1,4 +1,4 @@
-use crate::astroid::{Collectible, Astroid};
+use crate::astroid::{Collectible, Astroid, AstroidPlugin, AblateEvent};
 use crate::base_station::{BaseStation, CanDeposit};
 use crate::battery::Battery;
 use crate::crosshair::Crosshair;
@@ -87,7 +87,7 @@ impl Plugin for PlayerPlugin {
             .add_system(Self::update_player_mass)
             .add_system(Self::player_movement.after(Self::update_player_mass))
             .add_system(Self::ship_rotate_towards_mouse.after(Self::player_movement))
-            .add_system(Self::player_fire_weapon)
+            // .add_system(Self::player_fire_weapon)
             .add_system(Self::player_fire_laser)
             .add_system(Self::player_camera_control)
             .add_system(Self::player_deposit_control)
@@ -291,15 +291,6 @@ impl PlayerPlugin {
         }
     }
 
-
-    fn update_laser(
-
-    ) {
-
-    }
-
-    
-
     // TODO: I think a laser might be better, need to do some raycasting though.
     fn player_fire_laser(
         mut commands: Commands,
@@ -307,6 +298,7 @@ impl PlayerPlugin {
         player_query: Query<(Entity, &mut Player, &mut Transform, &GlobalTransform, &Velocity)>,
         mut laser_query: Query<(&mut Laser, &mut Stroke, &mut Transform, &mut Path), Without<Player>>,
         rapier_context: Res<RapierContext>,
+        mut ablate_event_writer: EventWriter<AblateEvent>,
         mut effect: Query<
         (&mut ParticleEffect, &mut Transform),
         (
@@ -363,7 +355,6 @@ impl PlayerPlugin {
                 println!("Entity {:?} hit at point {}", entity, hit_point);
             }
         
-        
             let line = shapes::Line(global_trans.translation().truncate(), global_trans.translation().truncate() + player_direction.truncate() * 10000.0);
             *laser_path = ShapePath::build_as(&line);
 
@@ -383,6 +374,15 @@ impl PlayerPlugin {
 
                 let line = shapes::Line(global_trans.translation().truncate(), hit_point);
                 *laser_path = ShapePath::build_as(&line);
+
+                ablate_event_writer.send(AblateEvent(entity, hit_point, hit_normal));
+
+                // AstroidPlugin::ablate_astroid(
+                //     &mut commands,
+                //     entity,
+                //     hit_point,
+                //     hit_normal,
+                // );
                 
             }
 

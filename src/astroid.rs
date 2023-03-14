@@ -179,15 +179,23 @@ pub struct AstroidSpawner {
     timer: Timer,
 }
 
+pub struct AblateEvent(pub Entity, pub Vec2, pub Vec2);
+pub struct SpawnAstroid(pub Vec2, pub Vec2);
+
+
 impl Plugin for AstroidPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(AstroidSpawner {
             timer: Timer::from_seconds(0.25, TimerMode::Once),
         })
         .insert_resource(InventoryFullNotificationTimer(None))
+        .add_event::<AblateEvent>()
+        .add_event::<SpawnAstroid>()
         .add_system(Self::spawn_astroids_aimed_at_ship)
+        .add_system(Self::spawn_astroid_event_handler)
         .add_system(Self::despawn_far_astroids)
         .add_system(Self::handle_astroid_collision_event)
+        .add_system(Self::ablate_astroids)
         .add_system(Self::display_inventory_full_context_clue)
         .add_system(Self::update_collectible_material_color);
         // .register_inspectable::<Astroid>();
@@ -250,6 +258,58 @@ impl AstroidPlugin {
                 commands.entity(entity).despawn_recursive();
             }
         }
+    }
+
+    pub fn spawn_astroid_event_handler(
+        mut commands: Commands,
+        mut spawn_astroid_event_reader: EventReader<SpawnAstroid>
+    ) {
+
+        let astroid_shape = lyon::shapes::Polygon {
+            points: Self::make_valtr_convex_polygon_coords(
+                AstroidSize::OreChunk.num_sides(),
+                AstroidSize::OreChunk.radius(),
+            ),
+            closed: true,
+        };
+
+        for spawn_astroid_event in spawn_astroid_event_reader.iter() {
+    
+            let astroid = Astroid {
+                velocity: spawn_astroid_event.1,
+                size: AstroidSize::OreChunk,
+                composition: Composition::new_with_distance(100.0),
+            };
+    
+            let astroid_ent = commands
+                .spawn((
+                    astroid.clone(),
+                    ShapeBundle {
+                        path: GeometryBuilder::build_as(&astroid_shape),
+                        transform: Transform::from_xyz(spawn_astroid_event.0.x, spawn_astroid_event.0.y, 0.0),
+                        ..default()
+                    },
+                    Fill::color(Color::DARK_GRAY),
+                    RigidBody::Dynamic,
+                    Velocity {
+                        linvel: spawn_astroid_event.1,
+                        angvel: 0.0,
+                    },
+                    Sleeping::disabled(),
+                    Ccd::enabled(),
+                    Collider::convex_hull(&astroid_shape.points).unwrap(),
+                    ActiveEvents::COLLISION_EVENTS,
+                    ReadMassProperties(MassProperties::default()),
+                    Restitution::coefficient(0.01),
+                    Name::new("Astroid"),
+                )).id();
+    
+            // If the astroid is an ore chunk, add Collectible Tag
+            if astroid.clone().size == AstroidSize::OreChunk {
+                commands.entity(astroid_ent).insert(Collectible);
+            }
+        }
+
     }
 
     pub fn spawn_astroid(
@@ -452,6 +512,33 @@ impl AstroidPlugin {
         } else {
             context_clues_res.0.remove(&ContextClue::CargoBayFull);
         }
+    }
+
+    pub fn ablate_astroids(
+        mut astroids_query: Query<(Entity, &Astroid), With<Astroid>>,
+        mut ablate_event_reader: EventReader<AblateEvent>,
+        mut spawn_astroid_writer: EventWriter<SpawnAstroid>
+    ) {
+
+        for ablate_event in ablate_event_reader.iter() {
+
+            let mut rng = rand::thread_rng();
+            let split_angle = rng.gen_range(0.0..PI / 4.0);
+
+            // let (mut ent, mut astroid_to_ablate) = astroids_query.get(ablate_event.0);
+
+            match astroids_query.get(ablate_event.0) {
+                Ok((mut ent, mut astroid_to_ablate)) => {
+                    spawn_astroid_writer.send(SpawnAstroid(ablate_event.1, ablate_event.2));
+                },
+                _ => {
+
+                }
+            }
+
+
+        }
+        
     }
 
     pub fn split_astroid(
