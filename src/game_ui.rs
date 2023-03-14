@@ -61,9 +61,6 @@ impl Plugin for GameUIPlugin {
             .insert_resource(ContextClues(HashSet::new()))
             .add_system(Self::ui_ship_information)
             .add_system(Self::ui_ship_inventory)
-            // .add_system(Self::ui_station_inventory)
-            // .add_system(Self::ui_crafting_menu)
-            // .add_system(Self::ui_refinery_menu)
             .add_system(Self::ui_station_menu)
             .add_system(Self::ui_context_clue);
     }
@@ -193,8 +190,6 @@ impl GameUIPlugin {
                     });
 
                     ui.horizontal(|ui| {
-                        // ui.label(format!("Time Required: {}", recipe.time_required));
-
                         if ui.button("Upgrade").clicked() {
                             upgrade_events.send(UpgradeEvent(upgrade.clone()));
                         }

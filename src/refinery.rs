@@ -8,7 +8,6 @@ use crate::{
     inventory::{Amount, Inventory, InventoryItem},
     item_producer::ItemProducer,
     recipe::Recipe,
-    // widgets::refinery::SmeltEvent,
 };
 
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
