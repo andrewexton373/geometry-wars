@@ -230,18 +230,28 @@ impl GameUIPlugin {
             ui.heading("Ship Upgrades:");
 
             for upgrade in &upgrades.upgrades {
-                ui.vertical(|ui| {
                     ui.horizontal(|ui| {
-                        ui.label(format!("{:?}", upgrade));
-                        ui.label(format!("Requires: {:?}", upgrade.requirements()));
+
+                        ui.vertical(|ui| {
+
+                            ui.label(format!("{:?}", upgrade));
+                            if ui.button("Upgrade").clicked() {
+                                upgrade_events.send(UpgradeEvent(upgrade.clone()));
+                            }
+                        });
+                        
+                        ui.vertical(|ui| {
+                            ui.label("Requires: ");
+                            if upgrade.requirements().is_some() {
+                                for requirement in upgrade.requirements().unwrap().requirements { // TODO: This seems unnecessairly convoluted..
+                                    ui.label(format!("{:?}", requirement));
+        
+                                }
+                            }
+                        });
+            
                     });
 
-                    ui.horizontal(|ui| {
-                        if ui.button("Upgrade").clicked() {
-                            upgrade_events.send(UpgradeEvent(upgrade.clone()));
-                        }
-                    })
-                });
             }
         
         });
@@ -278,11 +288,8 @@ impl GameUIPlugin {
     fn ui_ship_inventory(
         mut contexts: EguiContexts,
         inventory_query: Query<&Inventory, With<Player>>,
-        // window_query: Query<&Window>
     ) {
         let inventory = inventory_query.single();
-
-        // let window = window_query.single();
     
         egui::Window::new("Ship Inventory").anchor(Align2::LEFT_BOTTOM, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
             let inventory_capacity_percent = (1.0 - inventory.remaining_capacity() / inventory.capacity.maximum) * 100.0;
