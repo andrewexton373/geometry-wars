@@ -1,4 +1,4 @@
-use crate::astroid::{Collectible, Astroid, AstroidPlugin, AblateEvent};
+use crate::astroid::{Collectible};
 use crate::base_station::{BaseStation, CanDeposit};
 use crate::battery::Battery;
 use crate::crosshair::Crosshair;
@@ -6,34 +6,20 @@ use crate::game_ui::{ContextClue, ContextClues};
 use crate::health::Health;
 use crate::inventory::{Capacity, Inventory, InventoryPlugin};
 use crate::laser::{LaserEvent};
-use crate::particles::{PlayerShipTrailParticles, ProjectileImpactParticles};
-use crate::projectile::{ProjectilePlugin, Projectile};
+use crate::particles::{PlayerShipTrailParticles};
 use crate::upgrades::{UpgradesComponent, UpgradeEvent};
 use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
-use bevy::render::camera::RenderTarget;
 use bevy::window::PrimaryWindow;
 use bevy_hanabi::ParticleEffect;
-use bevy_prototype_lyon::prelude::{self as lyon, Fill, Stroke, GeometryBuilder, ShapeBundle, Path, ShapePath};
-use bevy_prototype_lyon::shapes;
+use bevy_prototype_lyon::prelude::{self as lyon, Fill, GeometryBuilder, ShapeBundle};
 use bevy_rapier2d::prelude::*;
 use std::f32::consts::PI;
-use strum::IntoEnumIterator;
-use rand::prelude::*;
 
 pub struct PlayerPlugin;
 
 #[derive(Resource)]
 pub struct EmptyInventoryDepositTimer(Option<Timer>);
-
-
-
-#[derive(Default, Debug, Clone, Copy, PartialEq)]
-pub struct ShipInformation {
-    pub net_weight: f32,
-    pub speed: f32,
-    pub direction: f32,
-}
 
 #[derive(Component, Default)]
 pub struct Player {
@@ -236,10 +222,9 @@ impl PlayerPlugin {
             ext_force.force = force;
 
             if force.length() > 0.0 {
-                if let (mut effect, mut effect_trans) = effect.single_mut() {
-                    effect_trans.translation = transform.translation;
-                    effect.maybe_spawner().unwrap().reset();
-                }
+                let (mut effect, mut effect_trans) = effect.single_mut();
+                effect_trans.translation = transform.translation;
+                effect.maybe_spawner().unwrap().reset();
             }
         }
 
@@ -302,13 +287,12 @@ impl PlayerPlugin {
 
     // TODO: I think a laser might be better, need to do some raycasting though.
     fn player_fire_laser(
-        mut commands: Commands,
         keyboard_input: Res<Input<MouseButton>>,
         mut player_query: Query<(Entity, &mut Player, &mut Transform, &GlobalTransform, &Velocity)>,
         mut laser_event_writer:EventWriter<LaserEvent>
     ) {
 
-        let (ent, mut player, transform, global_trans, _velocity) = player_query.single_mut();
+        let (_ent, mut player, transform, global_trans, _velocity) = player_query.single_mut();
         let player_direction = (transform.rotation * Vec3::Y).normalize();
 
         // Update Line and Opacity When Fired
@@ -316,7 +300,6 @@ impl PlayerPlugin {
 
             if player.battery.is_empty() { return; }
 
-            // Raycast to Find Target
             let ray_dir = player_direction.truncate();
             let ray_pos = global_trans.translation().truncate() + ray_dir * 100.0; // move racasting ray ahead of ship to avoid contact (there's probably a better way lol)
             
@@ -335,27 +318,27 @@ impl PlayerPlugin {
     }
 
 
-    fn player_fire_weapon(
-        mut commands: Commands,
-        keyboard_input: Res<Input<MouseButton>>,
-        player_query: Query<(&mut Player, &mut Transform, &Velocity)>,
-    ) {
-        // should be just pressed, but it's fun with keyboard_input.pressed()d
-        if keyboard_input.just_pressed(MouseButton::Left) {
-            let (player, transform, _velocity) = player_query.single();
+    // fn player_fire_weapon(
+    //     mut commands: Commands,
+    //     keyboard_input: Res<Input<MouseButton>>,
+    //     player_query: Query<(&mut Player, &mut Transform, &Velocity)>,
+    // ) {
+    //     // should be just pressed, but it's fun with keyboard_input.pressed()d
+    //     if keyboard_input.just_pressed(MouseButton::Left) {
+    //         let (player, transform, _velocity) = player_query.single();
 
-            // why does this work? https://www.reddit.com/r/rust_gamedev/comments/rphgsf/calculating_bullet_x_and_y_position_based_off_of/
-            // FIXME: clean this up, it's confusing..., should also be using velocity here.
-            let player_velocity = (transform.rotation * Vec3::Y)
-                + Vec3::new(player.delta_x, player.delta_y, 0.0) * PIXELS_PER_METER;
+    //         // why does this work? https://www.reddit.com/r/rust_gamedev/comments/rphgsf/calculating_bullet_x_and_y_position_based_off_of/
+    //         // FIXME: clean this up, it's confusing..., should also be using velocity here.
+    //         let player_velocity = (transform.rotation * Vec3::Y)
+    //             + Vec3::new(player.delta_x, player.delta_y, 0.0) * PIXELS_PER_METER;
 
-            ProjectilePlugin::spawn_projectile(
-                &mut commands,
-                transform.translation.truncate(),
-                player_velocity.truncate(),
-            );
-        }
-    }
+    //         ProjectilePlugin::spawn_projectile(
+    //             &mut commands,
+    //             transform.translation.truncate(),
+    //             player_velocity.truncate(),
+    //         );
+    //     }
+    // }
 
     fn player_camera_control(
         kb: Res<Input<KeyCode>>,
@@ -408,7 +391,7 @@ impl PlayerPlugin {
         mut empty_deposit_timer: ResMut<EmptyInventoryDepositTimer>,
         time: Res<Time>
     ) {
-        if let Some(mut timer) = empty_deposit_timer.0.as_mut() {
+        if let Some(timer) = empty_deposit_timer.0.as_mut() {
             timer.tick(time.delta());
             context_clues.0.insert(ContextClue::ShipInventoryEmpty);
 

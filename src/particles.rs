@@ -1,6 +1,5 @@
 use bevy::{
     prelude::*,
-    render::{render_resource::WgpuFeatures, settings::WgpuSettings},
 };
 use bevy_hanabi::prelude::*;
 pub struct ParticlePlugin;

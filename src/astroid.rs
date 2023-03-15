@@ -474,10 +474,10 @@ impl AstroidPlugin {
         for ablate_event in ablate_event_reader.iter() {
 
             let mut rng = rand::thread_rng();
-            let split_angle = rng.gen_range(0.0..PI / 4.0);
+            // let split_angle = rng.gen_range(0.0..PI / 4.0); TODO: Might keep splititng astroids
 
             match astroids_query.get_mut(ablate_event.0) {
-                Ok((mut ent, mut astroid_to_ablate)) => {
+                Ok((ent, mut astroid_to_ablate)) => {
 
                     let damaged_health = astroid_to_ablate.health.current() - 1.0;
                     astroid_to_ablate.health.set_current(damaged_health);

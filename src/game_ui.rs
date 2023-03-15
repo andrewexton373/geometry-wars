@@ -1,18 +1,15 @@
-use std::fmt::format;
-
-use bevy_egui::{egui::{self, Pos2, Align2, Vec2}, EguiContexts, EguiPlugin};
+use bevy_egui::{egui::{self, Align2, Vec2}, EguiContexts, EguiPlugin};
 
 use bevy_rapier2d::prelude::Velocity;
 use bevy::{prelude::*, utils::HashSet};
 use egui_dnd::{DragDropUi, utils::shift_vec};
-use rand_distr::num_traits::ops::inv;
 
 use crate::{
     base_station::BaseStation,
     factory::{Factory, CraftEvent},
     inventory::{Inventory, InventoryItem},
-    player::{Player, ShipInformation},
-    refinery::{Refinery, SmeltEvent}, upgrades::{UpgradeType, UpgradesComponent, UpgradeEvent},
+    player::{Player},
+    refinery::{Refinery, SmeltEvent}, upgrades::{UpgradeType, UpgradesComponent, UpgradeEvent}, player_input::EnginePowerEvent,
 };
 
 #[derive(Default, Debug, Clone, PartialEq)]
@@ -23,7 +20,6 @@ pub struct UIItems {
     pub factory: Factory,
     pub remaining_refinery_time: f32,
     pub context_clues: HashSet<ContextClue>,
-    pub ship_info: ShipInformation,
     pub upgrades: Vec<UpgradeType>,
 }
 
@@ -45,7 +41,7 @@ impl ContextClue {
             }
             ContextClue::ShipFuelEmpty => "The Player's Ship Fuel Tank is Empty!",
             ContextClue::ShipInventoryEmpty => "The Player's Ship Inventory is Empty!",
-            _ => "Missing Context Clue Note.",
+            // _ => "Missing Context Clue Note.",
         }
         .to_string()
     }
@@ -148,9 +144,7 @@ impl GameUIPlugin {
         mut smelt_events: EventWriter<SmeltEvent>,
         mut upgrade_events: EventWriter<UpgradeEvent>,
     ) {
-        let inventory = inventory_query.single() else {
-            return;
-        };
+        let inventory = inventory_query.single();
 
         let cc = cc_res.0.clone();
         egui::SidePanel::right("BaseStation Contextual Menu").show_animated(contexts.ctx_mut(), cc.contains(&ContextClue::NearBaseStation),|ui| {
@@ -163,7 +157,7 @@ impl GameUIPlugin {
             });
 
 
-            let refinery = refinery_query.single() else { return; };
+            let refinery = refinery_query.single();
 
             match &refinery.currently_processing {
                 Some(recipe) => {
@@ -196,7 +190,7 @@ impl GameUIPlugin {
                 });
             }
 
-            let factory = factory_query.single() else { return; };
+            let factory = factory_query.single();
 
             match &factory.currently_processing {
                 Some(recipe) => {
@@ -255,12 +249,16 @@ impl GameUIPlugin {
     }
     
     fn ui_ship_information(
+        mut engine_power: Local<f32>,
         mut contexts: EguiContexts,
-        mut player_query: Query<(&mut Player, &mut Velocity)>,
+        player_query: Query<(&mut Player, &mut Velocity)>,
+        mut engine_power_events: EventReader<EnginePowerEvent>,
     ) {
-        let player = player_query.single() else { return; };
+        let player = player_query.single();
 
-        let top_left = Pos2::new(0.0, 0.0);
+        for event in engine_power_events.iter() {
+            *engine_power = num::clamp(engine_power.clone() + event.0, 0.0, 100.0);
+        }
     
         egui::Window::new("Ship Information").anchor(Align2::LEFT_TOP, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
             ui.label(format!("Health: {:.2}%", player.0.health.current()));
@@ -272,6 +270,7 @@ impl GameUIPlugin {
             ui.label(Self::progress_string(battery_percent));
     
             ui.label(format!("Speed: {:.2}", player.1.linvel.length()));
+            ui.add(egui::Slider::new(&mut engine_power.clone(), 0.0..=100.0).text("Engine Power"));
             // ui.label(format!("Direction: {:.2}", player.1.linvel.angle_between(Vec2::X)));
         });
     }
@@ -279,13 +278,11 @@ impl GameUIPlugin {
     fn ui_ship_inventory(
         mut contexts: EguiContexts,
         inventory_query: Query<&Inventory, With<Player>>,
-        window_query: Query<&Window>
+        // window_query: Query<&Window>
     ) {
-        let inventory = inventory_query.single() else {
-            return;
-        };
+        let inventory = inventory_query.single();
 
-        let window = window_query.single();
+        // let window = window_query.single();
     
         egui::Window::new("Ship Inventory").anchor(Align2::LEFT_BOTTOM, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
             let inventory_capacity_percent = (1.0 - inventory.remaining_capacity() / inventory.capacity.maximum) * 100.0;
@@ -304,10 +301,8 @@ impl GameUIPlugin {
     fn ui_context_clue(
         mut contexts: EguiContexts,
         context_clues_res: Res<ContextClues>,
-        window_query: Query<&Window>
     ) {
         let cc = &context_clues_res.0;
-        let window = window_query.single();
     
         if !cc.is_empty() {
             egui::Window::new("Context Clue").anchor(Align2::CENTER_BOTTOM, Vec2::new(0.0, 100.0)).show(contexts.ctx_mut(), |ui| {

@@ -1,7 +1,6 @@
 use crate::player::Player;
 use crate::GameCamera;
 use bevy::prelude::*;
-use bevy::render::camera::RenderTarget;
 use bevy::window::PrimaryWindow;
 use bevy_prototype_lyon::prelude::*;
 

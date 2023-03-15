@@ -1,22 +1,8 @@
-use crate::astroid::Collectible;
-use crate::base_station::{BaseStation, CanDeposit};
-use crate::battery::Battery;
-use crate::crosshair::Crosshair;
 use crate::factory::UpgradeComponent;
-use crate::game_ui::{ContextClue, ContextClues};
-use crate::health::Health;
-use crate::inventory::{Capacity, Inventory, InventoryPlugin, InventoryItem, Amount};
-use crate::particles::PlayerShipTrailParticles;
+use crate::inventory::{Inventory, InventoryItem, Amount};
 use crate::player::Player;
-use crate::projectile::ProjectilePlugin;
-use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
-use bevy::render::camera::RenderTarget;
-use bevy_hanabi::ParticleEffect;
-use bevy_prototype_lyon::prelude as lyon;
-use bevy_rapier2d::prelude::*;
 use strum_macros::{FromRepr, EnumIter};
-use std::f32::consts::PI;
 use strum::IntoEnumIterator;
 
 
@@ -131,7 +117,7 @@ impl ToString for UpgradeType {
 
 impl UpgradeType {
     pub fn requirements(&self) -> Option<UpgradeRequirements> {
-        let mut requirements = vec![];
+        let requirements;
 
         match self {
             UpgradeType::None => {

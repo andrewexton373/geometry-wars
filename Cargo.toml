@@ -4,6 +4,7 @@ version = "0.2.0"
 edition = "2021"
 
 [dependencies]
+num = "0.4.0"
 bevy = { version = "0.10", features = ["dynamic_linking"] }
 bevy_egui = "0.20"
 egui_dnd = "0.3.0"

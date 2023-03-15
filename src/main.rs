@@ -2,24 +2,25 @@
 
 use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
 
-use astroid::AstroidPlugin;
-use base_station::{BaseStationPlugin, BaseStation};
 use bevy::{
     diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
     prelude::*,
-    window::PresentMode,
 };
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
+
 use crosshair::CrosshairPlugin;
-use factory::{FactoryPlugin, Factory, CraftEvent};
-use game_ui::{GameUIPlugin, ContextClues};
-use inventory::{InventoryPlugin, Inventory};
+use factory::FactoryPlugin;
+use game_ui::GameUIPlugin;
+use inventory::InventoryPlugin;
 use laser::LaserPlugin;
 use particles::ParticlePlugin;
-use player::{PlayerPlugin, Player, ShipInformation};
+use player::{PlayerPlugin, Player};
+use player_input::PlayerInputPlugin;
 use projectile::ProjectilePlugin;
-use refinery::{RefineryPlugin, Refinery, SmeltEvent};
+use refinery::RefineryPlugin;
+use astroid::AstroidPlugin;
+use base_station::BaseStationPlugin;
 
 mod upgrades;
 mod battery;
@@ -30,7 +31,6 @@ mod item_producer;
 mod particles;
 mod recipe;
 mod refinery;
-// mod widgets;
 mod player;
 mod astroid;
 mod projectile;
@@ -39,6 +39,7 @@ mod crosshair;
 mod player_stats_bar;
 mod base_station;
 mod inventory;
+mod player_input;
 
 // Defines the amount of time that should elapse between each physics step.
 // const TIME_STEP: f32 = 1.0 / 60.0;
@@ -67,6 +68,7 @@ fn main() {
         .add_plugin(OverlayPlugin { font_size: 24.0, ..default() })
         .add_plugin(ShapePlugin)
         .add_plugin(PlayerPlugin)
+        .add_plugin(PlayerInputPlugin)
         .add_plugin(InventoryPlugin)
         .add_plugin(BaseStationPlugin)
         .add_plugin(RefineryPlugin)

@@ -1,10 +1,10 @@
 use crate::{
-    astroid::{Astroid, AstroidPlugin, AblateEvent},
+    astroid::{Astroid, AblateEvent},
     particles::ProjectileImpactParticles, player::{Player}, projectile::Projectile,
 };
 use bevy::prelude::*;
 use bevy_hanabi::ParticleEffect;
-use bevy_prototype_lyon::{prelude::{self as lyon, GeometryBuilder, Fill, ShapeBundle, ShapePath, Path, Stroke}, shapes};
+use bevy_prototype_lyon::{prelude::{GeometryBuilder, ShapeBundle, ShapePath, Path, Stroke}, shapes};
 use bevy_rapier2d::prelude::*;
 
 #[derive(Component)]
@@ -34,8 +34,8 @@ impl LaserPlugin {
         let line = shapes::Line(Vec2::ZERO, Vec2::X);
 
         // Create Laser if it Doesn't Exist
-        let Ok(laser) = laser_query.get_single_mut() else {
-            let _laser = commands
+        let Ok(_laser) = laser_query.get_single_mut() else {
+            commands
                 .spawn((
                     Laser {},
                     ShapeBundle {
@@ -48,13 +48,12 @@ impl LaserPlugin {
                     },
                     Stroke::new(Color::rgba(1.0, 0.0, 0.0, 0.9), 5.0),
                     Name::new("Laser")
-                )).id();
+                ));
                 return;
         };
     }
 
     pub fn fire_laser_raycasting(
-        mut commands: Commands,
         mut laser_event_reader: EventReader<LaserEvent>,
         mut ablate_event_writer: EventWriter<AblateEvent>,
         rapier_context: Res<RapierContext>,
