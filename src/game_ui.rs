@@ -81,12 +81,6 @@ impl Plugin for GameUIPlugin {
         app
             .add_plugin(EguiPlugin)
             .insert_resource(ContextClues(HashSet::new()))
-            // .insert_resource(DND(DragDropUi.default(), ["alfred", "bernhard", "christian"]
-            //                 .iter()
-            //                 .map(|name| ItemType {
-            //                     name: name.to_string(),
-            //                 })
-            //                 .collect(),))
             .add_system(Self::ui_ship_information)
             .add_system(Self::ui_ship_inventory)
             .add_system(Self::ui_station_menu)
@@ -99,7 +93,6 @@ impl GameUIPlugin {
     fn dnd(
         mut dnd: Local<DND>,
         mut contexts: EguiContexts,
-        // mut dnd: Resource<DND>
     ) {
         egui::Window::new("DND").show(contexts.ctx_mut(), |ui| {
 
@@ -112,10 +105,8 @@ impl GameUIPlugin {
                     ui.horizontal(|ui| {
                         // Anything in the handle can be used to drag the item
                         handle.ui(ui, item, |ui| {
-                            ui.label("grab");
+                            ui.label(&item.name);
                         });
-
-                        ui.label(&item.name);
                     });
                 });
 
