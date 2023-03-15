@@ -4,6 +4,7 @@ use bevy_egui::{egui::{self, Pos2, Align2, Vec2}, EguiContexts, EguiPlugin};
 
 use bevy_rapier2d::prelude::Velocity;
 use bevy::{prelude::*, utils::HashSet};
+use egui_dnd::{DragDropUi, utils::shift_vec};
 use rand_distr::num_traits::ops::inv;
 
 use crate::{
@@ -53,6 +54,26 @@ impl ContextClue {
 #[derive(Resource)]
 pub struct ContextClues(pub HashSet<ContextClue>);
 
+#[derive(Hash, Clone)]
+struct ItemType {
+    name: String,
+}
+
+pub struct DND(DragDropUi, Vec<ItemType>);
+
+impl Default for DND {
+
+    fn default() -> Self {
+        Self(DragDropUi::default(), ["iron", "silver", "gold"]
+                        .iter()
+                        .map(|name| ItemType {
+                            name: name.to_string(),
+                        })
+                        .collect())
+    }
+
+}
+
 pub struct GameUIPlugin;
 
 impl Plugin for GameUIPlugin {
@@ -60,14 +81,53 @@ impl Plugin for GameUIPlugin {
         app
             .add_plugin(EguiPlugin)
             .insert_resource(ContextClues(HashSet::new()))
+            // .insert_resource(DND(DragDropUi.default(), ["alfred", "bernhard", "christian"]
+            //                 .iter()
+            //                 .map(|name| ItemType {
+            //                     name: name.to_string(),
+            //                 })
+            //                 .collect(),))
             .add_system(Self::ui_ship_information)
             .add_system(Self::ui_ship_inventory)
             .add_system(Self::ui_station_menu)
-            .add_system(Self::ui_context_clue);
+            .add_system(Self::ui_context_clue)
+            .add_system(Self::dnd);
     }
 }
 
 impl GameUIPlugin {
+    fn dnd(
+        mut dnd: Local<DND>,
+        mut contexts: EguiContexts,
+        // mut dnd: Resource<DND>
+    ) {
+        egui::Window::new("DND").show(contexts.ctx_mut(), |ui| {
+
+            let mut items = dnd.1.clone();
+
+            let response =
+                // make sure this is called in a vertical layout.
+                // Horizontal sorting is not supported yet.
+                dnd.0.ui::<ItemType>(ui, items.iter_mut(), |item, ui, handle| {
+                    ui.horizontal(|ui| {
+                        // Anything in the handle can be used to drag the item
+                        handle.ui(ui, item, |ui| {
+                            ui.label("grab");
+                        });
+
+                        ui.label(&item.name);
+                    });
+                });
+
+            // After the drag is complete, we get a response containing the old index of the
+            // dragged item, as well as the index it was moved to. You can use the
+            // shift_vec function as a helper if you store your items in a Vec.
+            if let Some(response) = response.completed {
+                shift_vec(response.from, response.to, &mut dnd.1);
+            }
+        });
+    }
+
     fn progress_string(progress: f32) -> String {
         let progress_bar_len = 10;
     

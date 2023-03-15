@@ -1540,6 +1540,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "egui_dnd"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bdc74f0f5f9fa555781b4a463fd827ad6e23aa08b4add7cf01b582627588d429"
+dependencies = [
+ "egui",
+]
+
+[[package]]
 name = "either"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1767,6 +1776,7 @@ dependencies = [
  "bevy_hanabi",
  "bevy_prototype_lyon",
  "bevy_rapier2d",
+ "egui_dnd",
  "rand",
  "rand_distr",
  "strum",
