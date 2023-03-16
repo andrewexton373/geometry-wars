@@ -73,7 +73,6 @@ impl Plugin for PlayerPlugin {
             .add_system(Self::player_camera_control)
             .add_system(Self::player_deposit_control)
             .add_system(Self::gravitate_collectibles)
-            // .add_system(Self::keep_player_on_top)
             .add_system(Self::trickle_charge)
             .add_system(Self::ship_battery_is_empty_context_clue)
             .add_system(Self::display_empty_ship_inventory_context_clue)
@@ -156,16 +155,7 @@ impl PlayerPlugin {
         let mut player = player_query.single_mut();
         player.charge_battery(0.00001);
     }
-
-    // FIXME: is this really the only way? I feel like rapier2d is messing with the z-value...
-    fn keep_player_on_top(
-        mut player_query: Query<(&mut Player, &mut Transform), (With<Player>, Without<Crosshair>)>,
-    ) {
-        for (_player, mut transform) in player_query.iter_mut() {
-            transform.translation.z = 100.0;
-        }
-    }
-
+    
     fn player_movement(
         keyboard_input: Res<Input<KeyCode>>,
         mut player_query: Query<
