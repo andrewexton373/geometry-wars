@@ -9,7 +9,7 @@ use crate::{
     factory::{Factory, CraftEvent},
     inventory::{Inventory, InventoryItem},
     player::{Player},
-    refinery::{Refinery, SmeltEvent}, upgrades::{UpgradeType, UpgradesComponent, UpgradeEvent}, player_input::EnginePowerEvent,
+    refinery::{Refinery, SmeltEvent}, upgrades::{UpgradeType, UpgradesComponent, UpgradeEvent},
 };
 
 #[derive(Default, Debug, Clone, PartialEq)]
@@ -78,7 +78,6 @@ impl Plugin for GameUIPlugin {
             .add_plugin(EguiPlugin)
             .insert_resource(ContextClues(HashSet::new()))
             .add_system(Self::ui_ship_information)
-            // .add_system(Self::ui_ship_inventory)
             .add_system(Self::ui_station_menu)
             .add_system(Self::ui_context_clue)
             .add_system(Self::dnd_ship_inventory);
@@ -112,13 +111,6 @@ impl GameUIPlugin {
                         
                     });
 
-
-                    // ui.horizontal(|ui| {
-                    //     // Anything in the handle can be used to drag the item
-                    //     handle.ui(ui, item, |ui| {
-                    //         ui.label(&item.name);
-                    //     });
-                    // });
                 });
 
             // After the drag is complete, we get a response containing the old index of the
@@ -274,49 +266,23 @@ impl GameUIPlugin {
     }
     
     fn ui_ship_information(
-        mut engine_power: Local<f32>,
         mut contexts: EguiContexts,
         player_query: Query<(&mut Player, &mut Velocity)>,
-        mut engine_power_events: EventReader<EnginePowerEvent>,
     ) {
-        let player = player_query.single();
-
-        for event in engine_power_events.iter() {
-            *engine_power = num::clamp(engine_power.clone() + event.0, 0.0, 100.0);
-        }
+        let (player, velocity) = player_query.single();
     
         egui::Window::new("Ship Information").anchor(Align2::LEFT_TOP, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
-            ui.label(format!("Health: {:.2}%", player.0.health.current()));
-            let health_percent = player.0.health.current() / 100.0;
+            ui.label(format!("Health: {:.2}%", player.health.current()));
+            let health_percent = player.health.current() / 100.0;
             ui.label(Self::progress_string(health_percent));
     
-            ui.label(format!("Battery: {:.2}KWh", player.0.battery.current()));
-            let battery_percent = player.0.battery.current() / 1000.0;
+            ui.label(format!("Battery: {:.2}KWh", player.battery.current()));
+            let battery_percent = player.battery.current() / 1000.0;
             ui.label(Self::progress_string(battery_percent));
     
-            ui.label(format!("Speed: {:.2}", player.1.linvel.length()));
-            ui.add(egui::Slider::new(&mut engine_power.clone(), 0.0..=100.0).text("Engine Power"));
+            ui.label(format!("Speed: {:.2}", velocity.linvel.length()));
+            ui.add(egui::Slider::new(&mut player.engine.power_level.clone(), 0.0..=100.0).text("Engine Power"));
             // ui.label(format!("Direction: {:.2}", player.1.linvel.angle_between(Vec2::X)));
-        });
-    }
-    
-    fn ui_ship_inventory(
-        mut contexts: EguiContexts,
-        inventory_query: Query<&Inventory, With<Player>>,
-    ) {
-        let inventory = inventory_query.single();
-    
-        egui::Window::new("Ship Inventory").anchor(Align2::LEFT_BOTTOM, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
-            let inventory_capacity_percent = (1.0 - inventory.remaining_capacity().0 / inventory.capacity.maximum.0) * 100.0;
-            ui.label(format!("Capacity: {:.2}%", inventory_capacity_percent));
-            ui.label(Self::progress_string(inventory_capacity_percent / 100.0));
-    
-            ui.label("Contents:");
-            ui.vertical(|ui| {
-                for item in inventory.items.clone() {
-                    ui.label(format!("{:?}", item));
-                }
-            });
         });
     }
     

@@ -10,6 +10,7 @@ use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use crosshair::CrosshairPlugin;
+use engine::EnginePlugin;
 use factory::FactoryPlugin;
 use game_ui::GameUIPlugin;
 use inventory::InventoryPlugin;
@@ -40,6 +41,7 @@ mod player_stats_bar;
 mod base_station;
 mod inventory;
 mod player_input;
+mod engine;
 
 // Defines the amount of time that should elapse between each physics step.
 // const TIME_STEP: f32 = 1.0 / 60.0;
@@ -68,6 +70,7 @@ fn main() {
         .add_plugin(OverlayPlugin { font_size: 24.0, ..default() })
         .add_plugin(ShapePlugin)
         .add_plugin(PlayerPlugin)
+        .add_plugin(EnginePlugin)
         .add_plugin(PlayerInputPlugin)
         .add_plugin(InventoryPlugin)
         .add_plugin(BaseStationPlugin)

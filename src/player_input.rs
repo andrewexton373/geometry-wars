@@ -23,11 +23,9 @@ impl PlayerInputPlugin {
         for event in scroll_events.iter() {
             match event.unit {
                 MouseScrollUnit::Line => {
-                    println!("Scroll (line units): vertical: {}, horizontal: {}", event.y, event.x);
                     engine_events.send(EnginePowerEvent(event.y));
                 }
                 MouseScrollUnit::Pixel => {
-                    println!("Scroll (pixel units): vertical: {}, horizontal: {}", event.y, event.x);
                     engine_events.send(EnginePowerEvent(event.y));
                 }
             }

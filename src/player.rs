@@ -2,6 +2,7 @@ use crate::astroid::{Collectible};
 use crate::base_station::{BaseStation, CanDeposit};
 use crate::battery::Battery;
 use crate::crosshair::Crosshair;
+use crate::engine::Engine;
 use crate::game_ui::{ContextClue, ContextClues};
 use crate::health::Health;
 use crate::inventory::{Capacity, Inventory, InventoryPlugin};
@@ -26,13 +27,15 @@ pub struct EmptyInventoryDepositTimer(Option<Timer>);
 pub struct Player {
     pub health: Health,
     pub battery: Battery,
+    pub engine: Engine
 }
 
 impl Player {
     fn new() -> Player {
         Player {
             health: Health::new(),
-            battery: Battery::new(), // upgrades: UpgradesComponent::new()
+            battery: Battery::new(),
+            engine: Engine::new() // upgrades: UpgradesComponent::new()
         }
     }
 
@@ -155,7 +158,7 @@ impl PlayerPlugin {
         let mut player = player_query.single_mut();
         player.charge_battery(0.00001);
     }
-    
+
     fn player_movement(
         keyboard_input: Res<Input<KeyCode>>,
         mut player_query: Query<
@@ -194,6 +197,8 @@ impl PlayerPlugin {
         if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
             thrust += -Vec2::Y;
         }
+
+        thrust *= player.engine.power_level;
 
         // If player has battery capacity remaining, apply controlled thrust.
         if player.battery.current() > 0.0 {
