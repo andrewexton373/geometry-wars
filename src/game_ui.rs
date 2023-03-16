@@ -89,28 +89,41 @@ impl GameUIPlugin {
     fn dnd(
         mut dnd: Local<DND>,
         mut contexts: EguiContexts,
+        mut inventory_query: Query<(&Player, &mut Inventory)>,
     ) {
         egui::Window::new("DND").show(contexts.ctx_mut(), |ui| {
+
+            let (_, mut inventory) = inventory_query.single_mut();
 
             let mut items = dnd.1.clone();
 
             let response =
                 // make sure this is called in a vertical layout.
                 // Horizontal sorting is not supported yet.
-                dnd.0.ui::<ItemType>(ui, items.iter_mut(), |item, ui, handle| {
-                    ui.horizontal(|ui| {
-                        // Anything in the handle can be used to drag the item
-                        handle.ui(ui, item, |ui| {
-                            ui.label(&item.name);
+                
+                dnd.0.ui::<InventoryItem>(ui, inventory.items.clone().iter_mut(), |item, ui, handle| {
+                    
+                    handle.ui(ui, item, |ui| {
+                        ui.group(|ui| {
+                            ui.label(format!("{:?}", item));
                         });
+                        
                     });
+
+
+                    // ui.horizontal(|ui| {
+                    //     // Anything in the handle can be used to drag the item
+                    //     handle.ui(ui, item, |ui| {
+                    //         ui.label(&item.name);
+                    //     });
+                    // });
                 });
 
             // After the drag is complete, we get a response containing the old index of the
             // dragged item, as well as the index it was moved to. You can use the
             // shift_vec function as a helper if you store your items in a Vec.
             if let Some(response) = response.completed {
-                shift_vec(response.from, response.to, &mut dnd.1);
+                shift_vec(response.from, response.to, &mut inventory.items);
             }
         });
     }
@@ -292,7 +305,7 @@ impl GameUIPlugin {
         let inventory = inventory_query.single();
     
         egui::Window::new("Ship Inventory").anchor(Align2::LEFT_BOTTOM, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
-            let inventory_capacity_percent = (1.0 - inventory.remaining_capacity() / inventory.capacity.maximum) * 100.0;
+            let inventory_capacity_percent = (1.0 - inventory.remaining_capacity().0 / inventory.capacity.maximum.0) * 100.0;
             ui.label(format!("Capacity: {:.2}%", inventory_capacity_percent));
             ui.label(Self::progress_string(inventory_capacity_percent / 100.0));
     

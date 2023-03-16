@@ -14,6 +14,7 @@ use bevy::window::PrimaryWindow;
 use bevy_hanabi::ParticleEffect;
 use bevy_prototype_lyon::prelude::{self as lyon, Fill, GeometryBuilder, ShapeBundle};
 use bevy_rapier2d::prelude::*;
+use ordered_float::OrderedFloat;
 use std::f32::consts::PI;
 
 pub struct PlayerPlugin;
@@ -150,7 +151,7 @@ impl PlayerPlugin {
             &mut commands,
             Inventory {
                 items: Vec::new(),
-                capacity: Capacity { maximum: 200.0 },
+                capacity: Capacity { maximum: OrderedFloat(200.0) },
             },
             player,
         );
@@ -380,8 +381,8 @@ impl PlayerPlugin {
             }
 
             for item in player_inventory.clone().items.iter() {
-                base_station_inventory.add_to_inventory(*item);
-                player_inventory.remove_from_inventory(*item);
+                base_station_inventory.add_to_inventory(item);
+                player_inventory.remove_from_inventory(item);
             }
         }
     }
@@ -444,7 +445,7 @@ impl PlayerPlugin {
         for (_player, inventory, mut mass_properties) in player_query.iter_mut() {
             let inventory_weight = inventory.gross_material_weight();
             let mass_properties = mass_properties.as_mut();
-            *mass_properties = AdditionalMassProperties::Mass(inventory_weight + PLAYER_MASS);
+            *mass_properties = AdditionalMassProperties::Mass(inventory_weight.0 + PLAYER_MASS);
         }
     }
 

@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::{self as lyon, Fill, Stroke, GeometryBuilder, ShapeBundle, FillOptions};
 use bevy_rapier2d::prelude::{ActiveEvents, Collider, RapierContext, Sensor, Sleeping, Velocity};
+use ordered_float::OrderedFloat;
 
 use crate::{
     astroid::Astroid,
@@ -73,7 +74,7 @@ impl BaseStationPlugin {
             &mut commands,
             Inventory {
                 items: Vec::new(),
-                capacity: Capacity { maximum: 1000.0 },
+                capacity: Capacity { maximum: OrderedFloat(1000.0) },
             },
             base_station,
         );

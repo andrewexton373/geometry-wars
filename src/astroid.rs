@@ -10,6 +10,7 @@ use bevy::utils::HashMap;
 use bevy_hanabi::ParticleEffect;
 use bevy_prototype_lyon::prelude::{self as lyon, GeometryBuilder, Fill, ShapeBundle, FillOptions};
 use bevy_rapier2d::prelude::*;
+use ordered_float::OrderedFloat;
 use rand::seq::SliceRandom;
 use rand::Rng;
 use rand_distr::{Distribution, Normal};
@@ -405,9 +406,9 @@ impl AstroidPlugin {
                                 println!("Hit ore chunk, let's collect it!");
                                 let ore_chunk_mass = mass_properties.0.mass;
                                 for comp in astroid.composition.percent_composition().iter() {
-                                    if !inventory.add_to_inventory(InventoryItem::Material(
+                                    if !inventory.add_to_inventory(&InventoryItem::Material(
                                         *comp.0,
-                                        Amount::Weight(comp.1 * ore_chunk_mass),
+                                        Amount::Weight(OrderedFloat(comp.1 * ore_chunk_mass)),
                                     )) {
                                         inventory_full_notification.0 =
                                             Some(Timer::from_seconds(3.0, TimerMode::Once));

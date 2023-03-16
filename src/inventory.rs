@@ -2,12 +2,14 @@ use crate::astroid::AstroidMaterial;
 use crate::factory::UpgradeComponent;
 use crate::refinery::MetalIngot;
 use bevy::prelude::*;
+use ordered_float::OrderedFloat;
 use std::fmt;
 use std::ops::{AddAssign, SubAssign};
 
+
 #[derive(Component, Default, Debug, Clone, PartialEq)]
 pub struct Capacity {
-    pub maximum: f32,
+    pub maximum: OrderedFloat<f32>,
 }
 
 #[derive(Component, Default, Debug, Clone)]
@@ -16,11 +18,11 @@ pub struct Inventory {
     pub capacity: Capacity,
 }
 
-#[derive(Default, Clone, Copy, PartialEq, PartialOrd)]
+#[derive(Default, Clone, PartialEq, PartialOrd, Hash)]
 pub enum Amount {
     #[default]
     None,
-    Weight(f32),
+    Weight(OrderedFloat<f32>), // Need ordred float
     Quantity(u32),
 }
 
@@ -72,7 +74,7 @@ impl SubAssign for Amount {
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, PartialEq, Hash)]
 
 pub enum InventoryItem {
     Material(AstroidMaterial, Amount),
@@ -82,7 +84,7 @@ pub enum InventoryItem {
 
 impl Default for InventoryItem {
     fn default() -> Self {
-        InventoryItem::Material(AstroidMaterial::Iron, Amount::Weight(0.0))
+        InventoryItem::Material(AstroidMaterial::Iron, Amount::Weight(OrderedFloat(0.0)))
     }
 }
 
@@ -105,9 +107,9 @@ impl fmt::Debug for InventoryItem {
 impl InventoryItem {
     pub fn amount(&self) -> Amount {
         match self {
-            InventoryItem::Material(_, weight) => *weight,
-            InventoryItem::Ingot(_, quantity) => *quantity,
-            InventoryItem::Component(_, quantity) => *quantity,
+            InventoryItem::Material(_, weight) => weight.clone(),
+            InventoryItem::Ingot(_, quantity) => quantity.clone(),
+            InventoryItem::Component(_, quantity) => quantity.clone(),
         }
     }
 
@@ -189,7 +191,7 @@ impl Inventory {
         true
     }
 
-    pub fn has_capacity_for(&self, item: InventoryItem) -> bool {
+    pub fn has_capacity_for(&self, item: &InventoryItem) -> bool {
         match item.amount() {
             Amount::Weight(w) => {
                 return self.remaining_capacity() >= w;
@@ -204,18 +206,18 @@ impl Inventory {
         }
     }
 
-    pub fn remaining_capacity(&self) -> f32 {
+    pub fn remaining_capacity(&self) -> OrderedFloat<f32> {
         self.capacity.maximum - self.gross_material_weight()
     }
 
     /// Returns the current gross weight of materials in the inventory
-    pub fn gross_material_weight(&self) -> f32 {
+    pub fn gross_material_weight(&self) -> OrderedFloat<f32> {
         let mut gross_weight = 0.0;
 
         for item in self.items.iter() {
             match item.amount() {
                 Amount::Weight(w) => {
-                    gross_weight += w;
+                    gross_weight += w.0;
                 }
                 Amount::Quantity(_q) => {
                     // TODO: calculate weight with quantity * item_weight
@@ -224,40 +226,40 @@ impl Inventory {
             }
         }
 
-        gross_weight
+        OrderedFloat(gross_weight)
     }
 
-    pub fn add_to_inventory(&mut self, item_to_add: InventoryItem) -> bool {
+    pub fn add_to_inventory(&mut self, item_to_add: &InventoryItem) -> bool {
         if self.has_capacity_for(item_to_add) {
             match item_to_add {
                 InventoryItem::Material(material, _weight) => {
                     if let Some(found) = self.items.iter_mut().find_map(|item| match item {
-                        InventoryItem::Material(m, _) if *m == material => Some(item),
+                        InventoryItem::Material(m, _) if *m == *material => Some(item),
                         _ => None,
                     }) {
                         found.add_amount(item_to_add.amount());
                     } else {
-                        self.items.push(item_to_add);
+                        self.items.push(item_to_add.clone());
                     }
                 }
                 InventoryItem::Ingot(ingot, _quantity) => {
                     if let Some(found) = self.items.iter_mut().find_map(|item| match item {
-                        InventoryItem::Ingot(i, _) if *i == ingot => Some(item),
+                        InventoryItem::Ingot(i, _) if *i == *ingot => Some(item),
                         _ => None,
                     }) {
                         found.add_amount(item_to_add.amount())
                     } else {
-                        self.items.push(item_to_add);
+                        self.items.push(item_to_add.clone());
                     }
                 }
                 InventoryItem::Component(component, _quantity) => {
                     if let Some(found) = self.items.iter_mut().find_map(|item| match item {
-                        InventoryItem::Component(i, _) if *i == component => Some(item),
+                        InventoryItem::Component(i, _) if *i == *component => Some(item),
                         _ => None,
                     }) {
                         found.add_amount(item_to_add.amount())
                     } else {
-                        self.items.push(item_to_add);
+                        self.items.push(item_to_add.clone());
                     }
                 }
             }
@@ -273,14 +275,14 @@ impl Inventory {
         let mut all_removed = true;
 
         for item in items {
-            all_removed &= self.remove_from_inventory(item);
+            all_removed &= self.remove_from_inventory(&item);
         }
 
         println!("ALLREMOVED: {}", all_removed);
         all_removed
     }
 
-    pub fn remove_from_inventory(&mut self, item_to_remove: InventoryItem) -> bool {
+    pub fn remove_from_inventory(&mut self, item_to_remove: &InventoryItem) -> bool {
         match item_to_remove {
             InventoryItem::Material(to_find, _) => {
                 if let Some((index, found_item)) =
@@ -288,13 +290,13 @@ impl Inventory {
                         .iter_mut()
                         .enumerate()
                         .find_map(|(index, item)| match item {
-                            InventoryItem::Material(m, _) if *m == to_find => Some((index, item)),
+                            InventoryItem::Material(m, _) if *m == *to_find => Some((index, item)),
                             _ => None,
                         })
                 {
                     if found_item.amount() >= item_to_remove.amount() {
                         found_item.remove_amount(item_to_remove.amount());
-                        if found_item.amount() == Amount::Weight(0.0) {
+                        if found_item.amount() == Amount::Weight(OrderedFloat(0.0)) {
                             self.items.remove(index);
                         }
                         return true;
@@ -309,7 +311,7 @@ impl Inventory {
                         .iter_mut()
                         .enumerate()
                         .find_map(|(index, item)| match item {
-                            InventoryItem::Ingot(i, _) if *i == to_find => Some((index, item)),
+                            InventoryItem::Ingot(i, _) if *i == *to_find => Some((index, item)),
                             _ => None,
                         })
                 {
@@ -331,7 +333,7 @@ impl Inventory {
                         .iter_mut()
                         .enumerate()
                         .find_map(|(index, item)| match item {
-                            InventoryItem::Component(i, _) if *i == to_find => Some((index, item)),
+                            InventoryItem::Component(i, _) if *i == *to_find => Some((index, item)),
                             _ => None,
                         })
                 {
@@ -378,15 +380,15 @@ impl InventoryPlugin {
         entity: Entity,
     ) {
         // TODO: REMOVE ONLY FOR TESTING.
-        inventory.add_to_inventory(InventoryItem::Ingot(
+        inventory.add_to_inventory(&InventoryItem::Ingot(
             MetalIngot::IronIngot,
             Amount::Quantity(5),
         ));
-        inventory.add_to_inventory(InventoryItem::Component(
+        inventory.add_to_inventory(&InventoryItem::Component(
             UpgradeComponent::Cog,
             Amount::Quantity(2),
         ));
-        inventory.add_to_inventory(InventoryItem::Component(
+        inventory.add_to_inventory(&InventoryItem::Component(
             UpgradeComponent::IronPlate,
             Amount::Quantity(2),
         ));

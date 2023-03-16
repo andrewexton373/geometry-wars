@@ -11,7 +11,7 @@ use crate::{
     // widgets::factory::CraftEvent,
 };
 
-#[derive(Default, Debug, Clone, Copy, PartialEq)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Hash)]
 pub enum UpgradeComponent {
     #[default]
     Cog,
@@ -214,10 +214,10 @@ impl FactoryPlugin {
             if timer.just_finished() {
                 if let Some(currently_processing) = factory.currently_processing.clone() {
                     for required_item in currently_processing.items_required.iter() {
-                        inventory.remove_from_inventory(*required_item);
+                        inventory.remove_from_inventory(required_item);
                     }
 
-                    inventory.add_to_inventory(currently_processing.item_created);
+                    inventory.add_to_inventory(&currently_processing.item_created);
                 }
 
                 factory.currently_processing = None;

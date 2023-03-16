@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
+use ordered_float::OrderedFloat;
 
 use crate::{
     astroid::AstroidMaterial,
@@ -10,7 +11,7 @@ use crate::{
     recipe::Recipe,
 };
 
-#[derive(Default, Debug, Clone, Copy, PartialEq)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Hash)]
 pub enum MetalIngot {
     #[default]
     IronIngot,
@@ -36,7 +37,7 @@ impl ItemProducer for Refinery {
         let mut items_required = Vec::new();
         items_required.push(InventoryItem::Material(
             AstroidMaterial::Iron,
-            Amount::Weight(20.0),
+            Amount::Weight(OrderedFloat(20.0)),
         ));
 
         let iron_recipe = Recipe {
@@ -48,7 +49,7 @@ impl ItemProducer for Refinery {
         let mut items_required = Vec::new();
         items_required.push(InventoryItem::Material(
             AstroidMaterial::Silver,
-            Amount::Weight(50.0),
+            Amount::Weight(OrderedFloat(50.0)),
         ));
 
         let silver_recipe = Recipe {
@@ -60,7 +61,7 @@ impl ItemProducer for Refinery {
         let mut items_required = Vec::new();
         items_required.push(InventoryItem::Material(
             AstroidMaterial::Gold,
-            Amount::Weight(100.0),
+            Amount::Weight(OrderedFloat(100.0)),
         ));
 
         let gold_recipe = Recipe {
@@ -191,10 +192,10 @@ impl RefineryPlugin {
             if timer.just_finished() {
                 if let Some(currently_processing) = refinery.currently_processing.clone() {
                     for required_item in currently_processing.items_required.iter() {
-                        inventory.remove_from_inventory(*required_item);
+                        inventory.remove_from_inventory(required_item);
                     }
 
-                    inventory.add_to_inventory(currently_processing.item_created);
+                    inventory.add_to_inventory(&currently_processing.item_created);
                 }
 
                 refinery.currently_processing = None;
