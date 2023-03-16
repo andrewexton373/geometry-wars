@@ -97,7 +97,6 @@ impl LaserPlugin {
                 ) {
                     let hit_point = intersection.point;
                     let hit_normal = intersection.normal;
-                    // println!("Entity {:?} hit at point {} with normal {}", entity, hit_point, hit_normal);
                     let (mut effect, mut effect_translation) = effect.single_mut();
 
                     effect_translation.translation =

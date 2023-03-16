@@ -403,7 +403,6 @@ impl AstroidPlugin {
 
                         match astroid.size {
                             AstroidSize::OreChunk => {
-                                println!("Hit ore chunk, let's collect it!");
                                 let ore_chunk_mass = mass_properties.0.mass;
                                 for comp in astroid.composition.percent_composition().iter() {
                                     if !inventory.add_to_inventory(&InventoryItem::Material(
@@ -419,17 +418,14 @@ impl AstroidPlugin {
                                 commands.entity(astroid_entity).despawn_recursive();
                             }
                             AstroidSize::Small => {
-                                println!("Hit small Astroid");
                                 player.take_damage(1.0);
                                 astroid_collision = true;
                             }
                             AstroidSize::Medium => {
-                                println!("Hit medium Astroid");
                                 player.take_damage(2.5);
                                 astroid_collision = true;
                             }
                             AstroidSize::Large => {
-                                println!("Hit large Astroid");
                                 player.take_damage(5.0);
                                 astroid_collision = true;
                             }
@@ -482,7 +478,6 @@ impl AstroidPlugin {
 
                     let damaged_health = astroid_to_ablate.health.current() - 1.0;
                     astroid_to_ablate.health.set_current(damaged_health);
-                    println!("CURRENT HEALTH: {}", damaged_health);
 
                     if damaged_health < 0.0 {
                         commands.entity(ent).despawn_recursive();                    }
