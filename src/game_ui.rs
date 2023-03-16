@@ -78,24 +78,26 @@ impl Plugin for GameUIPlugin {
             .add_plugin(EguiPlugin)
             .insert_resource(ContextClues(HashSet::new()))
             .add_system(Self::ui_ship_information)
-            .add_system(Self::ui_ship_inventory)
+            // .add_system(Self::ui_ship_inventory)
             .add_system(Self::ui_station_menu)
             .add_system(Self::ui_context_clue)
-            .add_system(Self::dnd);
+            .add_system(Self::dnd_ship_inventory);
     }
 }
 
 impl GameUIPlugin {
-    fn dnd(
+    fn dnd_ship_inventory(
         mut dnd: Local<DND>,
         mut contexts: EguiContexts,
         mut inventory_query: Query<(&Player, &mut Inventory)>,
     ) {
-        egui::Window::new("DND").show(contexts.ctx_mut(), |ui| {
+        egui::Window::new("DND Ship Inventory").anchor(Align2::LEFT_BOTTOM, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
 
             let (_, mut inventory) = inventory_query.single_mut();
 
-            let mut items = dnd.1.clone();
+            let inventory_capacity_percent = (1.0 - inventory.remaining_capacity().0 / inventory.capacity.maximum.0) * 100.0;
+            ui.label(format!("Capacity: {:.2}%", inventory_capacity_percent));
+            ui.label(Self::progress_string(inventory_capacity_percent / 100.0));
 
             let response =
                 // make sure this is called in a vertical layout.

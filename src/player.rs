@@ -24,10 +24,6 @@ pub struct EmptyInventoryDepositTimer(Option<Timer>);
 
 #[derive(Component, Default)]
 pub struct Player {
-    // TODO: refactor into velocity Vec2
-    pub delta_x: f32,
-    pub delta_y: f32,
-    pub delta_rotation: f32,
     pub health: Health,
     pub battery: Battery,
 }
@@ -35,9 +31,6 @@ pub struct Player {
 impl Player {
     fn new() -> Player {
         Player {
-            delta_x: 0.0,
-            delta_y: 0.0,
-            delta_rotation: 0.0,
             health: Health::new(),
             battery: Battery::new(), // upgrades: UpgradesComponent::new()
         }
@@ -80,13 +73,12 @@ impl Plugin for PlayerPlugin {
             .add_system(Self::player_camera_control)
             .add_system(Self::player_deposit_control)
             .add_system(Self::gravitate_collectibles)
-            .add_system(Self::keep_player_on_top)
+            // .add_system(Self::keep_player_on_top)
             .add_system(Self::trickle_charge)
             .add_system(Self::ship_battery_is_empty_context_clue)
             .add_system(Self::display_empty_ship_inventory_context_clue)
             .add_system(Self::on_upgrade_event)
             .insert_resource(EmptyInventoryDepositTimer(None));
-            // .register_inspectable::<Player>();
     }
 }
 
