@@ -327,7 +327,6 @@ impl AstroidPlugin {
                     angvel: 0.0,
                 },
                 Sleeping::disabled(),
-                Ccd::enabled(),
                 Collider::convex_hull(&astroid_shape.points).unwrap(),
                 ActiveEvents::COLLISION_EVENTS,
                 ReadMassProperties(MassProperties::default()),

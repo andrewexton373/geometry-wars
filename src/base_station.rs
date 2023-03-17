@@ -63,7 +63,6 @@ impl BaseStationPlugin {
                 Sleeping::disabled(),
                 Collider::ball(crate::PIXELS_PER_METER * BASE_STATION_SIZE),
                 Sensor,
-                // Transform::default(),
                 ActiveEvents::COLLISION_EVENTS,
                 BaseStation,
                 Name::new("Base Station"),
