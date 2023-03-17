@@ -388,10 +388,14 @@ impl GameUIPlugin {
                     ) {
                         let hit_point = intersection.point;
                         let hit_normal = intersection.normal;
-                        ui.label(format!("World coords: {}/{}", world_position.x, world_position.y));
+                        ui.group(|ui| {
+                            ui.label(format!("X:{:.4} Y:{:.4}", world_position.x, world_position.y));
+                        });
 
                         if let Ok((entity, name)) = ent_query.get(entity) {
-                            ui.label(format!("{}", entity, name));
+                            ui.group(|ui| {
+                                ui.label(format!("{}", name));
+                            });
                         };
 
                     }
