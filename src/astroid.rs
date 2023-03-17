@@ -4,12 +4,14 @@ use crate::health::Health;
 use crate::inventory::{Amount, Inventory, InventoryItem};
 use crate::particles::ShipAstroidImpactParticles;
 use crate::{Player, PIXELS_PER_METER};
+use bevy::ecs::storage::Column;
 use bevy::prelude::*;
 use bevy::reflect::FromReflect;
 use bevy::utils::HashMap;
 use bevy_hanabi::ParticleEffect;
 use bevy_prototype_lyon::prelude::{self as lyon, GeometryBuilder, Fill, ShapeBundle, FillOptions};
 use bevy_rapier2d::prelude::*;
+use bevy_tweening::{lens::*, *};
 use ordered_float::OrderedFloat;
 use rand::seq::SliceRandom;
 use rand::Rng;
@@ -185,18 +187,21 @@ pub struct AblateEvent(pub Entity, pub Vec2, pub Vec2);
 
 impl Plugin for AstroidPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(AstroidSpawner {
-            timer: Timer::from_seconds(0.25, TimerMode::Once),
-        })
-        .insert_resource(InventoryFullNotificationTimer(None))
-        .add_event::<AblateEvent>()
-        .add_system(Self::spawn_astroids_aimed_at_ship)
-        .add_system(Self::despawn_far_astroids)
-        .add_system(Self::handle_astroid_collision_event)
-        .add_system(Self::ablate_astroids)
-        .add_system(Self::display_inventory_full_context_clue)
-        .add_system(Self::update_collectible_material_color);
-        // .register_inspectable::<Astroid>();
+        app
+            .add_plugin(TweeningPlugin)
+            .insert_resource(AstroidSpawner {
+                timer: Timer::from_seconds(0.25, TimerMode::Once),
+            })
+            .insert_resource(InventoryFullNotificationTimer(None))
+            .add_event::<AblateEvent>()
+            .add_system(Self::spawn_astroids_aimed_at_ship)
+            .add_system(Self::despawn_far_astroids)
+            .add_system(Self::handle_astroid_collision_event)
+            .add_system(Self::ablate_astroids)
+            .add_system(Self::remove_post_animation_text)
+            .add_system(Self::display_inventory_full_context_clue)
+            .add_system(Self::update_collectible_material_color);
+            // .register_inspectable::<Astroid>();
     }
 }
 
@@ -461,12 +466,26 @@ impl AstroidPlugin {
         }
     }
 
+    pub fn remove_post_animation_text(
+        mut commands: Commands,
+        mut tween_completed: EventReader<TweenCompleted>
+    ) {
+        for evt in tween_completed.iter() {
+            if evt.user_data == 111 {
+                commands
+                    .entity(evt.entity).despawn_recursive();
+            }
+        }
+    }
+
     pub fn ablate_astroids(
         mut commands: Commands,
-        mut astroids_query: Query<(Entity, &mut Astroid), With<Astroid>>,
+        asset_server: Res<AssetServer>,
+        mut astroids_query: Query<(Entity, &mut Astroid, &GlobalTransform), With<Astroid>>,
         mut ablate_event_reader: EventReader<AblateEvent>,
-        // mut spawn_astroid_writer: EventWriter<SpawnAstroid>
     ) {
+
+        let font = asset_server.load("fonts/FiraMono-Regular.ttf");
 
         for ablate_event in ablate_event_reader.iter() {
 
@@ -474,7 +493,7 @@ impl AstroidPlugin {
             // let split_angle = rng.gen_range(0.0..PI / 4.0); TODO: Might keep splititng astroids
 
             match astroids_query.get_mut(ablate_event.0) {
-                Ok((ent, mut astroid_to_ablate)) => {
+                Ok((ent, mut astroid_to_ablate, g_trans)) => {
 
                     let damaged_health = astroid_to_ablate.health.current() - 1.0;
                     astroid_to_ablate.health.set_current(damaged_health);
@@ -486,6 +505,38 @@ impl AstroidPlugin {
                     if n > 10 {
                         return;
                     }
+
+                    let tween = Tween::new(
+                        EaseFunction::ExponentialInOut,
+                        std::time::Duration::from_millis(3000),
+                        TextColorLens {
+                            start: Color::Rgba { red: 255.0, green: 0.0, blue: 0.0, alpha: 1.0 },
+                            end: Color::Rgba { red: 255.0, green: 0.0, blue: 0.0, alpha: 0.0 },
+                            section: 0,
+                        },
+                    )
+                    .with_repeat_count(RepeatCount::Finite(1))
+                    .with_completed_event(111);
+            
+                    commands.spawn((
+                        Text2dBundle {
+                            text: Text::from_section(
+                                "-1HP",
+                                TextStyle {
+                                    font: font.clone(),
+                                    font_size: 24.0,
+                                    color: Color::RED,
+                                },
+                            ),
+                            transform: Transform {
+                                translation: (ablate_event.1 + ablate_event.2.normalize() * 100.0).extend(999.0),
+                                ..default()
+                            },
+                            ..default()
+                        },
+                        Animator::new(tween),
+                    ));
+
 
                     let astroid_shape = lyon::shapes::Polygon {
                         points: Self::make_valtr_convex_polygon_coords(
