@@ -523,7 +523,7 @@ impl AstroidPlugin {
                                 "-1HP",
                                 TextStyle {
                                     font: font.clone(),
-                                    font_size: 24.0,
+                                    font_size: 32.0,
                                     color: Color::RED,
                                 },
                             ),
