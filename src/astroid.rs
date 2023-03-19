@@ -38,7 +38,7 @@ impl Astroid {
         self.composition.most_abundant()
     }
 }
-#[derive(Component, Clone, Debug)]
+#[derive(Component, Clone)]
 pub struct Composition {
     composition: HashMap<AstroidMaterial, f32>,
 }
@@ -100,6 +100,18 @@ impl Composition {
                 .map(|(k, v)| (k, (v + normal.sample(&mut rng)).clamp(0.0, f32::MAX)))
                 .collect(),
         }
+    }
+    
+}
+
+impl fmt::Debug for Composition {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        
+        for element in &self.composition {
+            writeln!(f, "{:?}: {}", element.0, element.1);
+        }
+        write!(f, "")
+
     }
 }
 

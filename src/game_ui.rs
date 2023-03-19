@@ -10,7 +10,7 @@ use crate::{
     inventory::{Inventory, InventoryItem},
     player::{Player},
     refinery::{Refinery, SmeltEvent}, upgrades::{UpgradeType, UpgradesComponent, UpgradeEvent},
-    GameCamera
+    GameCamera, health::Health, astroid::Astroid
 };
 
 #[derive(Default, Debug, Clone, PartialEq)]
@@ -353,11 +353,12 @@ impl GameUIPlugin {
     }
 
     pub fn ui_mouse_hover_context(
+        commands: Commands,
         mut contexts: EguiContexts,
         window_query: Query<&Window>,
         camera_q: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
         rapier_context: Res<RapierContext>,
-        ent_query: Query<(Entity, &Name)>
+        ent_query: Query<(Entity, &Name, Option<&Astroid>)>
     ) {
 
         let window = window_query.single();
@@ -386,13 +387,27 @@ impl GameUIPlugin {
                         let hit_point = intersection.point;
                         let hit_normal = intersection.normal;
                         ui.group(|ui| {
-                            ui.label(format!("X:{:.4} Y:{:.4}", world_position.x, world_position.y));
+                            ui.label(format!("X:{:.2} Y:{:.2}", world_position.x, world_position.y));
                         });
 
-                        if let Ok((entity, name)) = ent_query.get(entity) {
+                        if let Ok((entity, name, astroid)) = ent_query.get(entity) {
+
                             ui.group(|ui| {
                                 ui.label(format!("{}", name));
+
+                                if let Some(astroid) = astroid {
+                                        ui.label(format!("Health: {:.2}%", astroid.health.current()));
+                                        let health_percent = astroid.health.current() / 100.0;
+                                        ui.label(Self::progress_string(health_percent));
+
+                                        ui.label("Composition:");
+                                        ui.label(format!("{:?}", astroid.composition));
+                                }
+
                             });
+
+
+
                         };
 
                     }
