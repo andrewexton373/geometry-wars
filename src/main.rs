@@ -37,7 +37,6 @@ mod astroid;
 mod projectile;
 mod laser;
 mod crosshair;
-mod player_stats_bar;
 mod base_station;
 mod inventory;
 mod player_input;
