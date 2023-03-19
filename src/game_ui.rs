@@ -399,11 +399,12 @@ impl GameUIPlugin {
                                 ui.label(format!("{}", name));
 
                                 if let Some(astroid) = astroid {
-                                    ui.group(|ui| {
                                         ui.label(format!("Health: {:.2}%", astroid.health.current()));
                                         let health_percent = astroid.health.current() / 100.0;
                                         ui.label(Self::progress_string(health_percent));
-                                    });
+
+                                        ui.label("Composition:");
+                                        ui.label(format!("{:?}", astroid.composition));
                                 }
 
                             });
