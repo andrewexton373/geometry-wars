@@ -10,6 +10,7 @@ use bevy::reflect::FromReflect;
 use bevy::utils::HashMap;
 use bevy_hanabi::ParticleEffect;
 use bevy_prototype_lyon::prelude::{self as lyon, GeometryBuilder, Fill, ShapeBundle, FillOptions};
+use bevy_prototype_lyon::shapes::Polygon;
 use bevy_rapier2d::prelude::*;
 use bevy_tweening::{lens::*, *};
 use ordered_float::OrderedFloat;
@@ -27,15 +28,186 @@ pub struct AstroidPlugin;
 
 #[derive(Component, Clone, Debug)]
 pub struct Astroid {
-    pub velocity: Vec2,
     pub size: AstroidSize,
     pub health: Health,
     pub composition: Composition,
+    polygon: Polygon
 }
 
 impl Astroid {
+    pub fn new_with(size: AstroidSize, comp: Composition) -> Self {
+
+        let astroid_polygon = Self::generate_shape_from_size(size);
+
+        // Compute Health from Generated Shape Mass?
+
+        Self {
+            size: size,
+            health: Health {
+                current: 100.0,
+                maximum: 100.0,
+                upgrade_level: crate::upgrades::UpgradeLevel::Level0,
+            },
+            composition: comp,
+            polygon: astroid_polygon
+        }
+    }
+
     pub fn primary_composition(&self) -> AstroidMaterial {
         self.composition.most_abundant()
+    }
+
+    pub fn polygon(&self) -> &Polygon {
+        &self.polygon
+    }
+
+    fn generate_shape_from_size(size: AstroidSize) -> Polygon {
+        match size {
+            AstroidSize::OreChunk => lyon::shapes::Polygon {
+                points: Self::make_valtr_convex_polygon_coords(
+                    AstroidSize::OreChunk.num_sides(),
+                    AstroidSize::OreChunk.radius(),
+                ),
+                closed: true,
+            },
+            AstroidSize::Small => lyon::shapes::Polygon {
+                points: Self::make_valtr_convex_polygon_coords(
+                    AstroidSize::Small.num_sides(),
+                    AstroidSize::Small.radius(),
+                ),
+                closed: true,
+            },
+            AstroidSize::Medium => lyon::shapes::Polygon {
+                points: Self::make_valtr_convex_polygon_coords(
+                    AstroidSize::Medium.num_sides(),
+                    AstroidSize::Medium.radius(),
+                ),
+                closed: true,
+            },
+            AstroidSize::Large => lyon::shapes::Polygon {
+                points: Self::make_valtr_convex_polygon_coords(
+                    AstroidSize::Large.num_sides(),
+                    AstroidSize::Large.radius(),
+                ),
+                closed: true,
+            },
+        }
+    }
+
+    // TODO: comment this well...
+    fn make_valtr_convex_polygon_coords(num_sides: usize, radius: f32) -> Vec<Vec2> {
+        let mut xs: Vec<f32> = vec![];
+        let mut ys: Vec<f32> = vec![];
+
+        for _ in 0..num_sides {
+            xs.push(2.0 * radius * rand::random::<f32>());
+            ys.push(2.0 * radius * rand::random::<f32>());
+        }
+
+        // might be different than guide...
+        xs.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        xs.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+        let min_xs = xs[0];
+        let max_xs = xs[xs.len() - 1];
+        let min_ys = ys[0];
+        let max_ys = ys[ys.len() - 1];
+
+        let vec_xs = make_vector_chain(xs, min_xs, max_xs);
+        let mut vec_ys = make_vector_chain(ys, min_ys, max_ys);
+
+        vec_ys.shuffle(&mut rand::thread_rng());
+
+        let mut vecs: Vec<(f32, f32)> = vec_xs.into_iter().zip(vec_ys).collect();
+
+        vecs.sort_by(|a, b| {
+            let a_ang = a.1.atan2(a.0);
+            let b_ang = b.1.atan2(b.0);
+
+            if a_ang - b_ang < 0.0 {
+                Ordering::Less
+            } else if a_ang - b_ang == 0.0 {
+                Ordering::Equal
+            } else {
+                Ordering::Greater
+            }
+        });
+
+        let mut vec_angs2: Vec<f32> = vec![];
+
+        for vec in &vecs {
+            let a = vec.1.atan2(vec.0);
+            vec_angs2.push(a);
+        }
+
+        let mut poly_coords = vec![];
+        let mut x = 0.0;
+        let mut y = 0.0;
+        for vec in &vecs {
+            x += vec.0 * 1.0;
+            y += vec.1 * 1.0;
+            poly_coords.push(Vec2 { x, y })
+        }
+
+        fn make_vector_chain(values_array: Vec<f32>, min_value: f32, max_value: f32) -> Vec<f32> {
+            let mut vector_chain: Vec<f32> = vec![];
+
+            let mut last_min = min_value;
+            let mut last_max = max_value;
+
+            for value in values_array {
+                if rand::random::<f32>() > 0.5 {
+                    vector_chain.push(value - last_min);
+                    last_min = value;
+                } else {
+                    vector_chain.push(last_max - value);
+                    last_max = value;
+                }
+            }
+
+            vector_chain.push(max_value - last_min);
+            vector_chain.push(last_max - max_value);
+
+            vector_chain
+        }
+
+        fn get_centroid(verticies: &Vec<Vec2>) -> Vec2 {
+            let mut centroid: Vec2 = Vec2 { x: 0.0, y: 0.0 };
+            let n = verticies.len();
+            let mut signed_area = 0.0;
+
+            for i in 0..n {
+                let x0 = verticies[i].x;
+                let y0 = verticies[i].y;
+                let x1 = verticies[(i + 1) % n].x;
+                let y1 = verticies[(i + 1) % n].y;
+
+                let area = (x0 * y1) - (x1 * y0);
+                signed_area += area;
+
+                centroid.x += (x0 + x1) * area;
+                centroid.y += (y0 + y1) * area;
+            }
+
+            signed_area *= 0.5;
+
+            // what... why 6.0?
+            centroid.x /= 6.0 * signed_area;
+            centroid.y /= 6.0 * signed_area;
+
+            centroid
+        }
+
+        let centroid = get_centroid(&poly_coords);
+        poly_coords = poly_coords
+            .iter()
+            .map(|e| Vec2 {
+                x: e.x - centroid.x,
+                y: e.y - centroid.y,
+            })
+            .collect();
+
+        poly_coords
     }
 }
 #[derive(Component, Clone)]
@@ -218,6 +390,9 @@ impl Plugin for AstroidPlugin {
 }
 
 impl AstroidPlugin {
+
+    // System to spawn astroids at some distance away from the ship in random directions,
+    // each astroid with an initial velocity aimed towards the players ship
     fn spawn_astroids_aimed_at_ship(
         mut commands: Commands,
         player_query: Query<(&Player, &GlobalTransform)>,
@@ -225,6 +400,8 @@ impl AstroidPlugin {
         mut astroid_spawner: ResMut<AstroidSpawner>,
         time: Res<Time>,
     ) {
+        const SPAWN_DISTANCE: f32 = 350.0;
+
         astroid_spawner.timer.tick(time.delta());
 
         if astroid_spawner.timer.finished() {
@@ -243,7 +420,6 @@ impl AstroidPlugin {
             let rand_y: f32 = rng.gen_range(-PI..PI);
             let rand_direction = Vec2::new(rand_x.cos(), rand_y.sin()).normalize();
 
-            const SPAWN_DISTANCE: f32 = 350.0;
             let random_spawn_position =
                 player_position + (rand_direction * SPAWN_DISTANCE * crate::PIXELS_PER_METER);
             let direction_to_player = (player_position - random_spawn_position).normalize() * 20.0; // maybe?
@@ -282,64 +458,24 @@ impl AstroidPlugin {
         velocity: Vec2,
         position: Vec2,
     ) {
-        let astroid_shape = match size {
-            AstroidSize::OreChunk => lyon::shapes::Polygon {
-                points: Self::make_valtr_convex_polygon_coords(
-                    AstroidSize::OreChunk.num_sides(),
-                    AstroidSize::OreChunk.radius(),
-                ),
-                closed: true,
-            },
-            AstroidSize::Small => lyon::shapes::Polygon {
-                points: Self::make_valtr_convex_polygon_coords(
-                    AstroidSize::Small.num_sides(),
-                    AstroidSize::Small.radius(),
-                ),
-                closed: true,
-            },
-            AstroidSize::Medium => lyon::shapes::Polygon {
-                points: Self::make_valtr_convex_polygon_coords(
-                    AstroidSize::Medium.num_sides(),
-                    AstroidSize::Medium.radius(),
-                ),
-                closed: true,
-            },
-            AstroidSize::Large => lyon::shapes::Polygon {
-                points: Self::make_valtr_convex_polygon_coords(
-                    AstroidSize::Large.num_sides(),
-                    AstroidSize::Large.radius(),
-                ),
-                closed: true,
-            },
-        };
-
-        let astroid = Astroid {
-            velocity,
-            size,
-            health: Health {
-                current: 100.0,
-                maximum: 100.0,
-                upgrade_level: crate::upgrades::UpgradeLevel::Level0,
-            },
-            composition: composition,
-        };
+        let mut astroid = Astroid::new_with(size, composition);
 
         let astroid_ent = commands
             .spawn((
                 astroid.clone(),
                 ShapeBundle {
-                    path: GeometryBuilder::build_as(&astroid_shape),
+                    path: GeometryBuilder::build_as(&astroid.polygon),
                     transform: Transform::from_xyz(position.x, position.y, 0.0),
                     ..default()
                 },
                 Fill::color(Color::DARK_GRAY),
                 RigidBody::Dynamic,
                 Velocity {
-                    linvel: astroid.velocity,
+                    linvel: velocity,
                     angvel: 0.0,
                 },
                 Sleeping::disabled(),
-                Collider::convex_hull(&astroid_shape.points).unwrap(),
+                Collider::convex_hull(&astroid.polygon.points).unwrap(),
                 ActiveEvents::COLLISION_EVENTS,
                 ReadMassProperties(MassProperties::default()),
                 Restitution::coefficient(0.01),
@@ -548,32 +684,14 @@ impl AstroidPlugin {
                         Animator::new(tween),
                     ));
 
+                    // TODO: The new comp distance shouldn't be constant it should update based on player distance from base
+                    let astroid = Astroid::new_with(AstroidSize::OreChunk, Composition::new_with_distance(100.0));
 
-                    let astroid_shape = lyon::shapes::Polygon {
-                        points: Self::make_valtr_convex_polygon_coords(
-                            AstroidSize::OreChunk.num_sides(),
-                            AstroidSize::OreChunk.radius(),
-                        ),
-                        closed: true,
-                    };
-            
-                
-                    let astroid = Astroid {
-                        velocity: ablate_event.2,
-                        size: AstroidSize::OreChunk,
-                        health: Health {
-                            current: 100.0,
-                            maximum: 100.0,
-                            upgrade_level: crate::upgrades::UpgradeLevel::Level0,
-                        },
-                        composition: Composition::new_with_distance(100.0),
-                    };
-            
                     let astroid_ent = commands
                         .spawn((
                             astroid.clone(),
                             ShapeBundle {
-                                path: GeometryBuilder::build_as(&astroid_shape),
+                                path: GeometryBuilder::build_as(&astroid.polygon),
                                 transform: Transform::from_xyz(ablate_event.1.x, ablate_event.1.y, 0.0),
                                 ..default()
                             },
@@ -585,7 +703,7 @@ impl AstroidPlugin {
                             },
                             Sleeping::disabled(),
                             Ccd::enabled(),
-                            Collider::convex_hull(&astroid_shape.points).unwrap(),
+                            Collider::convex_hull(&astroid.polygon.points).unwrap(),
                             ActiveEvents::COLLISION_EVENTS,
                             ReadMassProperties(MassProperties::default()),
                             Restitution::coefficient(0.01),
@@ -686,119 +804,4 @@ impl AstroidPlugin {
         }
     }
 
-    // TODO: comment this well...
-    fn make_valtr_convex_polygon_coords(num_sides: usize, radius: f32) -> Vec<Vec2> {
-        let mut xs: Vec<f32> = vec![];
-        let mut ys: Vec<f32> = vec![];
-
-        for _ in 0..num_sides {
-            xs.push(2.0 * radius * rand::random::<f32>());
-            ys.push(2.0 * radius * rand::random::<f32>());
-        }
-
-        // might be different than guide...
-        xs.sort_by(|a, b| a.partial_cmp(b).unwrap());
-        xs.sort_by(|a, b| a.partial_cmp(b).unwrap());
-
-        let min_xs = xs[0];
-        let max_xs = xs[xs.len() - 1];
-        let min_ys = ys[0];
-        let max_ys = ys[ys.len() - 1];
-
-        let vec_xs = make_vector_chain(xs, min_xs, max_xs);
-        let mut vec_ys = make_vector_chain(ys, min_ys, max_ys);
-
-        vec_ys.shuffle(&mut rand::thread_rng());
-
-        let mut vecs: Vec<(f32, f32)> = vec_xs.into_iter().zip(vec_ys).collect();
-
-        vecs.sort_by(|a, b| {
-            let a_ang = a.1.atan2(a.0);
-            let b_ang = b.1.atan2(b.0);
-
-            if a_ang - b_ang < 0.0 {
-                Ordering::Less
-            } else if a_ang - b_ang == 0.0 {
-                Ordering::Equal
-            } else {
-                Ordering::Greater
-            }
-        });
-
-        let mut vec_angs2: Vec<f32> = vec![];
-
-        for vec in &vecs {
-            let a = vec.1.atan2(vec.0);
-            vec_angs2.push(a);
-        }
-
-        let mut poly_coords = vec![];
-        let mut x = 0.0;
-        let mut y = 0.0;
-        for vec in &vecs {
-            x += vec.0 * 1.0;
-            y += vec.1 * 1.0;
-            poly_coords.push(Vec2 { x, y })
-        }
-
-        fn make_vector_chain(values_array: Vec<f32>, min_value: f32, max_value: f32) -> Vec<f32> {
-            let mut vector_chain: Vec<f32> = vec![];
-
-            let mut last_min = min_value;
-            let mut last_max = max_value;
-
-            for value in values_array {
-                if rand::random::<f32>() > 0.5 {
-                    vector_chain.push(value - last_min);
-                    last_min = value;
-                } else {
-                    vector_chain.push(last_max - value);
-                    last_max = value;
-                }
-            }
-
-            vector_chain.push(max_value - last_min);
-            vector_chain.push(last_max - max_value);
-
-            vector_chain
-        }
-
-        fn get_centroid(verticies: &Vec<Vec2>) -> Vec2 {
-            let mut centroid: Vec2 = Vec2 { x: 0.0, y: 0.0 };
-            let n = verticies.len();
-            let mut signed_area = 0.0;
-
-            for i in 0..n {
-                let x0 = verticies[i].x;
-                let y0 = verticies[i].y;
-                let x1 = verticies[(i + 1) % n].x;
-                let y1 = verticies[(i + 1) % n].y;
-
-                let area = (x0 * y1) - (x1 * y0);
-                signed_area += area;
-
-                centroid.x += (x0 + x1) * area;
-                centroid.y += (y0 + y1) * area;
-            }
-
-            signed_area *= 0.5;
-
-            // what... why 6.0?
-            centroid.x /= 6.0 * signed_area;
-            centroid.y /= 6.0 * signed_area;
-
-            centroid
-        }
-
-        let centroid = get_centroid(&poly_coords);
-        poly_coords = poly_coords
-            .iter()
-            .map(|e| Vec2 {
-                x: e.x - centroid.x,
-                y: e.y - centroid.y,
-            })
-            .collect();
-
-        poly_coords
-    }
 }
