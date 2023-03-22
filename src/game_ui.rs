@@ -1,7 +1,7 @@
 use bevy_egui::{egui::{self, Align2, Vec2}, EguiContexts, EguiPlugin};
 
 use bevy_rapier2d::prelude::{Velocity, RapierContext, QueryFilter};
-use bevy::{prelude::{*}, utils::HashSet, render::view::window, input::mouse};
+use bevy::{prelude::{*}, utils::HashSet};
 use egui_dnd::{DragDropUi, utils::shift_vec};
 
 use crate::{
@@ -10,7 +10,7 @@ use crate::{
     inventory::{Inventory, InventoryItem},
     player::{Player},
     refinery::{Refinery, SmeltEvent}, upgrades::{UpgradeType, UpgradesComponent, UpgradeEvent},
-    GameCamera, health::Health, astroid::Astroid
+    GameCamera, astroid::Astroid
 };
 
 #[derive(Default, Debug, Clone, PartialEq)]
@@ -353,7 +353,6 @@ impl GameUIPlugin {
     }
 
     pub fn ui_mouse_hover_context(
-        commands: Commands,
         mut contexts: EguiContexts,
         window_query: Query<&Window>,
         camera_q: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
@@ -384,13 +383,13 @@ impl GameUIPlugin {
                     if let Some((entity, intersection)) = rapier_context.cast_ray_and_get_normal (
                         ray_pos, ray_dir, max_toi, solid, filter
                     ) {
-                        let hit_point = intersection.point;
-                        let hit_normal = intersection.normal;
+                        let _hit_point = intersection.point;
+                        let _hit_normal = intersection.normal;
                         ui.group(|ui| {
                             ui.label(format!("X:{:.2} Y:{:.2}", world_position.x, world_position.y));
                         });
 
-                        if let Ok((entity, name, astroid)) = ent_query.get(entity) {
+                        if let Ok((_ent, name, astroid)) = ent_query.get(entity) {
 
                             ui.group(|ui| {
                                 ui.label(format!("{}", name));

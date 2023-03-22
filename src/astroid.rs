@@ -4,7 +4,6 @@ use crate::health::Health;
 use crate::inventory::{Amount, Inventory, InventoryItem};
 use crate::particles::ShipAstroidImpactParticles;
 use crate::{Player, PIXELS_PER_METER};
-use bevy::ecs::storage::Column;
 use bevy::prelude::*;
 use bevy::reflect::FromReflect;
 use bevy::utils::HashMap;
@@ -458,7 +457,7 @@ impl AstroidPlugin {
         velocity: Vec2,
         position: Vec2,
     ) {
-        let mut astroid = Astroid::new_with(size, composition);
+        let astroid = Astroid::new_with(size, composition);
 
         let astroid_ent = commands
             .spawn((
@@ -639,87 +638,82 @@ impl AstroidPlugin {
             let mut rng = rand::thread_rng();
             // let split_angle = rng.gen_range(0.0..PI / 4.0); TODO: Might keep splititng astroids
 
-            match astroids_query.get_mut(ablate_event.0) {
-                Ok((ent, mut astroid_to_ablate, g_trans)) => {
+            if let Ok((ent, mut astroid_to_ablate, _g_trans)) = astroids_query.get_mut(ablate_event.0) {
 
-                    let damaged_health = astroid_to_ablate.health.current() - 1.0;
-                    astroid_to_ablate.health.set_current(damaged_health);
+            let damaged_health = astroid_to_ablate.health.current() - 1.0;
+            astroid_to_ablate.health.set_current(damaged_health);
 
-                    if damaged_health < 0.0 {
-                        commands.entity(ent).despawn_recursive();                    }
+            if damaged_health < 0.0 {
+                commands.entity(ent).despawn_recursive();                    }
 
-                    let n: u8 = rng.gen();
-                    if n > 10 {
-                        return;
-                    }
-
-                    let tween = Tween::new(
-                        EaseFunction::ExponentialInOut,
-                        std::time::Duration::from_millis(3000),
-                        TextColorLens {
-                            start: Color::Rgba { red: 255.0, green: 0.0, blue: 0.0, alpha: 1.0 },
-                            end: Color::Rgba { red: 255.0, green: 0.0, blue: 0.0, alpha: 0.0 },
-                            section: 0,
-                        },
-                    )
-                    .with_repeat_count(RepeatCount::Finite(1))
-                    .with_completed_event(111);
-            
-                    commands.spawn((
-                        Text2dBundle {
-                            text: Text::from_section(
-                                "-1HP",
-                                TextStyle {
-                                    font: font.clone(),
-                                    font_size: 32.0,
-                                    color: Color::RED,
-                                },
-                            ),
-                            transform: Transform {
-                                translation: (ablate_event.1 + ablate_event.2.normalize() * 100.0).extend(999.0),
-                                ..default()
-                            },
-                            ..default()
-                        },
-                        Animator::new(tween),
-                    ));
-
-                    // TODO: The new comp distance shouldn't be constant it should update based on player distance from base
-                    let astroid = Astroid::new_with(AstroidSize::OreChunk, Composition::new_with_distance(100.0));
-
-                    let astroid_ent = commands
-                        .spawn((
-                            astroid.clone(),
-                            ShapeBundle {
-                                path: GeometryBuilder::build_as(&astroid.polygon),
-                                transform: Transform::from_xyz(ablate_event.1.x, ablate_event.1.y, 0.0),
-                                ..default()
-                            },
-                            Fill::color(Color::DARK_GRAY),
-                            RigidBody::Dynamic,
-                            Velocity {
-                                linvel: ablate_event.2,
-                                angvel: 0.0,
-                            },
-                            Sleeping::disabled(),
-                            Ccd::enabled(),
-                            Collider::convex_hull(&astroid.polygon.points).unwrap(),
-                            ActiveEvents::COLLISION_EVENTS,
-                            ReadMassProperties(MassProperties::default()),
-                            Restitution::coefficient(0.01),
-                            Name::new("Astroid"),
-                        )).id();
-            
-                    // If the astroid is an ore chunk, add Collectible Tag
-                    if astroid.clone().size == AstroidSize::OreChunk {
-                        commands.entity(astroid_ent).insert(Collectible);
-                    }
-
-                },
-                _ => {
-
-                }
+            let n: u8 = rng.gen();
+            if n > 10 {
+                return;
             }
+
+            let tween = Tween::new(
+                EaseFunction::ExponentialInOut,
+                std::time::Duration::from_millis(3000),
+                TextColorLens {
+                    start: Color::Rgba { red: 255.0, green: 0.0, blue: 0.0, alpha: 1.0 },
+                    end: Color::Rgba { red: 255.0, green: 0.0, blue: 0.0, alpha: 0.0 },
+                    section: 0,
+                },
+            )
+            .with_repeat_count(RepeatCount::Finite(1))
+            .with_completed_event(111);
+
+            commands.spawn((
+                Text2dBundle {
+                    text: Text::from_section(
+                        "-1HP",
+                        TextStyle {
+                            font: font.clone(),
+                            font_size: 32.0,
+                            color: Color::RED,
+                        },
+                    ),
+                    transform: Transform {
+                        translation: (ablate_event.1 + ablate_event.2.normalize() * 100.0).extend(999.0),
+                        ..default()
+                    },
+                    ..default()
+                },
+                Animator::new(tween),
+            ));
+
+            // TODO: The new comp distance shouldn't be constant it should update based on player distance from base
+            let astroid = Astroid::new_with(AstroidSize::OreChunk, Composition::new_with_distance(100.0));
+
+            let astroid_ent = commands
+                .spawn((
+                    astroid.clone(),
+                    ShapeBundle {
+                        path: GeometryBuilder::build_as(&astroid.polygon),
+                        transform: Transform::from_xyz(ablate_event.1.x, ablate_event.1.y, 0.0),
+                        ..default()
+                    },
+                    Fill::color(Color::DARK_GRAY),
+                    RigidBody::Dynamic,
+                    Velocity {
+                        linvel: ablate_event.2,
+                        angvel: 0.0,
+                    },
+                    Sleeping::disabled(),
+                    Ccd::enabled(),
+                    Collider::convex_hull(&astroid.polygon.points).unwrap(),
+                    ActiveEvents::COLLISION_EVENTS,
+                    ReadMassProperties(MassProperties::default()),
+                    Restitution::coefficient(0.01),
+                    Name::new("Astroid"),
+                )).id();
+
+            // If the astroid is an ore chunk, add Collectible Tag
+            if astroid.clone().size == AstroidSize::OreChunk {
+                commands.entity(astroid_ent).insert(Collectible);
+            }
+
+        }
 
 
         }
