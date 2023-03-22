@@ -6,11 +6,7 @@ use rand::seq::SliceRandom;
 use std::cmp::Ordering;
 use crate::astroid_composition::AstroidComposition;
 use crate::astroid_material::AstroidMaterial;
-use crate::astroid_size::AstroidSize;
-
-// TODO: Move this somewhere else... maybe an events module?
-#[derive(Resource)]
-pub struct InventoryFullNotificationTimer(pub Option<Timer>);
+use crate::astroid_size::AstroidSize; // Contains the ratio the asteroid will split at
 
 #[derive(Component, Clone, Debug)]
 pub struct Astroid {

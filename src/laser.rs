@@ -1,6 +1,6 @@
 use crate::{
     astroid::Astroid,
-    particles::ProjectileImpactParticles, player::Player, projectile::Projectile,
+    particles::ProjectileImpactParticles, player::Player
 };
 use bevy::prelude::*;
 use bevy_hanabi::ParticleEffect;
@@ -62,7 +62,6 @@ impl LaserPlugin {
         (
             With<ProjectileImpactParticles>,
             Without<Astroid>,
-            Without<Projectile>,
             Without<Player>,
             Without<Laser>
         ),

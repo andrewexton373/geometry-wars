@@ -17,7 +17,8 @@ use bevy::asset::AssetServer;
 use bevy_tweening::lens::TextColorLens;
 use rand::Rng;
 use bevy::hierarchy::DespawnRecursiveExt;
-use crate::astroid::{Astroid, InventoryFullNotificationTimer};
+use bevy_rapier2d::na::Translation;
+use crate::astroid::Astroid;
 use crate::astroid_composition::AstroidComposition;
 use crate::astroid_material::AstroidMaterial;
 use crate::astroid_size::{AstroidSize, Collectible};
@@ -31,10 +32,19 @@ use crate::player::Player;
 
 pub struct AstroidPlugin;
 
+#[derive(Resource)]
+pub struct InventoryFullNotificationTimer(pub Option<Timer>);
+
+#[derive(Component)]
+pub struct Splittable(f32);
+
 #[derive(Component, Resource)]
 pub struct AstroidSpawner {
     timer: Timer,
 }
+
+const LASER_DAMAGE: f32 = 250.0;
+
 
 impl Plugin for AstroidPlugin {
     fn build(&self, app: &mut App) {
@@ -49,6 +59,7 @@ impl Plugin for AstroidPlugin {
             .add_system(Self::despawn_far_astroids)
             .add_system(Self::handle_astroid_collision_event)
             .add_system(Self::ablate_astroids)
+            .add_system(Self::split_astroids_over_split_ratio)
             .add_system(Self::remove_post_animation_text)
             .add_system(Self::display_inventory_full_context_clue)
             .add_system(Self::update_collectible_material_color);
@@ -127,6 +138,10 @@ impl AstroidPlugin {
     ) {
         let astroid = Astroid::new_with(size, composition);
 
+        let mut rng = rand::thread_rng();
+
+        let splittable = Splittable(rng.gen_range(0.4..0.8));
+
         let astroid_ent = commands
             .spawn((
                 astroid.clone(),
@@ -146,6 +161,7 @@ impl AstroidPlugin {
                 ActiveEvents::COLLISION_EVENTS,
                 ReadMassProperties(MassProperties::default()),
                 Restitution::coefficient(0.01),
+                splittable,
                 Name::new("Astroid"),
             )).id();
 
@@ -308,83 +324,99 @@ impl AstroidPlugin {
 
             if let Ok((ent, mut astroid_to_ablate, _g_trans)) = astroids_query.get_mut(ablate_event.0) {
 
-            let damaged_health = astroid_to_ablate.health.current() - 100.0;
-            astroid_to_ablate.health.set_current(damaged_health);
+                let damaged_health = astroid_to_ablate.health.current() - LASER_DAMAGE;
+                astroid_to_ablate.health.set_current(damaged_health);
 
-            if damaged_health < 0.0 {
-                commands.entity(ent).despawn_recursive();                    }
+                if damaged_health < 0.0 {
+                    commands.entity(ent).despawn_recursive();
+                }
 
-            let n: u8 = rng.gen();
-            if n > 10 {
-                return;
-            }
+                let n: u8 = rng.gen();
+                if n > 10 {
+                    return;
+                }
 
-            let tween = Tween::new(
-                EaseFunction::ExponentialInOut,
-                std::time::Duration::from_millis(3000),
-                TextColorLens {
-                    start: Color::Rgba { red: 255.0, green: 0.0, blue: 0.0, alpha: 1.0 },
-                    end: Color::Rgba { red: 255.0, green: 0.0, blue: 0.0, alpha: 0.0 },
-                    section: 0,
-                },
-            )
-            .with_repeat_count(RepeatCount::Finite(1))
-            .with_completed_event(111);
+                let tween = Tween::new(
+                    EaseFunction::ExponentialInOut,
+                    std::time::Duration::from_millis(3000),
+                    TextColorLens {
+                        start: Color::Rgba { red: 255.0, green: 0.0, blue: 0.0, alpha: 1.0 },
+                        end: Color::Rgba { red: 255.0, green: 0.0, blue: 0.0, alpha: 0.0 },
+                        section: 0,
+                    },
+                )
+                .with_repeat_count(RepeatCount::Finite(1))
+                .with_completed_event(111);
 
-            commands.spawn((
-                Text2dBundle {
-                    text: Text::from_section(
-                        "-1HP",
-                        TextStyle {
-                            font: font.clone(),
-                            font_size: 32.0,
-                            color: Color::RED,
+                commands.spawn((
+                    Text2dBundle {
+                        text: Text::from_section(
+                            "-1HP",
+                            TextStyle {
+                                font: font.clone(),
+                                font_size: 32.0,
+                                color: Color::RED,
+                            },
+                        ),
+                        transform: Transform {
+                            translation: (ablate_event.1 + ablate_event.2.normalize() * 100.0).extend(999.0),
+                            ..default()
                         },
-                    ),
-                    transform: Transform {
-                        translation: (ablate_event.1 + ablate_event.2.normalize() * 100.0).extend(999.0),
                         ..default()
                     },
-                    ..default()
-                },
-                Animator::new(tween),
-            ));
+                    Animator::new(tween),
+                ));
 
-            // TODO: The new comp distance shouldn't be constant it should update based on player distance from base
-            let astroid = Astroid::new_with(AstroidSize::OreChunk, AstroidComposition::new_with_distance(100.0));
+                // TODO: The new comp distance shouldn't be constant it should update based on player distance from base
+                let astroid = Astroid::new_with(AstroidSize::OreChunk, AstroidComposition::new_with_distance(100.0));
 
-            let astroid_ent = commands
-                .spawn((
-                    astroid.clone(),
-                    ShapeBundle {
-                        path: GeometryBuilder::build_as(&astroid.polygon()),
-                        transform: Transform::from_xyz(ablate_event.1.x, ablate_event.1.y, 0.0),
-                        ..default()
-                    },
-                    Fill::color(Color::DARK_GRAY),
-                    RigidBody::Dynamic,
-                    Velocity {
-                        linvel: ablate_event.2,
-                        angvel: 0.0,
-                    },
-                    Sleeping::disabled(),
-                    Ccd::enabled(),
-                    Collider::convex_hull(&astroid.polygon().points).unwrap(),
-                    ActiveEvents::COLLISION_EVENTS,
-                    ReadMassProperties(MassProperties::default()),
-                    Restitution::coefficient(0.01),
-                    Name::new("Astroid"),
-                )).id();
+                let astroid_ent = commands
+                    .spawn((
+                        astroid.clone(),
+                        ShapeBundle {
+                            path: GeometryBuilder::build_as(&astroid.polygon()),
+                            transform: Transform::from_xyz(ablate_event.1.x, ablate_event.1.y, 0.0),
+                            ..default()
+                        },
+                        Fill::color(Color::DARK_GRAY),
+                        RigidBody::Dynamic,
+                        Velocity {
+                            linvel: ablate_event.2,
+                            angvel: 0.0,
+                        },
+                        Sleeping::disabled(),
+                        Ccd::enabled(),
+                        Collider::convex_hull(&astroid.polygon().points).unwrap(),
+                        ActiveEvents::COLLISION_EVENTS,
+                        ReadMassProperties(MassProperties::default()),
+                        Restitution::coefficient(0.01),
+                        Name::new("Astroid"),
+                    )).id();
 
-            // If the astroid is an ore chunk, add Collectible Tag
-            if astroid.clone().size == AstroidSize::OreChunk {
-                commands.entity(astroid_ent).insert(Collectible);
+                // If the astroid is an ore chunk, add Collectible Tag
+                if astroid.clone().size == AstroidSize::OreChunk {
+                    commands.entity(astroid_ent).insert(Collectible);
+                }
+
+            }
+
+
+        }
+
+    }
+
+    pub fn split_astroids_over_split_ratio(
+        mut commands: Commands,
+        mut astroid_query: Query<(Entity, &mut Astroid, &GlobalTransform, &Splittable)>
+    ) {
+        for (ent, astroid, g_t, split) in astroid_query.iter_mut() {
+
+            if astroid.health.current_percent() < split.0 {
+                Self::split_astroid(&mut commands, ent, &astroid, g_t.translation().truncate());
             }
 
         }
 
-
-        }
 
     }
 
@@ -393,19 +425,22 @@ impl AstroidPlugin {
         astroid_ent: Entity,
         astroid: &Astroid,
         astroid_translation: Vec2,
-        projectile_velocity: &Velocity,
+        // projectile_velocity: &Velocity,
     ) {
-        let mut rng = rand::thread_rng();
-        let split_angle = rng.gen_range(0.0..PI / 4.0);
+        // let mut rng = rand::thread_rng();
+        // let split_angle = rng.gen_range(0.0..PI / 4.0);
 
-        let right_velocity = projectile_velocity
-            .linvel
-            .rotate(Vec2::from_angle(split_angle))
-            * 0.5;
-        let left_velocity = projectile_velocity
-            .linvel
-            .rotate(Vec2::from_angle(-split_angle))
-            * 0.5;
+        // let right_velocity = projectile_velocity
+        //     .linvel
+        //     .rotate(Vec2::from_angle(split_angle))
+        //     * 0.5;
+        // let left_velocity = projectile_velocity
+        //     .linvel
+        //     .rotate(Vec2::from_angle(-split_angle))
+        //     * 0.5;
+        let right_velocity = Vec2::ZERO;
+        let left_velocity = Vec2::ZERO;
+
 
         match &astroid.size {
             AstroidSize::Small => {
@@ -467,3 +502,5 @@ impl AstroidPlugin {
     }
 
 }
+
+

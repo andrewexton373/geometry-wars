@@ -1,5 +1,6 @@
 // #![feature(array_methods)]
 
+use std::slice::Windows;
 use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
 
 use bevy::{
@@ -18,7 +19,7 @@ use laser::LaserPlugin;
 use particles::ParticlePlugin;
 use player::{PlayerPlugin, Player};
 use player_input::PlayerInputPlugin;
-use projectile::ProjectilePlugin;
+// use projectile::ProjectilePlugin;
 use refinery::RefineryPlugin;
 use astroid_plugin::AstroidPlugin;
 use base_station::BaseStationPlugin;
@@ -81,7 +82,7 @@ fn main() {
         .add_plugin(RefineryPlugin)
         .add_plugin(FactoryPlugin)
         .add_plugin(AstroidPlugin)
-        .add_plugin(ProjectilePlugin)
+        // .add_plugin(ProjectilePlugin)
         .add_plugin(LaserPlugin)
         .add_plugin(CrosshairPlugin)
         .insert_resource(ClearColor(BACKGROUND_COLOR))
