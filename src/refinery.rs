@@ -4,12 +4,12 @@ use bevy::prelude::*;
 use ordered_float::OrderedFloat;
 
 use crate::{
-    astroid::AstroidMaterial,
     base_station::BaseStation,
     inventory::{Amount, Inventory, InventoryItem},
     item_producer::ItemProducer,
     recipe::Recipe,
 };
+use crate::astroid_material::AstroidMaterial;
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Hash)]
 pub enum MetalIngot {

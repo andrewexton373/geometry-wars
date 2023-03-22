@@ -1,10 +1,11 @@
 use crate::{
-    astroid::{Astroid, AstroidPlugin},
+    astroid::Astroid,
     particles::ProjectileImpactParticles,
 };
 use bevy::prelude::*;
 use bevy_hanabi::ParticleEffect;
 use bevy_rapier2d::prelude::*;
+use crate::astroid_plugin::AstroidPlugin;
 
 #[derive(Component)]
 pub struct Projectile {

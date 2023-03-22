@@ -1,11 +1,12 @@
 use crate::{
-    astroid::{Astroid, AblateEvent},
-    particles::ProjectileImpactParticles, player::{Player}, projectile::Projectile,
+    astroid::Astroid,
+    particles::ProjectileImpactParticles, player::Player, projectile::Projectile,
 };
 use bevy::prelude::*;
 use bevy_hanabi::ParticleEffect;
-use bevy_prototype_lyon::{prelude::{GeometryBuilder, ShapeBundle, ShapePath, Path, Stroke}, shapes};
+use bevy_prototype_lyon::{prelude::{GeometryBuilder, Path, ShapeBundle, ShapePath, Stroke}, shapes};
 use bevy_rapier2d::prelude::*;
+use crate::astroid_plugin::AblateEvent;
 
 #[derive(Component)]
 pub struct Laser {}

@@ -20,7 +20,7 @@ use player::{PlayerPlugin, Player};
 use player_input::PlayerInputPlugin;
 use projectile::ProjectilePlugin;
 use refinery::RefineryPlugin;
-use astroid::AstroidPlugin;
+use astroid_plugin::AstroidPlugin;
 use base_station::BaseStationPlugin;
 
 mod upgrades;
@@ -41,6 +41,10 @@ mod base_station;
 mod inventory;
 mod player_input;
 mod engine;
+mod astroid_size;
+mod astroid_plugin;
+mod astroid_composition;
+mod astroid_material;
 
 // Defines the amount of time that should elapse between each physics step.
 // const TIME_STEP: f32 = 1.0 / 60.0;

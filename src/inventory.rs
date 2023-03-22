@@ -1,4 +1,4 @@
-use crate::astroid::AstroidMaterial;
+use crate::astroid_material::AstroidMaterial;
 use crate::factory::UpgradeComponent;
 use crate::refinery::MetalIngot;
 use bevy::prelude::*;

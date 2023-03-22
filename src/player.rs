@@ -1,4 +1,3 @@
-use crate::astroid::{Collectible};
 use crate::base_station::{BaseStation, CanDeposit};
 use crate::battery::Battery;
 use crate::crosshair::Crosshair;
@@ -6,9 +5,9 @@ use crate::engine::Engine;
 use crate::game_ui::{ContextClue, ContextClues};
 use crate::health::Health;
 use crate::inventory::{Capacity, Inventory, InventoryPlugin};
-use crate::laser::{LaserEvent};
-use crate::particles::{PlayerShipTrailParticles};
-use crate::upgrades::{UpgradesComponent, UpgradeEvent};
+use crate::laser::LaserEvent;
+use crate::particles::PlayerShipTrailParticles;
+use crate::upgrades::{UpgradeEvent, UpgradesComponent};
 use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
@@ -17,6 +16,7 @@ use bevy_prototype_lyon::prelude::{self as lyon, Fill, GeometryBuilder, ShapeBun
 use bevy_rapier2d::prelude::*;
 use ordered_float::OrderedFloat;
 use std::f32::consts::PI;
+use crate::astroid_size::Collectible;
 
 pub struct PlayerPlugin;
 
