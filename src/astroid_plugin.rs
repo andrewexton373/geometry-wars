@@ -22,6 +22,7 @@ use crate::astroid_composition::AstroidComposition;
 use crate::astroid_material::AstroidMaterial;
 use crate::astroid_size::{AstroidSize, Collectible};
 use crate::base_station::BaseStation;
+use crate::events::AblateEvent;
 use crate::game_ui::{ContextClue, ContextClues};
 use crate::inventory::{Amount, Inventory, InventoryItem};
 use crate::particles::ShipAstroidImpactParticles;
@@ -34,8 +35,6 @@ pub struct AstroidPlugin;
 pub struct AstroidSpawner {
     timer: Timer,
 }
-
-pub struct AblateEvent(pub Entity, pub Vec2, pub Vec2);
 
 impl Plugin for AstroidPlugin {
     fn build(&self, app: &mut App) {

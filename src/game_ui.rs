@@ -1,17 +1,18 @@
 use bevy_egui::{egui::{self, Align2, Vec2}, EguiContexts, EguiPlugin};
 
-use bevy_rapier2d::prelude::{Velocity, RapierContext, QueryFilter};
+use bevy_rapier2d::prelude::{QueryFilter, RapierContext, Velocity};
 use bevy::{prelude::{*}, utils::HashSet};
 use egui_dnd::{DragDropUi, utils::shift_vec};
 
 use crate::{
+    astroid::Astroid,
     base_station::BaseStation,
-    factory::{Factory, CraftEvent},
-    inventory::{Inventory, InventoryItem},
-    player::{Player},
-    refinery::{Refinery, SmeltEvent}, upgrades::{UpgradeType, UpgradesComponent, UpgradeEvent},
-    GameCamera, astroid::Astroid
+    factory::Factory,
+    GameCamera,
+    inventory::{Inventory, InventoryItem}, player::Player,
+    refinery::{Refinery, SmeltEvent}, upgrades::{UpgradeEvent, UpgradesComponent, UpgradeType}
 };
+use crate::events::CraftEvent;
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct UIItems {

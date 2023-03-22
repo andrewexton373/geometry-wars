@@ -10,6 +10,7 @@ use crate::{
     refinery::MetalIngot,
     // widgets::factory::CraftEvent,
 };
+use crate::events::CraftEvent;
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Hash)]
 pub enum UpgradeComponent {
@@ -249,5 +250,3 @@ impl FactoryPlugin {
         commands.entity(ent).insert(Factory::new());
     }
 }
-
-pub struct CraftEvent(pub Recipe);

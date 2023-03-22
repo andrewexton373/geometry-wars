@@ -5,7 +5,7 @@ use crate::engine::Engine;
 use crate::game_ui::{ContextClue, ContextClues};
 use crate::health::Health;
 use crate::inventory::{Capacity, Inventory, InventoryPlugin};
-use crate::laser::LaserEvent;
+use crate::events::LaserEvent;
 use crate::particles::PlayerShipTrailParticles;
 use crate::upgrades::{UpgradeEvent, UpgradesComponent};
 use crate::{GameCamera, PIXELS_PER_METER};

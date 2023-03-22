@@ -6,12 +6,10 @@ use bevy::prelude::*;
 use bevy_hanabi::ParticleEffect;
 use bevy_prototype_lyon::{prelude::{GeometryBuilder, Path, ShapeBundle, ShapePath, Stroke}, shapes};
 use bevy_rapier2d::prelude::*;
-use crate::astroid_plugin::AblateEvent;
+use crate::events::{AblateEvent, LaserEvent};
 
 #[derive(Component)]
 pub struct Laser {}
-
-pub struct LaserEvent(pub bool, pub Vec2, pub Vec2);
 
 
 pub struct LaserPlugin;

@@ -1,8 +1,7 @@
-use bevy::{prelude::{Plugin, EventReader, EventWriter}, input::mouse::MouseWheel};
+use bevy::{input::mouse::MouseWheel, prelude::{EventReader, EventWriter, Plugin}};
+use crate::events::EnginePowerEvent;
 
 pub struct PlayerInputPlugin;
-
-pub struct EnginePowerEvent(pub f32);
 
 
 impl Plugin for PlayerInputPlugin {

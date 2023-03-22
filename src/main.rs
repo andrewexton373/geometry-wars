@@ -45,6 +45,7 @@ mod astroid_size;
 mod astroid_plugin;
 mod astroid_composition;
 mod astroid_material;
+mod events;
 
 // Defines the amount of time that should elapse between each physics step.
 // const TIME_STEP: f32 = 1.0 / 60.0;
