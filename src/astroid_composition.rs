@@ -75,7 +75,7 @@ impl fmt::Debug for AstroidComposition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 
         for element in &self.composition {
-            writeln!(f, "{:?}: {}", element.0, element.1);
+            writeln!(f, "{:?}: {:.2}%", element.0, element.1 * 100.0);
         }
         write!(f, "")
 

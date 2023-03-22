@@ -308,7 +308,7 @@ impl AstroidPlugin {
 
             if let Ok((ent, mut astroid_to_ablate, _g_trans)) = astroids_query.get_mut(ablate_event.0) {
 
-            let damaged_health = astroid_to_ablate.health.current() - 1.0;
+            let damaged_health = astroid_to_ablate.health.current() - 100.0;
             astroid_to_ablate.health.set_current(damaged_health);
 
             if damaged_health < 0.0 {

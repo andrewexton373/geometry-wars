@@ -21,17 +21,32 @@ pub struct Astroid {
 }
 
 impl Astroid {
+
+    fn polygon_area(verticies: Vec<Vec2>) -> f32 {
+        use geo::{Polygon, Coord, Point, LineString, Area};
+
+        let astroid_polygon_tuple = verticies.into_iter().map(|item| {
+            Point(Coord { x: item.x, y: item.y })
+        }).collect::<LineString<f32>>();
+
+        let poly = Polygon::new(LineString::from(astroid_polygon_tuple), vec![]);
+        poly.signed_area()
+    }
+
     pub fn new_with(size: AstroidSize, comp: AstroidComposition) -> Self {
 
         let astroid_polygon = Self::generate_shape_from_size(size);
+
+
+        let poly_area = Self::polygon_area(astroid_polygon.points.clone());
 
         // Compute Health from Generated Shape Mass?
 
         Self {
             size: size,
             health: Health {
-                current: 100.0,
-                maximum: 100.0,
+                current: poly_area,
+                maximum: poly_area,
                 upgrade_level: crate::upgrades::UpgradeLevel::Level0,
             },
             composition: comp,
@@ -186,7 +201,7 @@ impl Astroid {
 
         let centroid = get_centroid(&poly_coords);
         poly_coords = poly_coords
-            .iter()
+            .into_iter()
             .map(|e| Vec2 {
                 x: e.x - centroid.x,
                 y: e.y - centroid.y,

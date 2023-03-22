@@ -312,8 +312,8 @@ impl GameUIPlugin {
             ui.vertical_centered_justified(|ui| {
                 ui.horizontal(|ui| {
                     ui.group(|ui| {
-                        ui.label(format!("Health: {:.2}%", player.health.current()));
-                        let health_percent = player.health.current() / 100.0;
+                        ui.label(format!("Health: {:.2}%", player.health.current_percent() * 100.0));
+                        let health_percent = player.health.current_percent();
                         ui.label(Self::progress_string(health_percent));
                     });
         
@@ -393,11 +393,11 @@ impl GameUIPlugin {
                         if let Ok((_ent, name, astroid)) = ent_query.get(entity) {
 
                             ui.group(|ui| {
-                                ui.label(format!("{}", name));
+                                ui.heading(format!("{}", name));
 
                                 if let Some(astroid) = astroid {
-                                        ui.label(format!("Health: {:.2}%", astroid.health.current()));
-                                        let health_percent = astroid.health.current() / 100.0;
+                                        ui.label(format!("Health: {:.2}%", astroid.health.current_percent() * 100.0));
+                                        let health_percent = astroid.health.current_percent();
                                         ui.label(Self::progress_string(health_percent));
 
                                         ui.label("Composition:");

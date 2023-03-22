@@ -18,6 +18,7 @@ strum_macros = "0.24"
 rand = "0.8.5"
 rand_distr = "0.4.3"
 bevy-debug-text-overlay = "5.0.0"
+geo = "0.24.0"
 
 # Enable a small amount of optimization in debug mode
 # [profile.dev]

@@ -23,6 +23,10 @@ impl Health {
         self.current
     }
 
+    pub fn current_percent(&self) -> f32 {
+        self.current / self.maximum
+    }
+
     pub fn set_current(&mut self, updated: f32) {
         self.current = updated.clamp(0.0, self.maximum());
     }
