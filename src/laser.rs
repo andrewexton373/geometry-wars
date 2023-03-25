@@ -1,9 +1,10 @@
 use crate::{
     astroid::Astroid,
-    particles::ProjectileImpactParticles, player::Player
+    // particles::ProjectileImpactParticles,
+    player::Player
 };
 use bevy::prelude::*;
-use bevy_hanabi::ParticleEffect;
+// use bevy_hanabi::ParticleEffect;
 use bevy_prototype_lyon::{prelude::{GeometryBuilder, Path, ShapeBundle, ShapePath, Stroke}, shapes};
 use bevy_rapier2d::prelude::*;
 use crate::events::{AblateEvent, LaserEvent};
@@ -57,15 +58,15 @@ impl LaserPlugin {
         mut ablate_event_writer: EventWriter<AblateEvent>,
         rapier_context: Res<RapierContext>,
         mut laser_query: Query<(&mut Laser, &mut Stroke, &mut Transform, &mut Path), Without<Player>>,
-        mut effect: Query<
-        (&mut ParticleEffect, &mut Transform),
-        (
-            With<ProjectileImpactParticles>,
-            Without<Astroid>,
-            Without<Player>,
-            Without<Laser>
-        ),
-    >, 
+        // mut effect: Query<
+    //     (&mut ParticleEffect, &mut Transform),
+    //     (
+    //         With<ProjectileImpactParticles>,
+    //         Without<Astroid>,
+    //         Without<Player>,
+    //         Without<Laser>
+    //     ),
+    // >,
     ) {
 
         let (_, _, _, mut laser_path) = laser_query.single_mut();
@@ -95,11 +96,11 @@ impl LaserPlugin {
                 ) {
                     let hit_point = intersection.point;
                     let hit_normal = intersection.normal;
-                    let (mut effect, mut effect_translation) = effect.single_mut();
-
-                    effect_translation.translation =
-                        (hit_point).extend(200.0);
-                    effect.maybe_spawner().unwrap().reset();
+                    // let (mut effect, mut effect_translation) = effect.single_mut();
+                    //
+                    // effect_translation.translation =
+                    //     (hit_point).extend(200.0);
+                    // effect.maybe_spawner().unwrap().reset();
 
                     let line = shapes::Line(ray_pos, hit_point);
                     *laser_path = ShapePath::build_as(&line);

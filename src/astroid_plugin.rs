@@ -11,7 +11,7 @@ use bevy_rapier2d::geometry::{ActiveEvents, Collider, Restitution};
 use bevy::core::Name;
 use bevy_prototype_lyon::prelude::FillOptions;
 use bevy_rapier2d::plugin::RapierContext;
-use bevy_hanabi::ParticleEffect;
+// use bevy_hanabi::ParticleEffect;
 use ordered_float::OrderedFloat;
 use bevy::asset::AssetServer;
 use bevy_tweening::lens::TextColorLens;
@@ -26,7 +26,7 @@ use crate::base_station::BaseStation;
 use crate::events::AblateEvent;
 use crate::game_ui::{ContextClue, ContextClues};
 use crate::inventory::{Amount, Inventory, InventoryItem};
-use crate::particles::ShipAstroidImpactParticles;
+// use crate::particles::ShipAstroidImpactParticles;
 use crate::PIXELS_PER_METER;
 use crate::player::Player;
 
@@ -213,14 +213,14 @@ impl AstroidPlugin {
         rapier_context: Res<RapierContext>,
         mut astroid_query: Query<(Entity, &Astroid, &ReadMassProperties), With<Astroid>>,
         mut player_query: Query<(Entity, &mut Player, &mut Inventory), With<Player>>,
-        mut effect: Query<
-            (&mut ParticleEffect, &mut Transform),
-            (
-                With<ShipAstroidImpactParticles>,
-                Without<Astroid>,
-                Without<Player>,
-            ),
-        >,
+        // mut effect: Query<
+        //     (&mut ParticleEffect, &mut Transform),
+        //     (
+        //         With<ShipAstroidImpactParticles>,
+        //         Without<Astroid>,
+        //         Without<Player>,
+        //     ),
+        // >,
         mut inventory_full_notification: ResMut<InventoryFullNotificationTimer>,
     ) {
         let (player_ent, mut player, mut inventory) = player_query.single_mut();
@@ -267,10 +267,10 @@ impl AstroidPlugin {
                         }
 
                         if astroid_collision {
-                            let (mut effect, mut effect_translation) = effect.single_mut();
-                            effect_translation.translation =
-                                (solver_contact.point() * crate::PIXELS_PER_METER).extend(200.0);
-                            effect.maybe_spawner().unwrap().reset();
+                            // let (mut effect, mut effect_translation) = effect.single_mut();
+                            // effect_translation.translation =
+                            //     (solver_contact.point() * crate::PIXELS_PER_METER).extend(200.0);
+                            // effect.maybe_spawner().unwrap().reset();
                         }
                     }
                 }

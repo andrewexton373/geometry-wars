@@ -16,7 +16,7 @@ use factory::FactoryPlugin;
 use game_ui::GameUIPlugin;
 use inventory::InventoryPlugin;
 use laser::LaserPlugin;
-use particles::ParticlePlugin;
+// use particles::ParticlePlugin;
 use player::{PlayerPlugin, Player};
 use player_input::PlayerInputPlugin;
 // use projectile::ProjectilePlugin;
@@ -71,7 +71,13 @@ pub struct GameCamera;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                fit_canvas_to_parent: true,
+                ..default()
+            }),
+            ..default()
+        }))
         .add_plugin(OverlayPlugin { font_size: 24.0, ..default() })
         .add_plugin(ShapePlugin)
         .add_plugin(PlayerPlugin)
@@ -94,7 +100,7 @@ fn main() {
         .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(GameUIPlugin)
-        .add_plugin(ParticlePlugin)
+        // .add_plugin(ParticlePlugin)
         .add_system(screen_print_debug_text)
         .run();
 }

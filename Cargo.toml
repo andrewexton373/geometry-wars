@@ -6,12 +6,12 @@ edition = "2021"
 [dependencies]
 ordered-float = "3.4.0"
 num = "0.4.0"
-bevy = { version = "0.10", features = ["dynamic_linking"] }
+bevy = { version = "0.10" }
 bevy_egui = "0.20"
 egui_dnd = "0.3.0"
 bevy_rapier2d = { version = "0.21.0", features = ["debug-render-2d"] }
 bevy_prototype_lyon = "0.8.0"
-bevy_hanabi = { version = "0.6", default-features = false, features = [ "2d" ] }
+#bevy_hanabi = { version = "0.6", default-features = false, features = [ "2d" ] }
 bevy_tweening = "0.7"
 strum = "0.24"
 strum_macros = "0.24"
