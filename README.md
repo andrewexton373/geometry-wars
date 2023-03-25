@@ -8,19 +8,22 @@ This is a game where the player controls an astroid mining spaceship. Taking ins
 
 ![](https://github.com/andrewexton373/geometry-wars/blob/main/resources/geometry-wars-gameplay.gif)
 
+### [Play WASM Build](https://andrewexton373.github.io/geometry-wars/)
 
 ## Controls
+```
 W - Move Up
-
 A - Move Left
-
 S - Move Down
-
 D - Move Right
 
 Use the mouse pointer to aim projectiles
+LMB - Fire Laser in direction of ship
 
-LMB - Fire Projectile in direction of ship
+< - Zoom Out
+> - Zoom In
+```
+
 
 ## Built With
 
