@@ -73,3 +73,19 @@ jobs:
           components: rustfmt
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
+
+  # Run wasm build
+  format:
+    name: WASM Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Build WASM
+        run:
+          cargo build --release --target wasm32-unknown-unknown
+      - name: WASM Bindgen
+        run:
+          wasm-bindgen --out-dir ./out/ --target web ./target/
