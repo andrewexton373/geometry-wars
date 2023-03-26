@@ -100,4 +100,4 @@ jobs:
       - name: Build WASM
         run: cargo build --release --target wasm32-unknown-unknown
       - name: WASM Bindgen
-        run: wasm-bindgen --out-dir ./out/ --target web ./target/
+        run: wasm-bindgen --out-dir ./out/ --target web ./target/wasm32-unknown-unknown/release/geometry-wars.wasm
