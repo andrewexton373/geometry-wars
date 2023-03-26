@@ -75,7 +75,7 @@ jobs:
         run: cargo fmt --all -- --check
 
   # Run wasm build
-  format:
+  wasm_build:
     name: WASM Build
     runs-on: ubuntu-latest
     steps:
