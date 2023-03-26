@@ -11,7 +11,6 @@ use crate::upgrades::{UpgradeEvent, UpgradesComponent};
 use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-// use bevy_hanabi::ParticleEffect;
 use bevy_prototype_lyon::prelude::{self as lyon, Fill, GeometryBuilder, ShapeBundle};
 use bevy_rapier2d::prelude::*;
 use ordered_float::OrderedFloat;

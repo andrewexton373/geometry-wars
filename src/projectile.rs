@@ -3,7 +3,6 @@
 //     particles::ProjectileImpactParticles,
 // };
 // use bevy::prelude::*;
-// use bevy_hanabi::ParticleEffect;
 // use bevy_rapier2d::prelude::*;
 // use crate::astroid_plugin::AstroidPlugin;
 //
@@ -59,14 +58,6 @@
 //     fn handle_projectile_collision_event(
 //         mut astroid_query: Query<(Entity, &Astroid, &Transform, &Velocity), With<Astroid>>,
 //         projectile_query: Query<(Entity, &Projectile, &Velocity), With<Projectile>>,
-//         mut effect: Query<
-//             (&mut ParticleEffect, &mut Transform),
-//             (
-//                 With<ProjectileImpactParticles>,
-//                 Without<Astroid>,
-//                 Without<Projectile>,
-//             ),
-//         >,
 //         mut commands: Commands,
 //         rapier_context: Res<RapierContext>,
 //     ) {

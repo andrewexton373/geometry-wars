@@ -4,7 +4,6 @@ use crate::{
 };
 use bevy::prelude::*;
 use bevy_particle_systems::Playing;
-// use bevy_hanabi::ParticleEffect;
 use bevy_prototype_lyon::{prelude::{GeometryBuilder, Path, ShapeBundle, ShapePath, Stroke}, shapes};
 use bevy_rapier2d::prelude::*;
 use crate::events::{AblateEvent, LaserEvent};

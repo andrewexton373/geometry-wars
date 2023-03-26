@@ -11,7 +11,6 @@ use bevy_rapier2d::geometry::{ActiveEvents, Collider, Restitution};
 use bevy::core::Name;
 use bevy_prototype_lyon::prelude::FillOptions;
 use bevy_rapier2d::plugin::RapierContext;
-// use bevy_hanabi::ParticleEffect;
 use ordered_float::OrderedFloat;
 use bevy::asset::AssetServer;
 use bevy_tweening::lens::TextColorLens;
