@@ -3,10 +3,12 @@ use crate::{
     particles::ProjectileImpactParticles, player::Player
 };
 use bevy::prelude::*;
-use bevy_hanabi::ParticleEffect;
+use bevy_particle_systems::Playing;
+// use bevy_hanabi::ParticleEffect;
 use bevy_prototype_lyon::{prelude::{GeometryBuilder, Path, ShapeBundle, ShapePath, Stroke}, shapes};
 use bevy_rapier2d::prelude::*;
 use crate::events::{AblateEvent, LaserEvent};
+use crate::particles::LaserImpactParticleSystem;
 
 #[derive(Component)]
 pub struct Laser {}
@@ -53,20 +55,18 @@ impl LaserPlugin {
     }
 
     pub fn fire_laser_raycasting(
+        mut commands: Commands,
         mut laser_event_reader: EventReader<LaserEvent>,
         mut ablate_event_writer: EventWriter<AblateEvent>,
         rapier_context: Res<RapierContext>,
         mut laser_query: Query<(&mut Laser, &mut Stroke, &mut Transform, &mut Path), Without<Player>>,
-        mut effect: Query<
-        (&mut ParticleEffect, &mut Transform),
-        (
-            With<ProjectileImpactParticles>,
-            Without<Astroid>,
-            Without<Player>,
-            Without<Laser>
-        ),
-    >, 
+        mut laser_impact_particles_query: Query<(Entity, &LaserImpactParticleSystem, &mut Transform), Without<Laser>>,
     ) {
+
+        // TODO: Change Laser State To Off On Player Left Unclick
+        for (ent, _, mut t) in laser_impact_particles_query.iter_mut() {
+            commands.entity(ent).remove::<Playing>();
+        }
 
         let (_, _, _, mut laser_path) = laser_query.single_mut();
 
@@ -95,11 +95,11 @@ impl LaserPlugin {
                 ) {
                     let hit_point = intersection.point;
                     let hit_normal = intersection.normal;
-                    let (mut effect, mut effect_translation) = effect.single_mut();
 
-                    effect_translation.translation =
-                        (hit_point).extend(200.0);
-                    effect.maybe_spawner().unwrap().reset();
+                    for (ent, _, mut t) in laser_impact_particles_query.iter_mut() {
+                        commands.entity(ent).insert(Playing);
+                        t.translation = hit_point.extend(0.0);
+                    }
 
                     let line = shapes::Line(ray_pos, hit_point);
                     *laser_path = ShapePath::build_as(&line);

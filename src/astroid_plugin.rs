@@ -11,12 +11,13 @@ use bevy_rapier2d::geometry::{ActiveEvents, Collider, Restitution};
 use bevy::core::Name;
 use bevy_prototype_lyon::prelude::FillOptions;
 use bevy_rapier2d::plugin::RapierContext;
-use bevy_hanabi::ParticleEffect;
+// use bevy_hanabi::ParticleEffect;
 use ordered_float::OrderedFloat;
 use bevy::asset::AssetServer;
 use bevy_tweening::lens::TextColorLens;
 use rand::Rng;
 use bevy::hierarchy::DespawnRecursiveExt;
+use bevy_particle_systems::Playing;
 use bevy_rapier2d::na::Translation;
 use crate::astroid::Astroid;
 use crate::astroid_composition::AstroidComposition;
@@ -26,7 +27,7 @@ use crate::base_station::BaseStation;
 use crate::events::AblateEvent;
 use crate::game_ui::{ContextClue, ContextClues};
 use crate::inventory::{Amount, Inventory, InventoryItem};
-use crate::particles::ShipAstroidImpactParticles;
+use crate::particles::{ShipAstroidImpactParticles, ShipDamageParticleSystem};
 use crate::PIXELS_PER_METER;
 use crate::player::Player;
 
@@ -213,17 +214,13 @@ impl AstroidPlugin {
         rapier_context: Res<RapierContext>,
         mut astroid_query: Query<(Entity, &Astroid, &ReadMassProperties), With<Astroid>>,
         mut player_query: Query<(Entity, &mut Player, &mut Inventory), With<Player>>,
-        mut effect: Query<
-            (&mut ParticleEffect, &mut Transform),
-            (
-                With<ShipAstroidImpactParticles>,
-                Without<Astroid>,
-                Without<Player>,
-            ),
-        >,
         mut inventory_full_notification: ResMut<InventoryFullNotificationTimer>,
+        mut player_damage_particle_query: Query<(Entity, &ShipDamageParticleSystem, &mut Transform)>,
     ) {
         let (player_ent, mut player, mut inventory) = player_query.single_mut();
+
+        let (damage_particles_ent, _, mut damage_particles_t) = player_damage_particle_query.single_mut();
+        commands.entity(damage_particles_ent).remove::<Playing>();
 
         for (astroid_entity, astroid, mass_properties) in astroid_query.iter_mut() {
             if let Some(contact_pair_view) = rapier_context.contact_pair(player_ent, astroid_entity)
@@ -267,10 +264,8 @@ impl AstroidPlugin {
                         }
 
                         if astroid_collision {
-                            let (mut effect, mut effect_translation) = effect.single_mut();
-                            effect_translation.translation =
-                                (solver_contact.point() * crate::PIXELS_PER_METER).extend(200.0);
-                            effect.maybe_spawner().unwrap().reset();
+                            damage_particles_t.translation = (solver_contact.point() * crate::PIXELS_PER_METER).extend(999.0);
+                            commands.entity(damage_particles_ent).insert(Playing);
                         }
                     }
                 }

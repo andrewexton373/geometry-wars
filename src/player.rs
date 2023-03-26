@@ -11,7 +11,7 @@ use crate::upgrades::{UpgradeEvent, UpgradesComponent};
 use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-use bevy_hanabi::ParticleEffect;
+// use bevy_hanabi::ParticleEffect;
 use bevy_prototype_lyon::prelude::{self as lyon, Fill, GeometryBuilder, ShapeBundle};
 use bevy_rapier2d::prelude::*;
 use ordered_float::OrderedFloat;
@@ -170,10 +170,6 @@ impl PlayerPlugin {
             ),
             (With<Player>, Without<Crosshair>),
         >,
-        mut effect: Query<
-            (&mut ParticleEffect, &mut Transform),
-            (With<PlayerShipTrailParticles>, Without<Player>),
-        >,
     ) {
         const ACCELERATION: f32 = 12000.0 * PIXELS_PER_METER;
 
@@ -209,10 +205,10 @@ impl PlayerPlugin {
 
             ext_force.force = force;
 
+            // TODO: Remove Playing Component from Respective Particle System
+
             if force.length() > 0.0 {
-                let (mut effect, mut effect_trans) = effect.single_mut();
-                effect_trans.translation = transform.translation;
-                effect.maybe_spawner().unwrap().reset();
+                // TODO: Add Playing Component to Respective Particle System
             }
         }
 

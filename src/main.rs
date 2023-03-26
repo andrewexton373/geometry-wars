@@ -9,6 +9,7 @@ use bevy::{
 };
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
+use bevy_particle_systems::ParticleSystemPlugin;
 
 use crosshair::CrosshairPlugin;
 use engine::EnginePlugin;
@@ -74,6 +75,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(OverlayPlugin { font_size: 24.0, ..default() })
         .add_plugin(ShapePlugin)
+        .add_plugin(ParticleSystemPlugin::default()) // <-- Add the plugin
         .add_plugin(PlayerPlugin)
         .add_plugin(EnginePlugin)
         .add_plugin(PlayerInputPlugin)
