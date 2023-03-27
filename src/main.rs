@@ -23,6 +23,7 @@ use player_input::PlayerInputPlugin;
 use refinery::RefineryPlugin;
 use astroid_plugin::AstroidPlugin;
 use base_station::BaseStationPlugin;
+use hexbase::HexBasePlugin;
 
 mod upgrades;
 mod battery;
@@ -47,6 +48,7 @@ mod astroid_plugin;
 mod astroid_composition;
 mod astroid_material;
 mod events;
+mod hexbase;
 
 // Defines the amount of time that should elapse between each physics step.
 // const TIME_STEP: f32 = 1.0 / 60.0;
@@ -95,6 +97,7 @@ fn main() {
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(GameUIPlugin)
         .add_plugin(ParticlePlugin)
+        .add_plugin(HexBasePlugin)
         .add_system(screen_print_debug_text)
         .run();
 }
