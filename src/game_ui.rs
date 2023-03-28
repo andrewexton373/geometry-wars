@@ -77,7 +77,7 @@ pub struct GameUIPlugin;
 impl Plugin for GameUIPlugin {
     fn build(&self, app: &mut bevy::app::App) {
         app
-            .add_plugin(EguiPlugin)
+            // .add_plugin(EguiPlugin)
             .insert_resource(ContextClues(HashSet::new()))
             .add_system(Self::ui_ship_information)
             .add_system(Self::ui_station_menu)

@@ -20,6 +20,7 @@ rand_distr = "0.4.3"
 bevy-debug-text-overlay = "5.0.0"
 geo = "0.24.0"
 bevy_ecs_tilemap = "0.10"
+bevy-inspector-egui = "0.18.1"
 
 # Enable a small amount of optimization in debug mode
 # [profile.dev]

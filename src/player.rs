@@ -10,12 +10,12 @@ use crate::particles::PlayerShipTrailParticles;
 use crate::upgrades::{UpgradeEvent, UpgradesComponent};
 use crate::{GameCamera, PIXELS_PER_METER};
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 use bevy_prototype_lyon::prelude::{self as lyon, Fill, GeometryBuilder, ShapeBundle};
 use bevy_rapier2d::prelude::*;
 use ordered_float::OrderedFloat;
 use std::f32::consts::PI;
 use crate::astroid_size::Collectible;
+use crate::player_input::MousePostion;
 
 pub struct PlayerPlugin;
 
@@ -218,53 +218,26 @@ impl PlayerPlugin {
     }
 
     fn ship_rotate_towards_mouse(
-        window_query: Query<&Window, With<PrimaryWindow>>,
-        q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
+        mouse_position: Res<MousePostion>,
         mut player_query: Query<(&mut Player, &mut Transform, &mut Velocity), Without<Crosshair>>,
     ) {
-        // get the camera info and transform
-        // assuming there is exactly one main camera entity, so query::single() is OK
-        let (camera, camera_transform) = q_camera.single();
-
-        let Ok(wnd) = window_query.get_single() else {
-            return;
-        };
+        let cursor_pos = mouse_position.0;
+        let (_player, player_trans, mut velocity) = player_query.single_mut();
 
         const SPIN_ACCELERATION: f32 = 0.4;
 
-        let (_player, player_trans, mut velocity) = player_query.single_mut();
+        let player_to_mouse =
+            Vec2::new(player_trans.translation.x, player_trans.translation.y) - cursor_pos;
+        let ship_angle_difference = Vec2::angle_between(
+            player_to_mouse,
+            (player_trans.rotation * Vec3::Y).truncate(),
+        );
 
-        // check if the cursor is inside the window and get its position
-        if let Some(screen_pos) = wnd.cursor_position() {
-            // get the size of the window
-            let window_size = Vec2::new(wnd.width() as f32, wnd.height() as f32);
-
-            // convert screen position [0..resolution] to ndc [-1..1] (gpu coordinates)
-            let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
-
-            // matrix for undoing the projection and camera transform
-            let ndc_to_world =
-                camera_transform.compute_matrix() * camera.projection_matrix().inverse();
-
-            // use it to convert ndc to world-space coordinates
-            let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
-
-            // reduce it to a 2D value
-            let world_pos: Vec2 = world_pos.truncate();
-
-            let player_to_mouse =
-                Vec2::new(player_trans.translation.x, player_trans.translation.y) - world_pos;
-            let ship_angle_difference = Vec2::angle_between(
-                player_to_mouse,
-                (player_trans.rotation * Vec3::Y).truncate(),
-            );
-
-            //Rotate towards position mouse is on
-            if ship_angle_difference > 0.0 {
-                velocity.angvel += SPIN_ACCELERATION * (2.0 * PI - ship_angle_difference.abs());
-            } else if ship_angle_difference < 0.0 {
-                velocity.angvel += -SPIN_ACCELERATION * (2.0 * PI - ship_angle_difference.abs());
-            }
+        //Rotate towards position mouse is on
+        if ship_angle_difference > 0.0 {
+            velocity.angvel += SPIN_ACCELERATION * (2.0 * PI - ship_angle_difference.abs());
+        } else if ship_angle_difference < 0.0 {
+            velocity.angvel += -SPIN_ACCELERATION * (2.0 * PI - ship_angle_difference.abs());
         }
     }
 

@@ -1,8 +1,8 @@
 use crate::player::Player;
 use crate::GameCamera;
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 use bevy_prototype_lyon::prelude::*;
+use crate::player_input::MousePostion;
 
 #[derive(Component)]
 pub struct Crosshair {}
@@ -39,49 +39,19 @@ impl CrosshairPlugin {
     }
 
     fn draw_crasshair(
-        window_query: Query<&Window, With<PrimaryWindow>>,
-        q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
+        mouse_position: Res<MousePostion>,
         player_query: Query<(&Player, &Transform), Without<Crosshair>>,
         mut crosshair_query: Query<(&mut Crosshair, &mut Path)>,
     ) {
-        // get the camera info and transform
-        // assuming there is exactly one main camera entity, so query::single() is OK
-        let (camera, camera_transform) = q_camera.single();
+        let world_pos = mouse_position.0;
         let (_player, player_trans) = player_query.single();
         let (_crosshair, mut path) = crosshair_query.single_mut();
 
-        // get the window that the camera is displaying to (or the primary window)
-        let Ok(wnd) = window_query.get_single() else {
-            println!("Couldn't query window!");
-            return;
-        };
-
-        // check if the cursor is inside the window and get its position
-        if let Some(screen_pos) = wnd.cursor_position() {
-            // get the size of the window
-            let window_size = Vec2::new(wnd.width() as f32, wnd.height() as f32);
-
-            // convert screen position [0..resolution] to ndc [-1..1] (gpu coordinates)
-            let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
-
-            // matrix for undoing the projection and camera transform
-            let ndc_to_world =
-                camera_transform.compute_matrix() * camera.projection_matrix().inverse();
-
-            // use it to convert ndc to world-space coordinates
-            let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
-
-            // reduce it to a 2D value
-            let world_pos: Vec2 = world_pos.truncate();
-
-            // Draw Crosshair
-            {
-                let line = shapes::Line(player_trans.translation.truncate(), world_pos);
-
-                *path = ShapePath::build_as(&line);
-            }
-
-            // eprintln!("World coords: {}/{}", world_pos.x, world_pos.y);
+        // Draw Crosshair
+        {
+            let line = shapes::Line(player_trans.translation.truncate(), world_pos);
+            *path = ShapePath::build_as(&line);
         }
+
     }
 }

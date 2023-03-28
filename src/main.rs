@@ -2,6 +2,7 @@
 
 use std::slice::Windows;
 use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 use bevy::{
     diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
@@ -74,8 +75,18 @@ pub struct GameCamera;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins
+                         .set(WindowPlugin {
+                             primary_window: Some(Window {
+                                 title: String::from("Geometry Wars"),
+                                 ..Default::default()
+                             }),
+                             ..default()
+                         })
+                         .set(ImagePlugin::default_nearest()),
+        )
         .add_plugin(OverlayPlugin { font_size: 24.0, ..default() })
+        .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(ShapePlugin)
         .add_plugin(ParticleSystemPlugin::default()) // <-- Add the plugin
         .add_plugin(PlayerPlugin)
