@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
+use bevy_ecs_tilemap::helpers::hex_grid::axial::AxialPos;
 use crate::GameCamera;
 use crate::player_input::MousePostion;
 
@@ -10,7 +11,7 @@ const TILE_SIZE_HEX_COL: TilemapTileSize = TilemapTileSize { x: 58.0, y: 50.0 };
 const GRID_SIZE_HEX_ROW: TilemapGridSize = TilemapGridSize { x: 50.0, y: 58.0 };
 const GRID_SIZE_HEX_COL: TilemapGridSize = TilemapGridSize { x: 58.0, y: 50.0 };
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub enum BuildingType {
     None,
     Factory,
@@ -54,25 +55,50 @@ impl HexBasePlugin {
         mut commands: Commands,
         tile_handle_hex_row: Res<TileHandleHexRow>
     ) {
-        println!("SETUP HEX");
-        let map_size = TilemapSize{x: 3, y: 3};
+        let RADIUS = 1;
+        let map_size = TilemapSize{x: RADIUS * 3, y: RADIUS * 3};
+        let origin = TilePos {x: 1, y: 1};
+        let coord_system = HexCoordSystem::Row;
+
+        let tile_positions = generate_hexagon(
+            AxialPos::from_tile_pos_given_coord_system(&origin, coord_system),
+            RADIUS,
+        )
+            .into_iter()
+            .map(|axial_pos| axial_pos.as_tile_pos_given_coord_system(coord_system))
+            .collect::<Vec<TilePos>>();
+
+        let tile_positions_with_type = tile_positions.iter().enumerate().map(|(i, pos)| {
+            let bt = match i {
+                0 => BuildingType::Storage,
+                1 => BuildingType::Factory,
+                2 => BuildingType::Refinery,
+                _ => BuildingType::None
+            };
+
+            (pos, bt)
+        }).collect::<Vec<(&TilePos, BuildingType)>>();
 
         let tilemap_entity = commands.spawn_empty().id();
         let mut tile_storage = TileStorage::empty(map_size);
         let tilemap_id = TilemapId(tilemap_entity);
 
-        fill_tilemap_hexagon(
-            TileTextureIndex(0),
-            TilePos {
-                x: 1,
-                y: 1,
-            },
-            1,
-            HexCoordSystem::Row,
-            tilemap_id,
-            &mut commands,
-            &mut tile_storage
-        );
+        commands.entity(tilemap_id.0).with_children(|parent| {
+
+            for (tile_pos, building_type) in tile_positions_with_type {
+
+                println!("{:?}", building_type);
+                let tile_entity = parent
+                    .spawn(TileBundle {
+                        position: *tile_pos,
+                        tilemap_id,
+                        ..Default::default()
+                    })
+                    .insert(Building(building_type))
+                    .id();
+                tile_storage.checked_set(&tile_pos, tile_entity)
+            }
+        });
 
         let tile_size = TILE_SIZE_HEX_ROW;
         let grid_size = GRID_SIZE_HEX_ROW;
@@ -122,6 +148,7 @@ impl HexBasePlugin {
                     if let Some(tile_pos) =
                         TilePos::from_world_pos(&cursor_in_map_pos, map_size, grid_size, map_type)
                     {
+                        println!("some tile pos");
                         // Highlight the relevant tile's label
                         if let Some(tile_entity) = tile_storage.get(&tile_pos) {
                             println!("Setting Building Type To Storage.");
