@@ -13,6 +13,7 @@ use crate::{
     refinery::{Refinery, SmeltEvent}, upgrades::{UpgradeEvent, UpgradesComponent, UpgradeType}
 };
 use crate::events::CraftEvent;
+use crate::hexbase::PlayerHoveringBuilding;
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct UIItems {
@@ -83,7 +84,8 @@ impl Plugin for GameUIPlugin {
             .add_system(Self::ui_station_menu)
             .add_system(Self::ui_context_clue)
             .add_system(Self::dnd_ship_inventory)
-            .add_system(Self::ui_mouse_hover_context);
+            .add_system(Self::ui_mouse_hover_context)
+            .add_system(Self::ui_ship_hover_context);
     }
 }
 
@@ -351,6 +353,24 @@ impl GameUIPlugin {
                 });
             });
         }    
+    }
+
+    pub fn ui_ship_hover_context(
+        mut contexts: EguiContexts,
+        player_hovering_building: Res<PlayerHoveringBuilding>
+    ) {
+        if player_hovering_building.0.is_some() {
+            let building = &player_hovering_building.0.as_ref().unwrap().1;
+
+            egui::Window::new("Ship Hovering Context").anchor(Align2::LEFT_CENTER, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
+
+                ui.group(|ui| {
+                    ui.heading(format!("Ship Hovering Over {:?}", building));
+
+                });
+
+            });
+        }
     }
 
     pub fn ui_mouse_hover_context(

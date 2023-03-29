@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use bevy_ecs_tilemap::helpers::hex_grid::axial::AxialPos;
 use crate::GameCamera;
+use crate::player::Player;
 use crate::player_input::MousePostion;
 
 const HEX_SIZE: f32 = 58.0 * crate::PIXELS_PER_METER;
@@ -11,7 +12,7 @@ const TILE_SIZE_HEX_COL: TilemapTileSize = TilemapTileSize { x: 58.0, y: 50.0 };
 const GRID_SIZE_HEX_ROW: TilemapGridSize = TilemapGridSize { x: 50.0, y: 58.0 };
 const GRID_SIZE_HEX_COL: TilemapGridSize = TilemapGridSize { x: 58.0, y: 50.0 };
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone, Copy)]
 pub enum BuildingType {
     None,
     Factory,
@@ -24,6 +25,9 @@ pub struct Building(BuildingType);
 
 #[derive(Component)]
 struct Hovered;
+
+#[derive(Resource, Default)]
+pub struct PlayerHoveringBuilding(pub(crate) Option<(Entity, BuildingType)>);
 
 #[derive(Deref, Resource)]
 pub struct TileHandleHexRow(Handle<Image>);
@@ -42,8 +46,10 @@ impl Plugin for HexBasePlugin {
         app
             .add_plugin(TilemapPlugin)
             .init_resource::<TileHandleHexRow>()
+            .init_resource::<PlayerHoveringBuilding>()
             .add_system(Self::click_to_change_building_type)
             .add_system(Self::color_building_types)
+            .add_system(Self::player_interaction)
             // .add_system(Self::hover_highlight_tile_label)
             // .add_system(Self::grow_hovered)
             .add_startup_system(Self::setup);
@@ -118,6 +124,50 @@ impl HexBasePlugin {
             .insert(Name::new("Tilemap"));
     }
 
+    fn player_interaction(
+        commands: Commands,
+        mut player_hovering_building: ResMut<PlayerHoveringBuilding>,
+        player_q: Query<(&Player, &GlobalTransform)>,
+        tilemap_q: Query<(
+            &TilemapSize,
+            &TilemapGridSize,
+            &TilemapType,
+            &TileStorage,
+            &Transform,
+        )>,
+        mut building_tiles_q: Query<(Entity, &Building)>
+
+    ) {
+        let (player, p_gt) = player_q.single();
+        *player_hovering_building = PlayerHoveringBuilding(None);
+
+        for (map_size, grid_size, map_type, tile_storage, map_transform) in tilemap_q.iter() {
+
+
+            let player_position = p_gt.translation().truncate();
+
+            let player_in_map_pos: Vec2 = {
+                // Extend the cursor_pos vec2 by 0.0 and 1.0
+                let player_position = Vec4::from((player_position, 0.0, 1.0));
+                let player_in_map_pos = map_transform.compute_matrix().inverse() * player_position;
+                Vec2 { x: player_in_map_pos.x, y: player_in_map_pos.y }
+            };
+
+            // Once we have a world position we can transform it into a possible tile position.
+            if let Some(tile_pos) =
+                TilePos::from_world_pos(&player_in_map_pos, map_size, grid_size, map_type)
+            {
+                // Highlight the relevant tile's label
+                if let Some(tile_entity) = tile_storage.get(&tile_pos) {
+                    if let Ok((_, building)) = building_tiles_q.get(tile_entity) {
+                        *player_hovering_building = PlayerHoveringBuilding(Some((tile_entity, building.0)));
+                    }
+                }
+            }
+
+        }
+    }
+
     fn click_to_change_building_type(
         mut commands: Commands,
         mouse_input: Res<Input<MouseButton>>,
@@ -129,6 +179,7 @@ impl HexBasePlugin {
             &TileStorage,
             &Transform,
         )>,
+
     ) {
 
         if mouse_input.just_released(MouseButton::Left) {
