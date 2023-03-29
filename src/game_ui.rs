@@ -13,7 +13,7 @@ use crate::{
     refinery::{Refinery, SmeltEvent}, upgrades::{UpgradeEvent, UpgradesComponent, UpgradeType}
 };
 use crate::events::CraftEvent;
-use crate::hexbase::PlayerHoveringBuilding;
+use crate::hexbase::{BuildingType, PlayerHoveringBuilding};
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct UIItems {
@@ -162,145 +162,50 @@ impl GameUIPlugin {
         mut smelt_events: EventWriter<SmeltEvent>,
         mut upgrade_events: EventWriter<UpgradeEvent>,
     ) {
-        let inventory = inventory_query.single();
 
-        let cc = cc_res.0.clone();
-        egui::SidePanel::right("BaseStation Contextual Menu").show_animated(contexts.ctx_mut(), cc.contains(&ContextClue::NearBaseStation),|ui| {
-
-            ui.group(|ui| {
-                ui.heading("Base Station Inventory:");
-                ui.vertical(|ui| {
-                    for item in inventory.items.clone() {
-                        ui.label(format!("{:?}", item));
-                    }
-                });
-            });
             
 
-            ui.group(|ui| {
-                let refinery = refinery_query.single();
 
-                match &refinery.currently_processing {
-                    Some(recipe) => {
 
-                        ui.group(|ui| {
-                            ui.heading("Refinery Processing:");
 
-                            ui.label(format!("Currently Refining: {:?}", recipe));
-                            ui.label(format!("Time Remaining: {:.1} sec", refinery.remaining_processing_time));
-                            ui.label(Self::progress_string( (recipe.time_required - refinery.remaining_processing_time) / recipe.time_required));
-                        });
-
-                    },
-                    None => {}
-                }
-        
-                ui.heading("Refine Raw Ores:");
-
-                for recipe in &refinery.recipes {
-                    ui.group(|ui| {
-                        ui.vertical(|ui| {
-                            ui.horizontal(|ui| {
-                                ui.label(format!("{:?}", recipe.item_created));
-                                ui.label(format!("Requires: {:?}", recipe.items_required));
-                                if inventory.has_items(recipe.items_required.clone()) { ui.label("👍");}
-                            });
-    
-                            ui.horizontal(|ui| {
-                                ui.label(format!("Time Required: {:.1} sec", recipe.time_required));
-    
-                                if ui.button("Smelt").clicked() {
-                                    smelt_events.send(SmeltEvent(recipe.clone()));
-                                }
-                            })
-                        });
-                    });
-
-                }
-            });
-
-            ui.group(|ui| {
-
-                let factory = factory_query.single();
-
-                match &factory.currently_processing {
-                    Some(recipe) => {
-
-                        ui.group(|ui| {
-                            ui.heading("Factory Processing:");
-                            ui.label(format!("Currently Crafting: {:?}", recipe.item_created));
-                            ui.label(format!("Time Remaining: {:.1} sec", factory.remaining_processing_time));
-                            ui.label(Self::progress_string( (recipe.time_required - factory.remaining_processing_time) / recipe.time_required));
-                        });
-
-                    },
-                    None => {}
-                }
-        
-                ui.heading("Factory Recipes:");
-                for recipe in &factory.recipes {
-
-                    ui.group(|ui| {
-                        ui.vertical(|ui| {
-                            ui.horizontal(|ui| {
-                                ui.label(format!("{:?}", recipe.item_created));
-                                
-                                ui.label(format!("Requires: {:?}", recipe.items_required));
-                                if inventory.has_items(recipe.items_required.clone()) { ui.label("👍");}
-                                
-                            });
-    
-                            ui.horizontal(|ui| {
-                                ui.label(format!("Time Required: {:.1} sec", recipe.time_required));
-    
-                                if ui.button("Craft").clicked() {
-                                    craft_events.send(CraftEvent(recipe.clone()));
-                                }
-                            })
-                        });
-                    });
-
-                }
-
-            });
             
-            ui.group(|ui| {
-
-                let (_, upgrades) = player_query.single();
-
-                ui.heading("Ship Upgrades:");
-    
-                for upgrade in &upgrades.upgrades {
-
-                    ui.group(|ui| {
-                        ui.horizontal(|ui| {
-
-                            ui.vertical(|ui| {
-    
-                                ui.label(format!("{:?}", upgrade));
-                                if ui.button("Upgrade").clicked() {
-                                    upgrade_events.send(UpgradeEvent(upgrade.clone()));
-                                }
-                            });
-                            
-                            ui.vertical(|ui| {
-                                ui.label("Requires: ");
-                                if upgrade.requirements().is_some() {
-                                    for requirement in upgrade.requirements().unwrap().requirements { // TODO: This seems unnecessairly convoluted..
-                                        ui.label(format!("{:?}", requirement));
-            
-                                    }
-                                }
-                            });
-                
-                        });
-                    });
-
-                }
-
-            });
-
-        });
+        //     ui.group(|ui| {
+        //
+        //         let (_, upgrades) = player_query.single();
+        //
+        //         ui.heading("Ship Upgrades:");
+        //
+        //         for upgrade in &upgrades.upgrades {
+        //
+        //             ui.group(|ui| {
+        //                 ui.horizontal(|ui| {
+        //
+        //                     ui.vertical(|ui| {
+        //
+        //                         ui.label(format!("{:?}", upgrade));
+        //                         if ui.button("Upgrade").clicked() {
+        //                             upgrade_events.send(UpgradeEvent(upgrade.clone()));
+        //                         }
+        //                     });
+        //
+        //                     ui.vertical(|ui| {
+        //                         ui.label("Requires: ");
+        //                         if upgrade.requirements().is_some() {
+        //                             for requirement in upgrade.requirements().unwrap().requirements { // TODO: This seems unnecessairly convoluted..
+        //                                 ui.label(format!("{:?}", requirement));
+        //
+        //                             }
+        //                         }
+        //                     });
+        //
+        //                 });
+        //             });
+        //
+        //         }
+        //
+        //     });
+        //
+        // });
 
     }
     
@@ -357,15 +262,134 @@ impl GameUIPlugin {
 
     pub fn ui_ship_hover_context(
         mut contexts: EguiContexts,
-        player_hovering_building: Res<PlayerHoveringBuilding>
+        player_hovering_building: Res<PlayerHoveringBuilding>,
+        player_query: Query<(&Player, &UpgradesComponent)>,
+        inventory_query: Query<&Inventory, With<BaseStation>>,
+        factory_query: Query<&Factory>,
+        refinery_query: Query<&Refinery>,
+        mut craft_events: EventWriter<CraftEvent>,
+        mut smelt_events: EventWriter<SmeltEvent>,
+        mut upgrade_events: EventWriter<UpgradeEvent>,
     ) {
+
+
         if player_hovering_building.0.is_some() {
             let building = &player_hovering_building.0.as_ref().unwrap().1;
 
-            egui::Window::new("Ship Hovering Context").anchor(Align2::LEFT_CENTER, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
+            egui::Window::new("Ship Hovering Context").anchor(Align2::RIGHT_BOTTOM, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
+
 
                 ui.group(|ui| {
                     ui.heading(format!("Ship Hovering Over {:?}", building));
+                    let inventory = inventory_query.single();
+
+                    match building {
+                        BuildingType::None => {}
+                        BuildingType::Factory => {
+                            ui.group(|ui| {
+
+                                let factory = factory_query.single();
+
+                                match &factory.currently_processing {
+                                    Some(recipe) => {
+
+                                        ui.group(|ui| {
+                                            ui.heading("Factory Processing:");
+                                            ui.label(format!("Currently Crafting: {:?}", recipe.item_created));
+                                            ui.label(format!("Time Remaining: {:.1} sec", factory.remaining_processing_time));
+                                            ui.label(Self::progress_string( (recipe.time_required - factory.remaining_processing_time) / recipe.time_required));
+                                        });
+
+                                    },
+                                    None => {}
+                                }
+
+                                ui.heading("Factory Recipes:");
+                                for recipe in &factory.recipes {
+
+                                    ui.group(|ui| {
+                                        ui.vertical(|ui| {
+                                            ui.horizontal(|ui| {
+                                                ui.label(format!("{:?}", recipe.item_created));
+
+                                                ui.label(format!("Requires: {:?}", recipe.items_required));
+                                                if inventory.has_items(recipe.items_required.clone()) { ui.label("👍");}
+
+                                            });
+
+                                            ui.horizontal(|ui| {
+                                                ui.label(format!("Time Required: {:.1} sec", recipe.time_required));
+
+                                                if ui.button("Craft").clicked() {
+                                                    craft_events.send(CraftEvent(recipe.clone()));
+                                                }
+                                            })
+                                        });
+                                    });
+
+                                }
+
+                            });
+                        }
+                        BuildingType::Refinery => {
+                            ui.group(|ui| {
+                                let refinery = refinery_query.single();
+
+                                match &refinery.currently_processing {
+                                    Some(recipe) => {
+
+                                        ui.group(|ui| {
+                                            ui.heading("Refinery Processing:");
+
+                                            ui.label(format!("Currently Refining: {:?}", recipe));
+                                            ui.label(format!("Time Remaining: {:.1} sec", refinery.remaining_processing_time));
+                                            ui.label(Self::progress_string( (recipe.time_required - refinery.remaining_processing_time) / recipe.time_required));
+                                        });
+
+                                    },
+                                    None => {}
+                                }
+
+                                ui.heading("Refine Raw Ores:");
+
+                                for recipe in &refinery.recipes {
+                                    ui.group(|ui| {
+                                        ui.vertical(|ui| {
+                                            ui.horizontal(|ui| {
+                                                ui.label(format!("{:?}", recipe.item_created));
+                                                ui.label(format!("Requires: {:?}", recipe.items_required));
+                                                if inventory.has_items(recipe.items_required.clone()) { ui.label("👍");}
+                                            });
+
+                                            ui.horizontal(|ui| {
+                                                ui.label(format!("Time Required: {:.1} sec", recipe.time_required));
+
+                                                if ui.button("Smelt").clicked() {
+                                                    smelt_events.send(SmeltEvent(recipe.clone()));
+                                                }
+                                            })
+                                        });
+                                    });
+
+                                }
+                            });
+                        }
+                        BuildingType::Storage => {
+                            let inventory = inventory_query.single();
+
+
+                            ui.group(|ui| {
+                                ui.heading("Base Station Inventory:");
+                                ui.vertical(|ui| {
+                                    for item in inventory.items.clone() {
+                                        ui.label(format!("{:?}", item));
+                                    }
+                                });
+                            });
+
+                        }
+                    }
+
 
                 });
 

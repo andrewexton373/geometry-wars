@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::sprite::Anchor;
 use bevy_ecs_tilemap::prelude::*;
 use bevy_ecs_tilemap::helpers::hex_grid::axial::AxialPos;
 use crate::GameCamera;
@@ -7,10 +8,10 @@ use crate::player_input::MousePostion;
 
 const HEX_SIZE: f32 = 58.0 * crate::PIXELS_PER_METER;
 
-const TILE_SIZE_HEX_ROW: TilemapTileSize = TilemapTileSize { x: 50.0, y: 58.0 };
-const TILE_SIZE_HEX_COL: TilemapTileSize = TilemapTileSize { x: 58.0, y: 50.0 };
-const GRID_SIZE_HEX_ROW: TilemapGridSize = TilemapGridSize { x: 50.0, y: 58.0 };
-const GRID_SIZE_HEX_COL: TilemapGridSize = TilemapGridSize { x: 58.0, y: 50.0 };
+const TILE_SIZE_HEX_ROW: TilemapTileSize = TilemapTileSize { x: 443.0, y: 512.0 };
+const TILE_SIZE_HEX_COL: TilemapTileSize = TilemapTileSize { x: 443.0, y: 512.0 };
+const GRID_SIZE_HEX_ROW: TilemapGridSize = TilemapGridSize { x: 443.0, y: 512.0 };
+const GRID_SIZE_HEX_COL: TilemapGridSize = TilemapGridSize { x: 443.0, y: 512.0 };
 
 #[derive(Component, Debug, Clone, Copy)]
 pub enum BuildingType {
@@ -35,7 +36,7 @@ pub struct TileHandleHexRow(Handle<Image>);
 impl FromWorld for TileHandleHexRow {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.resource::<AssetServer>();
-        Self(asset_server.load("bw-tile-hex-row.png"))
+        Self(asset_server.load("hex-station-block.png"))
     }
 }
 
@@ -107,8 +108,10 @@ impl HexBasePlugin {
         });
 
         let tile_size = TILE_SIZE_HEX_ROW;
-        let grid_size = GRID_SIZE_HEX_ROW;
+        let grid_size = tile_size.into();
         let map_type = TilemapType::Hexagon(HexCoordSystem::Row);
+
+        let mut center_trans = get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0);
 
         commands.entity(tilemap_entity)
             .insert(TilemapBundle {
@@ -118,7 +121,7 @@ impl HexBasePlugin {
                 texture: TilemapTexture::Single(tile_handle_hex_row.clone()),
                 tile_size,
                 map_type,
-                transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
+                transform: center_trans,
                 ..Default::default()
             })
             .insert(Name::new("Tilemap"));
