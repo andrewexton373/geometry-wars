@@ -100,7 +100,7 @@ fn main() {
         // .add_plugin(ProjectilePlugin)
         .add_plugin(LaserPlugin)
         .add_plugin(CrosshairPlugin)
-        .insert_resource(ClearColor(BACKGROUND_COLOR))
+        // .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_startup_system(setup)
         .add_system(camera_follows_player)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
@@ -121,7 +121,11 @@ fn setup(
 ) {
     commands
         .spawn((
-            Camera2dBundle::default(),
+            Camera2dBundle {
+                transform: Transform::from_xyz(0.0, 0.0, 999.0).looking_at(Vec3::ZERO, Vec3::Y),
+                projection: OrthographicProjection::default().into(),
+                ..default()
+            },
             GameCamera,
             Name::new("GameCamera"),
         ));

@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 ordered-float = "3.4.0"
 num = "0.4.0"
-bevy = { version = "0.10" }
+bevy = { version = "0.10", features = ["bevy_sprite"] }
 bevy_egui = "0.20"
 egui_dnd = "0.3.0"
 bevy_rapier2d = { version = "0.21.0", features = ["debug-render-2d"] }
@@ -21,6 +21,7 @@ bevy-debug-text-overlay = "5.0.0"
 geo = "0.24.0"
 bevy_ecs_tilemap = "0.10"
 bevy-inspector-egui = "0.18.1"
+hexx = "0.5.3"
 
 # Enable a small amount of optimization in debug mode
 # [profile.dev]
