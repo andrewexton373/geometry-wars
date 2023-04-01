@@ -21,13 +21,8 @@ const HEX_SIZE: Vec2 = Vec2::splat(10.0 * crate:: PIXELS_PER_METER);
 #[derive(Debug, Default, Resource)]
 struct HighlightedHexes {
     pub selected: Hex,
-    pub halfway: Hex,
     pub ring: Vec<Hex>,
-    pub wedge: Vec<Hex>,
-    pub dir_wedge: Vec<Hex>,
     pub line: Vec<Hex>,
-    pub half_ring: Vec<Hex>,
-    pub rotated: Vec<Hex>,
 }
 
 #[derive(Debug, Resource)]
@@ -37,6 +32,9 @@ struct Map {
     selected_material: Handle<ColorMaterial>,
     ring_material: Handle<ColorMaterial>,
     default_material: Handle<ColorMaterial>,
+    factory_material: Handle<ColorMaterial>,
+    refinery_material: Handle<ColorMaterial>,
+    storage_material: Handle<ColorMaterial>,
 }
 
 #[derive(Component, Debug, Clone, Copy)]
@@ -63,9 +61,11 @@ impl Plugin for HexBasePlugin {
         app
             .add_plugin(TilemapPlugin)
             .init_resource::<PlayerHoveringBuilding>()
-            .add_system(Self::handle_mouse_interaction.after(Self::color_building_types))
+            .add_systems((
+                Self::color_building_types,
+                Self::handle_mouse_interaction
+                ).chain())
             .add_system(Self::handle_ship_hovering_context)
-            .add_system(Self::color_building_types)
             .add_startup_system(Self::setup_hex_grid);
     }
 }
@@ -87,6 +87,10 @@ impl HexBasePlugin {
         let selected_material = materials.add(Color::RED.into());
         let ring_material = materials.add(Color::YELLOW.into());
         let default_material = materials.add(Color::Rgba { red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0 }.into());
+        let factory_material = materials.add(Color::BISQUE.into());
+        let refinery_material = materials.add(Color::ORANGE_RED.into());
+        let storage_material = materials.add(Color::GOLD.into());
+
         // mesh
         let mesh = Self::hexagonal_plane(&layout);
         let mesh_handle = meshes.add(mesh);
@@ -115,6 +119,9 @@ impl HexBasePlugin {
             selected_material,
             ring_material,
             default_material,
+            factory_material,
+            refinery_material,
+            storage_material
         });
     }
 
@@ -144,28 +151,25 @@ impl HexBasePlugin {
         if let Some(entity) = map.entities.get(&hex).copied() {
 
             if mouse_input.just_released(MouseButton::Left) {
-
                 if let Ok((_, _, mut building)) = hex_query.get_mut(entity) {
-                    println!("HIT!");
                     building.0 = BuildingType::Factory;
                 }
-
             }
 
-            if hex == highlighted_hexes.selected {
-                return;
-            }
-            // Clear highlighted hexes materials
-            for vec in [
-                &highlighted_hexes.ring,
-                &highlighted_hexes.line,
-            ] {
-                for entity in vec.iter().filter_map(|h| map.entities.get(h)) {
-                    commands
-                        .entity(*entity)
-                        .insert(map.default_material.clone());
-                }
-            }
+            // if hex == highlighted_hexes.selected {
+            //     return;
+            // }
+            // // Clear highlighted hexes materials
+            // for vec in [
+            //     &highlighted_hexes.ring,
+            //     &highlighted_hexes.line,
+            // ] {
+            //     for entity in vec.iter().filter_map(|h| map.entities.get(h)) {
+            //         commands
+            //             .entity(*entity)
+            //             .insert(map.default_material.clone());
+            //     }
+            // }
 
             // Draw a  line
             highlighted_hexes.line = Hex::ZERO.line_to(hex).collect();
@@ -221,12 +225,15 @@ impl HexBasePlugin {
         for (ent, _, building) in hex_query.iter_mut() {
 
             let color = match building.0 {
-                BuildingType::None => map.default_material.clone(),
-                BuildingType::Factory => map.ring_material.clone(),
-                BuildingType::Refinery => map.selected_material.clone(),
-                BuildingType::Storage => map.selected_material.clone()
+                BuildingType::None => Some(map.default_material.clone()),
+                BuildingType::Factory => Some(map.factory_material.clone()),
+                BuildingType::Refinery => Some(map.refinery_material.clone()),
+                BuildingType::Storage => Some(map.storage_material.clone())
             };
-            commands.entity(ent).insert(color);
+
+            if let Some(color) = color {
+                commands.entity(ent).insert(color);
+            }
         }
     }
 
