@@ -1,3 +1,4 @@
+use std::iter::Map;
 use bevy_egui::{egui::{self, Align2, Vec2}, EguiContexts, EguiPlugin};
 
 use bevy_rapier2d::prelude::{QueryFilter, RapierContext, Velocity};
@@ -12,7 +13,7 @@ use crate::{
     inventory::{Inventory, InventoryItem}, player::Player,
     refinery::{Refinery, SmeltEvent}, upgrades::{UpgradeEvent, UpgradesComponent, UpgradeType}
 };
-use crate::events::CraftEvent;
+use crate::events::{BuildHexBuildingEvent, CraftEvent};
 use crate::hexbase::{BuildingType, PlayerHoveringBuilding};
 
 #[derive(Default, Debug, Clone, PartialEq)]
@@ -270,6 +271,7 @@ impl GameUIPlugin {
         mut craft_events: EventWriter<CraftEvent>,
         mut smelt_events: EventWriter<SmeltEvent>,
         mut upgrade_events: EventWriter<UpgradeEvent>,
+        mut build_event: EventWriter<BuildHexBuildingEvent>,
     ) {
 
 
@@ -284,7 +286,26 @@ impl GameUIPlugin {
                     let inventory = inventory_query.single();
 
                     match building {
-                        BuildingType::None => {}
+                        BuildingType::None => {
+
+                            ui.group(|ui| {
+
+                                let buttons: Vec<_> = vec![
+                                    ("Storage", BuildingType::Storage),
+                                    ("Factory", BuildingType::Factory),
+                                    ("Refinery", BuildingType::Refinery)
+                                ];
+
+                                for button in buttons {
+                                    if ui.button(button.0).clicked() {
+                                        println!("SEND EVENT");
+                                        build_event.send(BuildHexBuildingEvent(player_hovering_building.0.unwrap().0, button.1));
+                                    }
+                                }
+
+                            });
+
+                        }
                         BuildingType::Factory => {
                             ui.group(|ui| {
 

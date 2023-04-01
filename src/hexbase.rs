@@ -14,6 +14,7 @@ use bevy::render::render_resource::PrimitiveTopology;
 use bevy::window::PrimaryWindow;
 use hexx::shapes;
 use hexx::*;
+use crate::events::BuildHexBuildingEvent;
 
 /// World size of the hexagons (outer radius)
 const HEX_SIZE: Vec2 = Vec2::splat(10.0 * crate:: PIXELS_PER_METER);
@@ -21,6 +22,7 @@ const HEX_SIZE: Vec2 = Vec2::splat(10.0 * crate:: PIXELS_PER_METER);
 #[derive(Debug, Default, Resource)]
 struct HighlightedHexes {
     pub selected: Hex,
+    pub ship_hover: Hex,
     pub ring: Vec<Hex>,
     pub line: Vec<Hex>,
 }
@@ -30,6 +32,7 @@ struct Map {
     layout: HexLayout,
     entities: HashMap<Hex, Entity>,
     selected_material: Handle<ColorMaterial>,
+    ship_hover_material: Handle<ColorMaterial>,
     ring_material: Handle<ColorMaterial>,
     default_material: Handle<ColorMaterial>,
     factory_material: Handle<ColorMaterial>,
@@ -59,13 +62,16 @@ pub struct HexBasePlugin;
 impl Plugin for HexBasePlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugin(TilemapPlugin)
+            // .add_plugin(TilemapPlugin)
+            .add_event::<BuildHexBuildingEvent>()
             .init_resource::<PlayerHoveringBuilding>()
+            .init_resource::<HighlightedHexes>()
             .add_systems((
-                Self::color_building_types,
+                Self::color_hexes,
                 Self::handle_mouse_interaction
                 ).chain())
             .add_system(Self::handle_ship_hovering_context)
+            .add_system(Self::handle_build_events)
             .add_startup_system(Self::setup_hex_grid);
     }
 }
@@ -85,6 +91,7 @@ impl HexBasePlugin {
         };
         // materials
         let selected_material = materials.add(Color::RED.into());
+        let ship_hover_material = materials.add(Color::LIME_GREEN.into());
         let ring_material = materials.add(Color::YELLOW.into());
         let default_material = materials.add(Color::Rgba { red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0 }.into());
         let factory_material = materials.add(Color::BISQUE.into());
@@ -117,6 +124,7 @@ impl HexBasePlugin {
             layout,
             entities,
             selected_material,
+            ship_hover_material,
             ring_material,
             default_material,
             factory_material,
@@ -141,7 +149,7 @@ impl HexBasePlugin {
         mut commands: Commands,
         mouse_position: Res<MousePostion>,
         map: Res<Map>,
-        mut highlighted_hexes: Local<HighlightedHexes>,
+        mut highlighted_hexes: ResMut<HighlightedHexes>,
         mut mouse_input: Res<Input<MouseButton>>,
         mut hex_query: Query<(Entity, &BaseHex, &mut Building)>,
     ) {
@@ -156,40 +164,11 @@ impl HexBasePlugin {
                 }
             }
 
-            // if hex == highlighted_hexes.selected {
-            //     return;
-            // }
-            // // Clear highlighted hexes materials
-            // for vec in [
-            //     &highlighted_hexes.ring,
-            //     &highlighted_hexes.line,
-            // ] {
-            //     for entity in vec.iter().filter_map(|h| map.entities.get(h)) {
-            //         commands
-            //             .entity(*entity)
-            //             .insert(map.default_material.clone());
-            //     }
-            // }
-
             // Draw a  line
             highlighted_hexes.line = Hex::ZERO.line_to(hex).collect();
             // Draw a ring
             highlighted_hexes.ring = Hex::ZERO.ring(hex.ulength());
 
-            for (vec, mat) in [
-                (&highlighted_hexes.ring, &map.ring_material),
-            ] {
-                for h in vec {
-                    if let Some(e) = map.entities.get(h) {
-                        commands.entity(*e).insert(mat.clone());
-                    }
-                }
-            }
-
-            // Make the selected tile red
-            commands
-                .entity(entity)
-                .insert(map.selected_material.clone());
             highlighted_hexes.selected = hex;
         }
     }
@@ -197,6 +176,7 @@ impl HexBasePlugin {
     fn handle_ship_hovering_context(
         mut commands: Commands,
         map: Res<Map>,
+        mut highlighted: ResMut<HighlightedHexes>,
         mut player_hovering_building: ResMut<PlayerHoveringBuilding>,
         mut hex_query: Query<(Entity, &BaseHex, &mut Building)>,
         player_query: Query<(Entity, &Player, &GlobalTransform)>,
@@ -205,23 +185,44 @@ impl HexBasePlugin {
         let (_, _, player_gt) = player_query.single();
 
         let player_pos = player_gt.translation().truncate();
-        println!("PLAYER POS: {:?}", player_pos);
 
         let hex = map.layout.world_pos_to_hex(player_pos);
         if let Some(entity) = map.entities.get(&hex).copied() {
-
+            highlighted.ship_hover = hex;
             if let Ok((_, _, building)) = hex_query.get(entity) {
                 *player_hovering_building = PlayerHoveringBuilding(Some((entity, building.0)));
             }
-
         }
     }
 
-    fn color_building_types(
+    // fn color_building_types(
+    //     mut commands: Commands,
+    //     map: Res<Map>,
+    //     mut hex_query: Query<(Entity, &BaseHex, &mut Building)>,
+    // ) {
+    //     for (ent, _, building) in hex_query.iter_mut() {
+    //
+    //         let color = match building.0 {
+    //             BuildingType::None => Some(map.default_material.clone()),
+    //             BuildingType::Factory => Some(map.factory_material.clone()),
+    //             BuildingType::Refinery => Some(map.refinery_material.clone()),
+    //             BuildingType::Storage => Some(map.storage_material.clone())
+    //         };
+    //
+    //         if let Some(color) = color {
+    //             commands.entity(ent).insert(color);
+    //         }
+    //     }
+    // }
+
+    fn color_hexes(
         mut commands: Commands,
+        mouse_pos: Res<MousePostion>,
         map: Res<Map>,
+        highlighted: Res<HighlightedHexes>,
         mut hex_query: Query<(Entity, &BaseHex, &mut Building)>,
     ) {
+        // 1: Color By Building Type
         for (ent, _, building) in hex_query.iter_mut() {
 
             let color = match building.0 {
@@ -234,6 +235,41 @@ impl HexBasePlugin {
             if let Some(color) = color {
                 commands.entity(ent).insert(color);
             }
+        }
+
+        // 2: Color Ship Hover
+
+        let ship_hover_ent = map.entities.get(&highlighted.ship_hover).unwrap();
+        commands.entity(*ship_hover_ent).insert(map.ship_hover_material.clone());
+
+        // 3: Color Mouse Hover
+
+        let mouse_hover_ent = map.entities.get(&highlighted.selected).unwrap();
+        commands
+            .entity(*mouse_hover_ent)
+            .insert(map.selected_material.clone());
+
+
+
+        // 4: Ring?
+        // for (vec, mat) in [
+        //     (&highlighted_hexes.ring, &map.ring_material),
+        // ] {
+        //     for h in vec {
+        //         if let Some(e) = map.entities.get(h) {
+        //             commands.entity(*e).insert(mat.clone());
+        //         }
+        //     }
+        // }
+    }
+
+    fn handle_build_events(
+        mut commands: Commands,
+        mut build_events: EventReader<BuildHexBuildingEvent>
+    ) {
+        for evt in build_events.iter() {
+            println!("HANDLING!");
+            commands.entity(evt.0).insert(Building(evt.1));
         }
     }
 
