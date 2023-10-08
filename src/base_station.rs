@@ -1,15 +1,17 @@
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::{self as lyon, Fill, Stroke, GeometryBuilder, ShapeBundle, FillOptions};
+use bevy_prototype_lyon::prelude::{
+    self as lyon, Fill, FillOptions, GeometryBuilder, ShapeBundle, Stroke,
+};
 use bevy_rapier2d::prelude::{ActiveEvents, Collider, RapierContext, Sensor, Sleeping, Velocity};
 use ordered_float::OrderedFloat;
 
 use crate::{
     astroid::Astroid,
-    factory::{FactoryPlugin},
+    factory::FactoryPlugin,
     game_ui::{ContextClue, ContextClues},
     inventory::{Capacity, Inventory, InventoryPlugin},
     player::Player,
-    refinery::{RefineryPlugin},
+    refinery::RefineryPlugin,
     PIXELS_PER_METER,
 };
 
@@ -66,14 +68,16 @@ impl BaseStationPlugin {
                 ActiveEvents::COLLISION_EVENTS,
                 BaseStation,
                 Name::new("Base Station"),
-
-            )).id();
+            ))
+            .id();
 
         InventoryPlugin::attach_inventory_to_entity(
             &mut commands,
             Inventory {
                 items: Vec::new(),
-                capacity: Capacity { maximum: OrderedFloat(1000.0) },
+                capacity: Capacity {
+                    maximum: OrderedFloat(1000.0),
+                },
             },
             base_station,
         );
@@ -97,8 +101,8 @@ impl BaseStationPlugin {
                 },
                 Fill::color(Color::RED),
                 Name::new("BaseStationDirectionIndicator"),
-            )).id();
-
+            ))
+            .id();
     }
 
     fn guide_player_to_base_station(
@@ -135,7 +139,7 @@ impl BaseStationPlugin {
         let opacity = (distance_to_base / FADE_DISTANCE).powi(2).clamp(0.0, 1.0);
 
         *dir_indicator_fill = Fill {
-            color: Color::Rgba { 
+            color: Color::Rgba {
                 red: 255.0,
                 green: 0.0,
                 blue: 0.0,
@@ -143,7 +147,6 @@ impl BaseStationPlugin {
             },
             options: FillOptions::default(),
         }
-
     }
 
     fn repel_astroids_from_base_station(

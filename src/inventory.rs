@@ -6,7 +6,6 @@ use ordered_float::OrderedFloat;
 use std::fmt;
 use std::ops::{AddAssign, SubAssign};
 
-
 #[derive(Component, Default, Debug, Clone, PartialEq)]
 pub struct Capacity {
     pub maximum: OrderedFloat<f32>,

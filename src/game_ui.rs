@@ -1,20 +1,24 @@
-use std::iter::Map;
-use bevy_egui::{egui::{self, Align2, Vec2}, EguiContexts, EguiPlugin};
+use bevy_egui::{
+    egui::{self, Align2, Vec2},
+    EguiContexts,
+};
 
+use bevy::{prelude::*, utils::HashSet};
 use bevy_rapier2d::prelude::{QueryFilter, RapierContext, Velocity};
-use bevy::{prelude::{*}, utils::HashSet};
-use egui_dnd::{DragDropUi, utils::shift_vec};
+use egui_dnd::{utils::shift_vec, DragDropUi};
 
+use crate::events::{BuildHexBuildingEvent, CraftEvent};
+use crate::hexbase::{BuildingType, PlayerHoveringBuilding};
 use crate::{
     astroid::Astroid,
     base_station::BaseStation,
     factory::Factory,
+    inventory::{Inventory, InventoryItem},
+    player::Player,
+    refinery::{Refinery, SmeltEvent},
+    upgrades::UpgradeType,
     GameCamera,
-    inventory::{Inventory, InventoryItem}, player::Player,
-    refinery::{Refinery, SmeltEvent}, upgrades::{UpgradeEvent, UpgradesComponent, UpgradeType}
 };
-use crate::events::{BuildHexBuildingEvent, CraftEvent};
-use crate::hexbase::{BuildingType, PlayerHoveringBuilding};
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct UIItems {
@@ -62,16 +66,17 @@ struct ItemType {
 pub struct DND(DragDropUi, Vec<ItemType>);
 
 impl Default for DND {
-
     fn default() -> Self {
-        Self(DragDropUi::default(), ["iron", "silver", "gold"]
-                        .iter()
-                        .map(|name| ItemType {
-                            name: name.to_string(),
-                        })
-                        .collect())
+        Self(
+            DragDropUi::default(),
+            ["iron", "silver", "gold"]
+                .iter()
+                .map(|name| ItemType {
+                    name: name.to_string(),
+                })
+                .collect(),
+        )
     }
-
 }
 
 pub struct GameUIPlugin;
@@ -136,7 +141,7 @@ impl GameUIPlugin {
 
     fn progress_string(progress: f32) -> String {
         let progress_bar_len = 10;
-    
+
         return format!(
             "{}",
             (0..progress_bar_len)
@@ -152,24 +157,17 @@ impl GameUIPlugin {
         );
     }
 
-    fn ui_station_menu(
-        mut contexts: EguiContexts,
-        cc_res: Res<ContextClues>,
-        player_query: Query<(&Player, &UpgradesComponent)>,
-        inventory_query: Query<&Inventory, With<BaseStation>>,
-        factory_query: Query<&Factory>,
-        refinery_query: Query<&Refinery>,
-        mut craft_events: EventWriter<CraftEvent>,
-        mut smelt_events: EventWriter<SmeltEvent>,
-        mut upgrade_events: EventWriter<UpgradeEvent>,
+    fn ui_station_menu(// mut contexts: EguiContexts,
+        // cc_res: Res<ContextClues>,
+        // player_query: Query<(&Player, &UpgradesComponent)>,
+        // inventory_query: Query<&Inventory, With<BaseStation>>,
+        // factory_query: Query<&Factory>,
+        // refinery_query: Query<&Refinery>,
+        // mut craft_events: EventWriter<CraftEvent>,
+        // mut smelt_events: EventWriter<SmeltEvent>,
+        // mut upgrade_events: EventWriter<UpgradeEvent>,
     ) {
 
-            
-
-
-
-
-            
         //     ui.group(|ui| {
         //
         //         let (_, upgrades) = player_query.single();
@@ -207,214 +205,241 @@ impl GameUIPlugin {
         //     });
         //
         // });
-
     }
-    
+
     fn ui_ship_information(
         mut contexts: EguiContexts,
         player_query: Query<(&mut Player, &mut Velocity)>,
     ) {
         let (player, velocity) = player_query.single();
-    
-        egui::Window::new("Ship Information").anchor(Align2::LEFT_TOP, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
-            ui.vertical_centered_justified(|ui| {
-                ui.horizontal(|ui| {
-                    ui.group(|ui| {
-                        ui.label(format!("Health: {:.2}%", player.health.current_percent() * 100.0));
-                        let health_percent = player.health.current_percent();
-                        ui.label(Self::progress_string(health_percent));
+
+        egui::Window::new("Ship Information")
+            .anchor(Align2::LEFT_TOP, Vec2::ZERO)
+            .show(contexts.ctx_mut(), |ui| {
+                ui.vertical_centered_justified(|ui| {
+                    ui.horizontal(|ui| {
+                        ui.group(|ui| {
+                            ui.label(format!(
+                                "Health: {:.2}%",
+                                player.health.current_percent() * 100.0
+                            ));
+                            let health_percent = player.health.current_percent();
+                            ui.label(Self::progress_string(health_percent));
+                        });
+
+                        ui.group(|ui| {
+                            ui.label(format!("Battery: {:.2}KWh", player.battery.current()));
+                            let battery_percent = player.battery.current() / 1000.0;
+                            ui.label(Self::progress_string(battery_percent));
+                        });
                     });
-        
-                    ui.group(|ui| {
-                        ui.label(format!("Battery: {:.2}KWh", player.battery.current()));
-                        let battery_percent = player.battery.current() / 1000.0;
-                        ui.label(Self::progress_string(battery_percent));
+
+                    ui.horizontal(|ui| {
+                        ui.add(
+                            egui::Slider::new(&mut player.engine.power_level.clone(), 0.0..=100.0)
+                                .text("Engine Power"),
+                        );
+                        ui.label(format!("Speed: {:.2}", velocity.linvel.length()));
+                        // ui.label(format!("Direction: {:.2}", player.1.linvel.angle_between(Vec2::X)));
                     });
-                    
                 });
-    
-                ui.horizontal(|ui| {
-                    ui.add(egui::Slider::new(&mut player.engine.power_level.clone(), 0.0..=100.0).text("Engine Power"));
-                    ui.label(format!("Speed: {:.2}", velocity.linvel.length()));
-                    // ui.label(format!("Direction: {:.2}", player.1.linvel.angle_between(Vec2::X)));
-                }); 
             });
-            
-            
-        });
     }
-    
-    fn ui_context_clue(
-        mut contexts: EguiContexts,
-        context_clues_res: Res<ContextClues>,
-    ) {
+
+    fn ui_context_clue(mut contexts: EguiContexts, context_clues_res: Res<ContextClues>) {
         let cc = &context_clues_res.0;
-    
+
         if !cc.is_empty() {
-            egui::Window::new("Context Clue").anchor(Align2::CENTER_BOTTOM, Vec2::new(0.0, 100.0)).show(contexts.ctx_mut(), |ui| {
-                ui.vertical(|ui| {
-                    for clue in cc {
-                        ui.label(format!("{}", clue.text()));
-                    }
+            egui::Window::new("Context Clue")
+                .anchor(Align2::CENTER_BOTTOM, Vec2::new(0.0, 100.0))
+                .show(contexts.ctx_mut(), |ui| {
+                    ui.vertical(|ui| {
+                        for clue in cc {
+                            ui.label(format!("{}", clue.text()));
+                        }
+                    });
                 });
-            });
-        }    
+        }
     }
 
     pub fn ui_ship_hover_context(
         mut contexts: EguiContexts,
         player_hovering_building: Res<PlayerHoveringBuilding>,
-        player_query: Query<(&Player, &UpgradesComponent)>,
+        // player_query: Query<(&Player, &UpgradesComponent)>,
         inventory_query: Query<&Inventory, With<BaseStation>>,
         factory_query: Query<&Factory>,
         refinery_query: Query<&Refinery>,
         mut craft_events: EventWriter<CraftEvent>,
         mut smelt_events: EventWriter<SmeltEvent>,
-        mut upgrade_events: EventWriter<UpgradeEvent>,
+        // mut upgrade_events: EventWriter<UpgradeEvent>,
         mut build_event: EventWriter<BuildHexBuildingEvent>,
     ) {
-
-
         if player_hovering_building.0.is_some() {
             let building = &player_hovering_building.0.as_ref().unwrap().1;
 
-            egui::Window::new("Ship Hovering Context").anchor(Align2::RIGHT_BOTTOM, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
+            egui::Window::new("Ship Hovering Context")
+                .anchor(Align2::RIGHT_BOTTOM, Vec2::ZERO)
+                .show(contexts.ctx_mut(), |ui| {
+                    ui.group(|ui| {
+                        ui.heading(format!("Ship Hovering Over {:?}", building));
+                        let inventory = inventory_query.single();
 
+                        match building {
+                            BuildingType::None => {
+                                ui.group(|ui| {
+                                    let buttons: Vec<_> = vec![
+                                        ("Storage", BuildingType::Storage),
+                                        ("Factory", BuildingType::Factory),
+                                        ("Refinery", BuildingType::Refinery),
+                                    ];
 
-                ui.group(|ui| {
-                    ui.heading(format!("Ship Hovering Over {:?}", building));
-                    let inventory = inventory_query.single();
-
-                    match building {
-                        BuildingType::None => {
-
-                            ui.group(|ui| {
-
-                                let buttons: Vec<_> = vec![
-                                    ("Storage", BuildingType::Storage),
-                                    ("Factory", BuildingType::Factory),
-                                    ("Refinery", BuildingType::Refinery)
-                                ];
-
-                                for button in buttons {
-                                    if ui.button(button.0).clicked() {
-                                        println!("SEND EVENT");
-                                        build_event.send(BuildHexBuildingEvent(player_hovering_building.0.unwrap().0, button.1));
-                                    }
-                                }
-
-                            });
-
-                        }
-                        BuildingType::Factory => {
-                            ui.group(|ui| {
-
-                                let factory = factory_query.single();
-
-                                match &factory.currently_processing {
-                                    Some(recipe) => {
-
-                                        ui.group(|ui| {
-                                            ui.heading("Factory Processing:");
-                                            ui.label(format!("Currently Crafting: {:?}", recipe.item_created));
-                                            ui.label(format!("Time Remaining: {:.1} sec", factory.remaining_processing_time));
-                                            ui.label(Self::progress_string( (recipe.time_required - factory.remaining_processing_time) / recipe.time_required));
-                                        });
-
-                                    },
-                                    None => {}
-                                }
-
-                                ui.heading("Factory Recipes:");
-                                for recipe in &factory.recipes {
-
-                                    ui.group(|ui| {
-                                        ui.vertical(|ui| {
-                                            ui.horizontal(|ui| {
-                                                ui.label(format!("{:?}", recipe.item_created));
-
-                                                ui.label(format!("Requires: {:?}", recipe.items_required));
-                                                if inventory.has_items(recipe.items_required.clone()) { ui.label("👍");}
-
-                                            });
-
-                                            ui.horizontal(|ui| {
-                                                ui.label(format!("Time Required: {:.1} sec", recipe.time_required));
-
-                                                if ui.button("Craft").clicked() {
-                                                    craft_events.send(CraftEvent(recipe.clone()));
-                                                }
-                                            })
-                                        });
-                                    });
-
-                                }
-
-                            });
-                        }
-                        BuildingType::Refinery => {
-                            ui.group(|ui| {
-                                let refinery = refinery_query.single();
-
-                                match &refinery.currently_processing {
-                                    Some(recipe) => {
-
-                                        ui.group(|ui| {
-                                            ui.heading("Refinery Processing:");
-
-                                            ui.label(format!("Currently Refining: {:?}", recipe));
-                                            ui.label(format!("Time Remaining: {:.1} sec", refinery.remaining_processing_time));
-                                            ui.label(Self::progress_string( (recipe.time_required - refinery.remaining_processing_time) / recipe.time_required));
-                                        });
-
-                                    },
-                                    None => {}
-                                }
-
-                                ui.heading("Refine Raw Ores:");
-
-                                for recipe in &refinery.recipes {
-                                    ui.group(|ui| {
-                                        ui.vertical(|ui| {
-                                            ui.horizontal(|ui| {
-                                                ui.label(format!("{:?}", recipe.item_created));
-                                                ui.label(format!("Requires: {:?}", recipe.items_required));
-                                                if inventory.has_items(recipe.items_required.clone()) { ui.label("👍");}
-                                            });
-
-                                            ui.horizontal(|ui| {
-                                                ui.label(format!("Time Required: {:.1} sec", recipe.time_required));
-
-                                                if ui.button("Smelt").clicked() {
-                                                    smelt_events.send(SmeltEvent(recipe.clone()));
-                                                }
-                                            })
-                                        });
-                                    });
-
-                                }
-                            });
-                        }
-                        BuildingType::Storage => {
-                            let inventory = inventory_query.single();
-
-
-                            ui.group(|ui| {
-                                ui.heading("Base Station Inventory:");
-                                ui.vertical(|ui| {
-                                    for item in inventory.items.clone() {
-                                        ui.label(format!("{:?}", item));
+                                    for button in buttons {
+                                        if ui.button(button.0).clicked() {
+                                            println!("SEND EVENT");
+                                            build_event.send(BuildHexBuildingEvent(
+                                                player_hovering_building.0.unwrap().0,
+                                                button.1,
+                                            ));
+                                        }
                                     }
                                 });
-                            });
+                            }
+                            BuildingType::Factory => {
+                                ui.group(|ui| {
+                                    let factory = factory_query.single();
 
+                                    match &factory.currently_processing {
+                                        Some(recipe) => {
+                                            ui.group(|ui| {
+                                                ui.heading("Factory Processing:");
+                                                ui.label(format!(
+                                                    "Currently Crafting: {:?}",
+                                                    recipe.item_created
+                                                ));
+                                                ui.label(format!(
+                                                    "Time Remaining: {:.1} sec",
+                                                    factory.remaining_processing_time
+                                                ));
+                                                ui.label(Self::progress_string(
+                                                    (recipe.time_required
+                                                        - factory.remaining_processing_time)
+                                                        / recipe.time_required,
+                                                ));
+                                            });
+                                        }
+                                        None => {}
+                                    }
+
+                                    ui.heading("Factory Recipes:");
+                                    for recipe in &factory.recipes {
+                                        ui.group(|ui| {
+                                            ui.vertical(|ui| {
+                                                ui.horizontal(|ui| {
+                                                    ui.label(format!("{:?}", recipe.item_created));
+
+                                                    ui.label(format!(
+                                                        "Requires: {:?}",
+                                                        recipe.items_required
+                                                    ));
+                                                    if inventory
+                                                        .has_items(recipe.items_required.clone())
+                                                    {
+                                                        ui.label("👍");
+                                                    }
+                                                });
+
+                                                ui.horizontal(|ui| {
+                                                    ui.label(format!(
+                                                        "Time Required: {:.1} sec",
+                                                        recipe.time_required
+                                                    ));
+
+                                                    if ui.button("Craft").clicked() {
+                                                        craft_events
+                                                            .send(CraftEvent(recipe.clone()));
+                                                    }
+                                                })
+                                            });
+                                        });
+                                    }
+                                });
+                            }
+                            BuildingType::Refinery => {
+                                ui.group(|ui| {
+                                    let refinery = refinery_query.single();
+
+                                    match &refinery.currently_processing {
+                                        Some(recipe) => {
+                                            ui.group(|ui| {
+                                                ui.heading("Refinery Processing:");
+
+                                                ui.label(format!(
+                                                    "Currently Refining: {:?}",
+                                                    recipe
+                                                ));
+                                                ui.label(format!(
+                                                    "Time Remaining: {:.1} sec",
+                                                    refinery.remaining_processing_time
+                                                ));
+                                                ui.label(Self::progress_string(
+                                                    (recipe.time_required
+                                                        - refinery.remaining_processing_time)
+                                                        / recipe.time_required,
+                                                ));
+                                            });
+                                        }
+                                        None => {}
+                                    }
+
+                                    ui.heading("Refine Raw Ores:");
+
+                                    for recipe in &refinery.recipes {
+                                        ui.group(|ui| {
+                                            ui.vertical(|ui| {
+                                                ui.horizontal(|ui| {
+                                                    ui.label(format!("{:?}", recipe.item_created));
+                                                    ui.label(format!(
+                                                        "Requires: {:?}",
+                                                        recipe.items_required
+                                                    ));
+                                                    if inventory
+                                                        .has_items(recipe.items_required.clone())
+                                                    {
+                                                        ui.label("👍");
+                                                    }
+                                                });
+
+                                                ui.horizontal(|ui| {
+                                                    ui.label(format!(
+                                                        "Time Required: {:.1} sec",
+                                                        recipe.time_required
+                                                    ));
+
+                                                    if ui.button("Smelt").clicked() {
+                                                        smelt_events
+                                                            .send(SmeltEvent(recipe.clone()));
+                                                    }
+                                                })
+                                            });
+                                        });
+                                    }
+                                });
+                            }
+                            BuildingType::Storage => {
+                                let inventory = inventory_query.single();
+
+                                ui.group(|ui| {
+                                    ui.heading("Base Station Inventory:");
+                                    ui.vertical(|ui| {
+                                        for item in inventory.items.clone() {
+                                            ui.label(format!("{:?}", item));
+                                        }
+                                    });
+                                });
+                            }
                         }
-                    }
-
-
+                    });
                 });
-
-            });
         }
     }
 
@@ -423,20 +448,19 @@ impl GameUIPlugin {
         window_query: Query<&Window>,
         camera_q: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
         rapier_context: Res<RapierContext>,
-        ent_query: Query<(Entity, &Name, Option<&Astroid>)>
+        ent_query: Query<(Entity, &Name, Option<&Astroid>)>,
     ) {
-
         let window = window_query.single();
         let (camera, camera_transform) = camera_q.single();
 
-        
-            if let Some(world_position) = window.cursor_position()
-                .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
-                .map(|ray| ray.origin.truncate())
-            {
-               
-                egui::Window::new("Mouse Context").anchor(Align2::CENTER_TOP, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
-                
+        if let Some(world_position) = window
+            .cursor_position()
+            .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
+            .map(|ray| ray.origin.truncate())
+        {
+            egui::Window::new("Mouse Context")
+                .anchor(Align2::CENTER_TOP, Vec2::ZERO)
+                .show(contexts.ctx_mut(), |ui| {
                     // Raycast Mouse Position Into Viewport
 
                     let ray_pos = world_position;
@@ -446,39 +470,37 @@ impl GameUIPlugin {
                     let solid = true; // i think?
                     let filter = QueryFilter::default();
 
-                    if let Some((entity, intersection)) = rapier_context.cast_ray_and_get_normal (
-                        ray_pos, ray_dir, max_toi, solid, filter
-                    ) {
+                    if let Some((entity, intersection)) = rapier_context
+                        .cast_ray_and_get_normal(ray_pos, ray_dir, max_toi, solid, filter)
+                    {
                         let _hit_point = intersection.point;
                         let _hit_normal = intersection.normal;
                         ui.group(|ui| {
-                            ui.label(format!("X:{:.2} Y:{:.2}", world_position.x, world_position.y));
+                            ui.label(format!(
+                                "X:{:.2} Y:{:.2}",
+                                world_position.x, world_position.y
+                            ));
                         });
 
                         if let Ok((_ent, name, astroid)) = ent_query.get(entity) {
-
                             ui.group(|ui| {
                                 ui.heading(format!("{}", name));
 
                                 if let Some(astroid) = astroid {
-                                        ui.label(format!("Health: {:.2}%", astroid.health.current_percent() * 100.0));
-                                        let health_percent = astroid.health.current_percent();
-                                        ui.label(Self::progress_string(health_percent));
+                                    ui.label(format!(
+                                        "Health: {:.2}%",
+                                        astroid.health.current_percent() * 100.0
+                                    ));
+                                    let health_percent = astroid.health.current_percent();
+                                    ui.label(Self::progress_string(health_percent));
 
-                                        ui.label("Composition:");
-                                        ui.label(format!("{:?}", astroid.composition));
+                                    ui.label("Composition:");
+                                    ui.label(format!("{:?}", astroid.composition));
                                 }
-
                             });
-
-
-
                         };
-
                     }
-
                 });
-            };
-
+        };
     }
 }

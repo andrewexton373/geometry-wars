@@ -3,13 +3,13 @@ use std::time::Duration;
 use bevy::prelude::*;
 use ordered_float::OrderedFloat;
 
+use crate::astroid_material::AstroidMaterial;
 use crate::{
     base_station::BaseStation,
     inventory::{Amount, Inventory, InventoryItem},
     item_producer::ItemProducer,
     recipe::Recipe,
 };
-use crate::astroid_material::AstroidMaterial;
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Hash)]
 pub enum MetalIngot {
@@ -203,7 +203,6 @@ impl RefineryPlugin {
         }
     }
 
-
     /// Perfom a smelt action with a recipe provided by the SmeltEvent.
     fn on_smelt_event(
         mut reader: EventReader<SmeltEvent>,
@@ -230,4 +229,3 @@ impl RefineryPlugin {
 }
 
 pub struct SmeltEvent(pub Recipe);
-

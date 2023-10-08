@@ -1,9 +1,7 @@
-use bevy::{
-    prelude::*,
-};
+use bevy::prelude::*;
 
-use bevy_particle_systems::*;
 use crate::player::Player;
+use bevy_particle_systems::*;
 
 pub struct ParticlePlugin;
 
@@ -18,8 +16,7 @@ pub struct ShipAstroidImpactParticles;
 
 impl Plugin for ParticlePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app
-            .add_startup_system(Self::setup_projectile_impact_particle_system)
+        app.add_startup_system(Self::setup_projectile_impact_particle_system)
             .add_system(Self::setup_player_ship_trail_particle_system)
             .add_startup_system(Self::setup_ship_astroid_impact_particle_system);
     }
@@ -64,8 +61,7 @@ impl ParticlePlugin {
         particle_q: Query<(Entity, &ParticleSystem)>,
         asset_server: Res<AssetServer>,
     ) {
-        for (ent, player, children) in player_q.iter() {
-
+        for (ent, _player, children) in player_q.iter() {
             let mut has_particle_system = false;
 
             if let Some(children) = children {
@@ -75,7 +71,6 @@ impl ParticlePlugin {
                     }
                 }
             }
-
 
             if !has_particle_system {
                 commands.entity(ent).with_children(|parent| {
@@ -100,9 +95,7 @@ impl ParticlePlugin {
                         .insert(Playing); // TODO: add and remove this component on ship movement.
                 });
             }
-
         }
-
     }
 
     fn setup_ship_astroid_impact_particle_system(

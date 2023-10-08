@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
+use crate::events::CraftEvent;
 use crate::{
     base_station::BaseStation,
     inventory::{Amount, Inventory, InventoryItem},
@@ -10,7 +11,6 @@ use crate::{
     refinery::MetalIngot,
     // widgets::factory::CraftEvent,
 };
-use crate::events::CraftEvent;
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Hash)]
 pub enum UpgradeComponent {

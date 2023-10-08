@@ -1,7 +1,7 @@
-use bevy::prelude::Entity;
-use bevy::math::Vec2;
 use crate::hexbase::BuildingType;
 use crate::recipe::Recipe;
+use bevy::math::Vec2;
+use bevy::prelude::Entity;
 
 pub struct AblateEvent(pub Entity, pub Vec2, pub Vec2);
 

@@ -20,40 +20,40 @@
 // }
 //
 // impl ProjectilePlugin {
-    // pub fn spawn_projectile(commands: &mut Commands, position: Vec2, player_velocity: Vec2) {
-    //     const BULLET_SPEED: f32 = 6.0;
+// pub fn spawn_projectile(commands: &mut Commands, position: Vec2, player_velocity: Vec2) {
+//     const BULLET_SPEED: f32 = 6.0;
 
-    //     let projectile_shape = lyon::shapes::Circle {
-    //         radius: PROJECTILE_RADIUS * crate::PIXELS_PER_METER,
-    //         ..lyon::shapes::Circle::default()
-    //     };
+//     let projectile_shape = lyon::shapes::Circle {
+//         radius: PROJECTILE_RADIUS * crate::PIXELS_PER_METER,
+//         ..lyon::shapes::Circle::default()
+//     };
 
-    //     let spawn_position = position + player_velocity * 10.0;
-    //     let bullet_velocity = player_velocity * BULLET_SPEED * crate::PIXELS_PER_METER;
+//     let spawn_position = position + player_velocity * 10.0;
+//     let bullet_velocity = player_velocity * BULLET_SPEED * crate::PIXELS_PER_METER;
 
-    //     commands
-    //         .spawn((
-    //             Projectile {
-    //                 timer: Timer::from_seconds(5.0, TimerMode::Once),
-    //             },
-    //             ShapeBundle {
-    //                 path: GeometryBuilder::build_as(&projectile_shape),
-    //                 transform: Transform::from_translation(spawn_position.extend(0.0)),
-    //                 ..default()
-    //             },
-    //             Fill::color(Color::RED),
-    //             RigidBody::Dynamic,
-    //             Velocity {
-    //                 linvel: bullet_velocity * crate::PIXELS_PER_METER,
-    //                 angvel: 0.0,
-    //             },
-    //             Sleeping::disabled(),
-    //             Ccd::enabled(),
-    //             Collider::ball(projectile_shape.radius),
-    //             ActiveEvents::COLLISION_EVENTS,
-    //             Restitution::coefficient(0.01),
-    //         ));
-    // }
+//     commands
+//         .spawn((
+//             Projectile {
+//                 timer: Timer::from_seconds(5.0, TimerMode::Once),
+//             },
+//             ShapeBundle {
+//                 path: GeometryBuilder::build_as(&projectile_shape),
+//                 transform: Transform::from_translation(spawn_position.extend(0.0)),
+//                 ..default()
+//             },
+//             Fill::color(Color::RED),
+//             RigidBody::Dynamic,
+//             Velocity {
+//                 linvel: bullet_velocity * crate::PIXELS_PER_METER,
+//                 angvel: 0.0,
+//             },
+//             Sleeping::disabled(),
+//             Ccd::enabled(),
+//             Collider::ball(projectile_shape.radius),
+//             ActiveEvents::COLLISION_EVENTS,
+//             Restitution::coefficient(0.01),
+//         ));
+// }
 
 //     fn handle_projectile_collision_event(
 //         mut astroid_query: Query<(Entity, &Astroid, &Transform, &Velocity), With<Astroid>>,

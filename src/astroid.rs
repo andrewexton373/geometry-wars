@@ -1,38 +1,41 @@
+use crate::astroid_composition::AstroidComposition;
+use crate::astroid_material::AstroidMaterial;
+use crate::astroid_size::AstroidSize;
 use crate::health::Health;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::{self as lyon};
 use bevy_prototype_lyon::shapes::Polygon;
 use rand::seq::SliceRandom;
-use std::cmp::Ordering;
-use crate::astroid_composition::AstroidComposition;
-use crate::astroid_material::AstroidMaterial;
-use crate::astroid_size::AstroidSize; // Contains the ratio the asteroid will split at
+use std::cmp::Ordering; // Contains the ratio the asteroid will split at
 
 #[derive(Component, Clone, Debug)]
 pub struct Astroid {
     pub size: AstroidSize,
     pub health: Health,
     pub composition: AstroidComposition,
-    polygon: Polygon
+    polygon: Polygon,
 }
 
 impl Astroid {
-
     fn polygon_area(verticies: Vec<Vec2>) -> f32 {
-        use geo::{Polygon, Coord, Point, LineString, Area};
+        use geo::{Area, Coord, LineString, Point, Polygon};
 
-        let astroid_polygon_tuple = verticies.into_iter().map(|item| {
-            Point(Coord { x: item.x, y: item.y })
-        }).collect::<LineString<f32>>();
+        let astroid_polygon_tuple = verticies
+            .into_iter()
+            .map(|item| {
+                Point(Coord {
+                    x: item.x,
+                    y: item.y,
+                })
+            })
+            .collect::<LineString<f32>>();
 
         let poly = Polygon::new(LineString::from(astroid_polygon_tuple), vec![]);
         poly.signed_area()
     }
 
     pub fn new_with(size: AstroidSize, comp: AstroidComposition) -> Self {
-
         let astroid_polygon = Self::generate_shape_from_size(size);
-
 
         let poly_area = Self::polygon_area(astroid_polygon.points.clone());
 
@@ -46,7 +49,7 @@ impl Astroid {
                 upgrade_level: crate::upgrades::UpgradeLevel::Level0,
             },
             composition: comp,
-            polygon: astroid_polygon
+            polygon: astroid_polygon,
         }
     }
 

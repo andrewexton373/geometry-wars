@@ -1,23 +1,19 @@
-use bevy::prelude::*;
-use bevy::sprite::{Anchor, MaterialMesh2dBundle};
-use bevy_ecs_tilemap::prelude::*;
-use bevy_ecs_tilemap::helpers::hex_grid::axial::AxialPos;
-use crate::GameCamera;
 use crate::player::Player;
 use crate::player_input::MousePostion;
+use bevy::prelude::*;
+use bevy::sprite::MaterialMesh2dBundle;
 
 use std::collections::HashMap;
 use std::f32::consts::PI;
 
+use crate::events::BuildHexBuildingEvent;
 use bevy::render::mesh::Indices;
 use bevy::render::render_resource::PrimitiveTopology;
-use bevy::window::PrimaryWindow;
 use hexx::shapes;
 use hexx::*;
-use crate::events::BuildHexBuildingEvent;
 
 /// World size of the hexagons (outer radius)
-const HEX_SIZE: Vec2 = Vec2::splat(10.0 * crate:: PIXELS_PER_METER);
+const HEX_SIZE: Vec2 = Vec2::splat(10.0 * crate::PIXELS_PER_METER);
 
 #[derive(Debug, Default, Resource)]
 struct HighlightedHexes {
@@ -45,7 +41,7 @@ pub enum BuildingType {
     None,
     Factory,
     Refinery,
-    Storage
+    Storage,
 }
 
 #[derive(Component)]
@@ -66,10 +62,7 @@ impl Plugin for HexBasePlugin {
             .add_event::<BuildHexBuildingEvent>()
             .init_resource::<PlayerHoveringBuilding>()
             .init_resource::<HighlightedHexes>()
-            .add_systems((
-                Self::color_hexes,
-                Self::handle_mouse_interaction
-                ).chain())
+            .add_systems((Self::color_hexes, Self::handle_mouse_interaction).chain())
             .add_system(Self::handle_ship_hovering_context)
             .add_system(Self::handle_build_events)
             .add_startup_system(Self::setup_hex_grid);
@@ -93,7 +86,15 @@ impl HexBasePlugin {
         let selected_material = materials.add(Color::RED.into());
         let ship_hover_material = materials.add(Color::LIME_GREEN.into());
         let ring_material = materials.add(Color::YELLOW.into());
-        let default_material = materials.add(Color::Rgba { red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0 }.into());
+        let default_material = materials.add(
+            Color::Rgba {
+                red: 0.0,
+                green: 0.0,
+                blue: 0.0,
+                alpha: 0.0,
+            }
+            .into(),
+        );
         let factory_material = materials.add(Color::BISQUE.into());
         let refinery_material = materials.add(Color::ORANGE_RED.into());
         let storage_material = materials.add(Color::GOLD.into());
@@ -108,7 +109,8 @@ impl HexBasePlugin {
                 println!("{:?}", pos);
                 let id = commands
                     .spawn(MaterialMesh2dBundle {
-                        transform: Transform::from_xyz(pos.x, pos.y, 100.0).with_rotation(Quat::from_rotation_x(PI/2.0)),
+                        transform: Transform::from_xyz(pos.x, pos.y, 100.0)
+                            .with_rotation(Quat::from_rotation_x(PI / 2.0)),
                         mesh: bevy::sprite::Mesh2dHandle(mesh_handle.clone()),
                         material: default_material.clone(),
                         ..default()
@@ -129,7 +131,7 @@ impl HexBasePlugin {
             default_material,
             factory_material,
             refinery_material,
-            storage_material
+            storage_material,
         });
     }
 
@@ -146,18 +148,17 @@ impl HexBasePlugin {
 
     /// Input interaction
     fn handle_mouse_interaction(
-        mut commands: Commands,
+        mut _commands: Commands,
         mouse_position: Res<MousePostion>,
         map: Res<Map>,
         mut highlighted_hexes: ResMut<HighlightedHexes>,
-        mut mouse_input: Res<Input<MouseButton>>,
+        mouse_input: Res<Input<MouseButton>>,
         mut hex_query: Query<(Entity, &BaseHex, &mut Building)>,
     ) {
         let pos = mouse_position.0;
 
         let hex = map.layout.world_pos_to_hex(pos);
         if let Some(entity) = map.entities.get(&hex).copied() {
-
             if mouse_input.just_released(MouseButton::Left) {
                 if let Ok((_, _, mut building)) = hex_query.get_mut(entity) {
                     building.0 = BuildingType::Factory;
@@ -174,11 +175,11 @@ impl HexBasePlugin {
     }
 
     fn handle_ship_hovering_context(
-        mut commands: Commands,
+        mut _commands: Commands,
         map: Res<Map>,
         mut highlighted: ResMut<HighlightedHexes>,
         mut player_hovering_building: ResMut<PlayerHoveringBuilding>,
-        mut hex_query: Query<(Entity, &BaseHex, &mut Building)>,
+        hex_query: Query<(Entity, &BaseHex, &mut Building)>,
         player_query: Query<(Entity, &Player, &GlobalTransform)>,
     ) {
         *player_hovering_building = PlayerHoveringBuilding(None);
@@ -217,19 +218,18 @@ impl HexBasePlugin {
 
     fn color_hexes(
         mut commands: Commands,
-        mouse_pos: Res<MousePostion>,
+        _mouse_pos: Res<MousePostion>,
         map: Res<Map>,
         highlighted: Res<HighlightedHexes>,
         mut hex_query: Query<(Entity, &BaseHex, &mut Building)>,
     ) {
         // 1: Color By Building Type
         for (ent, _, building) in hex_query.iter_mut() {
-
             let color = match building.0 {
                 BuildingType::None => Some(map.default_material.clone()),
                 BuildingType::Factory => Some(map.factory_material.clone()),
                 BuildingType::Refinery => Some(map.refinery_material.clone()),
-                BuildingType::Storage => Some(map.storage_material.clone())
+                BuildingType::Storage => Some(map.storage_material.clone()),
             };
 
             if let Some(color) = color {
@@ -240,7 +240,9 @@ impl HexBasePlugin {
         // 2: Color Ship Hover
 
         let ship_hover_ent = map.entities.get(&highlighted.ship_hover).unwrap();
-        commands.entity(*ship_hover_ent).insert(map.ship_hover_material.clone());
+        commands
+            .entity(*ship_hover_ent)
+            .insert(map.ship_hover_material.clone());
 
         // 3: Color Mouse Hover
 
@@ -248,8 +250,6 @@ impl HexBasePlugin {
         commands
             .entity(*mouse_hover_ent)
             .insert(map.selected_material.clone());
-
-
 
         // 4: Ring?
         // for (vec, mat) in [
@@ -265,12 +265,11 @@ impl HexBasePlugin {
 
     fn handle_build_events(
         mut commands: Commands,
-        mut build_events: EventReader<BuildHexBuildingEvent>
+        mut build_events: EventReader<BuildHexBuildingEvent>,
     ) {
         for evt in build_events.iter() {
             println!("HANDLING!");
             commands.entity(evt.0).insert(Building(evt.1));
         }
     }
-
 }

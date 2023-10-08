@@ -1,19 +1,20 @@
-use bevy::{input::mouse::MouseWheel, prelude::{EventReader, EventWriter, Plugin}};
-use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 use crate::events::EnginePowerEvent;
 use crate::GameCamera;
+use bevy::prelude::*;
+use bevy::window::PrimaryWindow;
+use bevy::{
+    input::mouse::MouseWheel,
+    prelude::{EventReader, EventWriter, Plugin},
+};
 
 pub struct PlayerInputPlugin;
 
 #[derive(Resource)]
 pub struct MousePostion(pub(crate) Vec2);
 
-
 impl Plugin for PlayerInputPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app
-            .add_event::<EnginePowerEvent>()
+        app.add_event::<EnginePowerEvent>()
             .insert_resource(MousePostion(Vec2::ZERO))
             .add_system(Self::update_mouse_position_resource)
             .add_system(Self::scroll_events);
@@ -44,14 +45,12 @@ impl PlayerInputPlugin {
             let cursor_pos: Vec2 = world_pos.truncate().clone();
 
             *mouse_position = MousePostion(cursor_pos);
-
         }
     }
 
-
     pub fn scroll_events(
         mut scroll_events: EventReader<MouseWheel>,
-        mut engine_events: EventWriter<EnginePowerEvent>
+        mut engine_events: EventWriter<EnginePowerEvent>,
     ) {
         use bevy::input::mouse::MouseScrollUnit;
 
@@ -65,6 +64,5 @@ impl PlayerInputPlugin {
                 }
             }
         }
-
     }
 }

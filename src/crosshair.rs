@@ -1,8 +1,7 @@
 use crate::player::Player;
-use crate::GameCamera;
+use crate::player_input::MousePostion;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use crate::player_input::MousePostion;
 
 #[derive(Component)]
 pub struct Crosshair {}
@@ -33,9 +32,9 @@ impl CrosshairPlugin {
                 },
                 Fill::color(Color::rgba(1.0, 1.0, 1.0, 0.45)),
                 Stroke::new(Color::rgba(1.0, 1.0, 1.0, 0.1), 1.2),
-                Name::new("Crosshair")
-            )).id();
-
+                Name::new("Crosshair"),
+            ))
+            .id();
     }
 
     fn draw_crasshair(
@@ -52,6 +51,5 @@ impl CrosshairPlugin {
             let line = shapes::Line(player_trans.translation.truncate(), world_pos);
             *path = ShapePath::build_as(&line);
         }
-
     }
 }

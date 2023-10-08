@@ -1,9 +1,9 @@
+use crate::astroid_material::AstroidMaterial;
+use bevy::prelude::Component;
 use bevy::utils::HashMap;
+use rand::distributions::Distribution;
 use rand_distr::Normal;
 use std::fmt;
-use bevy::prelude::Component;
-use rand::distributions::Distribution;
-use crate::astroid_material::AstroidMaterial;
 
 #[derive(Component, Clone)]
 pub struct AstroidComposition {
@@ -68,17 +68,14 @@ impl AstroidComposition {
                 .collect(),
         }
     }
-
 }
 
 impl fmt::Debug for AstroidComposition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-
         for element in &self.composition {
-            writeln!(f, "{:?}: {:.2}%", element.0, element.1 * 100.0);
+            let _ = writeln!(f, "{:?}: {:.2}%", element.0, element.1 * 100.0);
         }
         write!(f, "")
-
     }
 }
 

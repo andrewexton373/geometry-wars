@@ -1,6 +1,5 @@
 // #![feature(array_methods)]
 
-use std::slice::Windows;
 use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
@@ -8,9 +7,9 @@ use bevy::{
     diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
     prelude::*,
 };
+use bevy_particle_systems::ParticleSystemPlugin;
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
-use bevy_particle_systems::ParticleSystemPlugin;
 
 use crosshair::CrosshairPlugin;
 use engine::EnginePlugin;
@@ -19,45 +18,45 @@ use game_ui::GameUIPlugin;
 use inventory::InventoryPlugin;
 use laser::LaserPlugin;
 use particles::ParticlePlugin;
-use player::{PlayerPlugin, Player};
+use player::{Player, PlayerPlugin};
 use player_input::PlayerInputPlugin;
 // use projectile::ProjectilePlugin;
-use refinery::RefineryPlugin;
 use astroid_plugin::AstroidPlugin;
 use base_station::BaseStationPlugin;
 use hexbase::HexBasePlugin;
+use refinery::RefineryPlugin;
 
-mod upgrades;
+mod astroid;
+mod astroid_composition;
+mod astroid_material;
+mod astroid_plugin;
+mod astroid_size;
+mod base_station;
 mod battery;
+mod crosshair;
+mod engine;
+mod events;
 mod factory;
 mod game_ui;
 mod health;
+mod hexbase;
+mod inventory;
 mod item_producer;
+mod laser;
 mod particles;
+mod player;
+mod player_input;
+mod projectile;
 mod recipe;
 mod refinery;
-mod player;
-mod astroid;
-mod projectile;
-mod laser;
-mod crosshair;
-mod base_station;
-mod inventory;
-mod player_input;
-mod engine;
-mod astroid_size;
-mod astroid_plugin;
-mod astroid_composition;
-mod astroid_material;
-mod events;
-mod hexbase;
+mod upgrades;
 
 // Defines the amount of time that should elapse between each physics step.
 // const TIME_STEP: f32 = 1.0 / 60.0;
 
 pub const PIXELS_PER_METER: f32 = 10.0;
 
-const BACKGROUND_COLOR: Color = Color::rgb(0.0, 0.0, 0.0);
+// const BACKGROUND_COLOR: Color = Color::rgb(0.0, 0.0, 0.0);
 
 pub const RESOLUTION: f32 = 16.0 / 9.0;
 pub const HEIGHT: f32 = 800.0;
@@ -75,17 +74,21 @@ pub struct GameCamera;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins
-                         .set(WindowPlugin {
-                             primary_window: Some(Window {
-                                 title: String::from("Geometry Wars"),
-                                 ..Default::default()
-                             }),
-                             ..default()
-                         })
-                         .set(ImagePlugin::default_nearest()),
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    primary_window: Some(Window {
+                        title: String::from("Geometry Wars"),
+                        ..Default::default()
+                    }),
+                    ..default()
+                })
+                .set(ImagePlugin::default_nearest()),
         )
-        .add_plugin(OverlayPlugin { font_size: 24.0, ..default() })
+        .add_plugin(OverlayPlugin {
+            font_size: 24.0,
+            ..default()
+        })
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(ShapePlugin)
         .add_plugin(ParticleSystemPlugin::default()) // <-- Add the plugin
@@ -115,20 +118,16 @@ fn main() {
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-    mut rapier_config: ResMut<RapierConfiguration>,
-) {
-    commands
-        .spawn((
-            Camera2dBundle {
-                transform: Transform::from_xyz(0.0, 0.0, 999.0).looking_at(Vec3::ZERO, Vec3::Y),
-                projection: OrthographicProjection::default().into(),
-                ..default()
-            },
-            GameCamera,
-            Name::new("GameCamera"),
-        ));
+fn setup(mut commands: Commands, mut rapier_config: ResMut<RapierConfiguration>) {
+    commands.spawn((
+        Camera2dBundle {
+            transform: Transform::from_xyz(0.0, 0.0, 999.0).looking_at(Vec3::ZERO, Vec3::Y),
+            projection: OrthographicProjection::default().into(),
+            ..default()
+        },
+        GameCamera,
+        Name::new("GameCamera"),
+    ));
 
     rapier_config.gravity = Vec2::new(0.0, 0.0);
 }

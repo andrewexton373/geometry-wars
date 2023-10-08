@@ -1,21 +1,20 @@
+use crate::astroid_size::Collectible;
 use crate::base_station::{BaseStation, CanDeposit};
 use crate::battery::Battery;
 use crate::crosshair::Crosshair;
 use crate::engine::Engine;
+use crate::events::LaserEvent;
 use crate::game_ui::{ContextClue, ContextClues};
 use crate::health::Health;
 use crate::inventory::{Capacity, Inventory, InventoryPlugin};
-use crate::events::LaserEvent;
-use crate::particles::PlayerShipTrailParticles;
+use crate::player_input::MousePostion;
 use crate::upgrades::{UpgradeEvent, UpgradesComponent};
-use crate::{GameCamera, PIXELS_PER_METER};
+use crate::PIXELS_PER_METER;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::{self as lyon, Fill, GeometryBuilder, ShapeBundle};
 use bevy_rapier2d::prelude::*;
 use ordered_float::OrderedFloat;
 use std::f32::consts::PI;
-use crate::astroid_size::Collectible;
-use crate::player_input::MousePostion;
 
 pub struct PlayerPlugin;
 
@@ -26,7 +25,7 @@ pub struct EmptyInventoryDepositTimer(Option<Timer>);
 pub struct Player {
     pub health: Health,
     pub battery: Battery,
-    pub engine: Engine
+    pub engine: Engine,
 }
 
 impl Player {
@@ -34,7 +33,7 @@ impl Player {
         Player {
             health: Health::new(),
             battery: Battery::new(),
-            engine: Engine::new() // upgrades: UpgradesComponent::new()
+            engine: Engine::new(), // upgrades: UpgradesComponent::new()
         }
     }
 
@@ -64,8 +63,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         // add things to your app here
 
-        app
-            .add_event::<UpgradeEvent>()
+        app.add_event::<UpgradeEvent>()
             .add_startup_system(Self::spawn_player)
             .add_system(Self::update_player_mass)
             .add_system(Self::player_movement.after(Self::update_player_mass))
@@ -138,22 +136,22 @@ impl PlayerPlugin {
                 ActiveEvents::COLLISION_EVENTS,
                 UpgradesComponent::new(),
                 Name::new("Player"),
-            )).id();
+            ))
+            .id();
 
         InventoryPlugin::attach_inventory_to_entity(
             &mut commands,
             Inventory {
                 items: Vec::new(),
-                capacity: Capacity { maximum: OrderedFloat(200.0) },
+                capacity: Capacity {
+                    maximum: OrderedFloat(200.0),
+                },
             },
             player,
         );
-
     }
 
-    fn trickle_charge(
-        mut player_query: Query<&mut Player>,
-    ) {
+    fn trickle_charge(mut player_query: Query<&mut Player>) {
         let mut player = player_query.single_mut();
         player.charge_battery(0.00001);
     }
@@ -173,7 +171,6 @@ impl PlayerPlugin {
         const ACCELERATION: f32 = 12000.0 * PIXELS_PER_METER;
 
         let (mut player, mut transform, mut velocity, mut ext_force) = player_query.single_mut();
-
 
         let mut thrust = Vec2::ZERO;
 
@@ -244,24 +241,29 @@ impl PlayerPlugin {
     // TODO: I think a laser might be better, need to do some raycasting though.
     fn player_fire_laser(
         keyboard_input: Res<Input<MouseButton>>,
-        mut player_query: Query<(Entity, &mut Player, &mut Transform, &GlobalTransform, &Velocity)>,
-        mut laser_event_writer:EventWriter<LaserEvent>
+        mut player_query: Query<(
+            Entity,
+            &mut Player,
+            &mut Transform,
+            &GlobalTransform,
+            &Velocity,
+        )>,
+        mut laser_event_writer: EventWriter<LaserEvent>,
     ) {
-
         let (_ent, mut player, transform, global_trans, _velocity) = player_query.single_mut();
         let player_direction = (transform.rotation * Vec3::Y).normalize();
 
         // Update Line and Opacity When Fired
         if keyboard_input.pressed(MouseButton::Left) {
-
-            if player.battery.is_empty() { return; }
+            if player.battery.is_empty() {
+                return;
+            }
 
             let ray_dir = player_direction.truncate();
             let ray_pos = global_trans.translation().truncate() + ray_dir * 100.0; // move racasting ray ahead of ship to avoid contact (there's probably a better way lol)
-            
+
             laser_event_writer.send(LaserEvent(true, ray_pos, ray_dir));
             player.drain_battery(1.0);
-
         } else {
             // Raycast to Find Target
             let ray_dir = player_direction.truncate();
@@ -269,10 +271,7 @@ impl PlayerPlugin {
 
             laser_event_writer.send(LaserEvent(false, ray_pos, ray_dir));
         }
-
-
     }
-
 
     // fn player_fire_weapon(
     //     mut commands: Commands,
@@ -317,7 +316,6 @@ impl PlayerPlugin {
         }
     }
 
-
     fn player_deposit_control(
         kb: Res<Input<KeyCode>>,
         can_deposit: Res<CanDeposit>,
@@ -332,7 +330,8 @@ impl PlayerPlugin {
 
             if player_inventory.items.is_empty() {
                 let timer = empty_deposit_timer.as_mut();
-                *timer = EmptyInventoryDepositTimer(Some(Timer::from_seconds(3.0, TimerMode::Once)));
+                *timer =
+                    EmptyInventoryDepositTimer(Some(Timer::from_seconds(3.0, TimerMode::Once)));
             }
 
             for item in player_inventory.clone().items.iter() {
@@ -345,7 +344,7 @@ impl PlayerPlugin {
     fn display_empty_ship_inventory_context_clue(
         mut context_clues: ResMut<ContextClues>,
         mut empty_deposit_timer: ResMut<EmptyInventoryDepositTimer>,
-        time: Res<Time>
+        time: Res<Time>,
     ) {
         if let Some(timer) = empty_deposit_timer.0.as_mut() {
             timer.tick(time.delta());
@@ -354,11 +353,9 @@ impl PlayerPlugin {
             if timer.finished() {
                 empty_deposit_timer.0 = None;
             }
-
         } else {
             context_clues.0.remove(&ContextClue::ShipInventoryEmpty);
         }
-
     }
 
     fn gravitate_collectibles(
