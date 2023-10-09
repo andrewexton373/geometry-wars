@@ -1,11 +1,11 @@
 use bevy_egui::{
     egui::{self, Align2, Vec2},
-    EguiContexts,
+    EguiContext,
 };
 
-use bevy::{prelude::*, utils::HashSet};
+use bevy::{prelude::*, utils::HashSet, window::PrimaryWindow};
 use bevy_rapier2d::prelude::{QueryFilter, RapierContext, Velocity};
-use egui_dnd::{utils::shift_vec, DragDropUi};
+use egui_dnd::{dnd, utils::shift_vec};
 
 use crate::events::{BuildHexBuildingEvent, CraftEvent};
 use crate::hexbase::{BuildingType, PlayerHoveringBuilding};
@@ -63,12 +63,11 @@ struct ItemType {
     name: String,
 }
 
-pub struct DND(DragDropUi, Vec<ItemType>);
+pub struct DND(Vec<ItemType>);
 
 impl Default for DND {
     fn default() -> Self {
         Self(
-            DragDropUi::default(),
             ["iron", "silver", "gold"]
                 .iter()
                 .map(|name| ItemType {
@@ -86,22 +85,29 @@ impl Plugin for GameUIPlugin {
         app
             // .add_plugin(EguiPlugin)
             .insert_resource(ContextClues(HashSet::new()))
-            .add_system(Self::ui_ship_information)
-            .add_system(Self::ui_station_menu)
-            .add_system(Self::ui_context_clue)
-            .add_system(Self::dnd_ship_inventory)
-            .add_system(Self::ui_mouse_hover_context)
-            .add_system(Self::ui_ship_hover_context);
+            .add_systems(Update, (
+                Self::ui_ship_information,
+                Self::ui_station_menu,
+                Self::ui_context_clue,
+                Self::dnd_ship_inventory,
+                Self::ui_mouse_hover_context,
+                Self::ui_ship_hover_context
+            ));
     }
 }
 
 impl GameUIPlugin {
     fn dnd_ship_inventory(
-        mut dnd: Local<DND>,
-        mut contexts: EguiContexts,
+       // mut _dnd: Local<DND>,
+        mut egui_context: Query<&mut EguiContext, With<PrimaryWindow>>,
         mut inventory_query: Query<(&Player, &mut Inventory)>,
     ) {
-        egui::Window::new("DND Ship Inventory").auto_sized().anchor(Align2::LEFT_BOTTOM, Vec2::ZERO).show(contexts.ctx_mut(), |ui| {
+        let Ok(mut ctx) = egui_context.get_single_mut() else {
+           return;
+        };
+
+
+        egui::Window::new("DND Ship Inventory").auto_sized().anchor(Align2::LEFT_BOTTOM, Vec2::ZERO).show(ctx.get_mut(), |ui| {
 
             let (_, mut inventory) = inventory_query.single_mut();
 
@@ -114,22 +120,31 @@ impl GameUIPlugin {
                 let response =
                 // make sure this is called in a vertical layout.
                 // Horizontal sorting is not supported yet.
-                
-                dnd.0.ui::<InventoryItem>(ui, inventory.items.clone().iter_mut(), |item, ui, handle| {
-                    
-                    handle.ui(ui, item, |ui| {
+                dnd(ui, "INVENTORY?").show_vec(&mut inventory.items.clone(), |ui, item, handle, _state| {
+
+                    handle.ui(ui, |ui| {
                         ui.group(|ui| {
                             ui.label(format!("{:?}", item));
                         });
-                        
-                    });
 
+                    });
                 });
+                
+                // dnd.0.ui::<InventoryItem>(ui, inventory.items.clone().iter_mut(), |item, ui, handle| {
+
+                //     handle.ui(ui, item, |ui| {
+                //         ui.group(|ui| {
+                //             ui.label(format!("{:?}", item));
+                //         });
+
+                //     });
+
+                // });
 
             // After the drag is complete, we get a response containing the old index of the
             // dragged item, as well as the index it was moved to. You can use the
             // shift_vec function as a helper if you store your items in a Vec.
-            if let Some(response) = response.completed {
+            if let Some(response) = response.update {
                 shift_vec(response.from, response.to, &mut inventory.items);
             }
 
@@ -208,14 +223,17 @@ impl GameUIPlugin {
     }
 
     fn ui_ship_information(
-        mut contexts: EguiContexts,
+        mut egui_ctx: Query<&mut EguiContext, With<PrimaryWindow>>,
         player_query: Query<(&mut Player, &mut Velocity)>,
     ) {
         let (player, velocity) = player_query.single();
+        let Ok(mut ctx) = egui_ctx.get_single_mut() else {
+            return;
+        };
 
         egui::Window::new("Ship Information")
             .anchor(Align2::LEFT_TOP, Vec2::ZERO)
-            .show(contexts.ctx_mut(), |ui| {
+            .show(ctx.get_mut(), |ui| {
                 ui.vertical_centered_justified(|ui| {
                     ui.horizontal(|ui| {
                         ui.group(|ui| {
@@ -246,13 +264,19 @@ impl GameUIPlugin {
             });
     }
 
-    fn ui_context_clue(mut contexts: EguiContexts, context_clues_res: Res<ContextClues>) {
+    fn ui_context_clue(
+        mut egui_ctx: Query<&mut EguiContext, With<PrimaryWindow>>,
+        context_clues_res: Res<ContextClues>
+    ) {
         let cc = &context_clues_res.0;
+        let Ok(mut ctx) = egui_ctx.get_single_mut() else {
+            return;
+        };
 
         if !cc.is_empty() {
             egui::Window::new("Context Clue")
                 .anchor(Align2::CENTER_BOTTOM, Vec2::new(0.0, 100.0))
-                .show(contexts.ctx_mut(), |ui| {
+                .show(ctx.get_mut(), |ui| {
                     ui.vertical(|ui| {
                         for clue in cc {
                             ui.label(format!("{}", clue.text()));
@@ -263,7 +287,7 @@ impl GameUIPlugin {
     }
 
     pub fn ui_ship_hover_context(
-        mut contexts: EguiContexts,
+        mut egui_ctx: Query<&mut EguiContext, With<PrimaryWindow>>,
         player_hovering_building: Res<PlayerHoveringBuilding>,
         // player_query: Query<(&Player, &UpgradesComponent)>,
         inventory_query: Query<&Inventory, With<BaseStation>>,
@@ -274,12 +298,16 @@ impl GameUIPlugin {
         // mut upgrade_events: EventWriter<UpgradeEvent>,
         mut build_event: EventWriter<BuildHexBuildingEvent>,
     ) {
+        let Ok(mut ctx) = egui_ctx.get_single_mut() else {
+            return;
+        };
+
         if player_hovering_building.0.is_some() {
             let building = &player_hovering_building.0.as_ref().unwrap().1;
 
             egui::Window::new("Ship Hovering Context")
                 .anchor(Align2::RIGHT_BOTTOM, Vec2::ZERO)
-                .show(contexts.ctx_mut(), |ui| {
+                .show(ctx.get_mut(), |ui| {
                     ui.group(|ui| {
                         ui.heading(format!("Ship Hovering Over {:?}", building));
                         let inventory = inventory_query.single();
@@ -444,7 +472,7 @@ impl GameUIPlugin {
     }
 
     pub fn ui_mouse_hover_context(
-        mut contexts: EguiContexts,
+        mut egui_ctx_query: Query<&mut EguiContext, With<PrimaryWindow>>,
         window_query: Query<&Window>,
         camera_q: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
         rapier_context: Res<RapierContext>,
@@ -452,6 +480,9 @@ impl GameUIPlugin {
     ) {
         let window = window_query.single();
         let (camera, camera_transform) = camera_q.single();
+        let Ok(mut context) = egui_ctx_query.get_single_mut() else {
+            return;
+        };
 
         if let Some(world_position) = window
             .cursor_position()
@@ -460,7 +491,7 @@ impl GameUIPlugin {
         {
             egui::Window::new("Mouse Context")
                 .anchor(Align2::CENTER_TOP, Vec2::ZERO)
-                .show(contexts.ctx_mut(), |ui| {
+                .show(context.get_mut(), |ui| {
                     // Raycast Mouse Position Into Viewport
 
                     let ray_pos = world_position;

@@ -6,8 +6,9 @@ use crate::player::Player;
 pub struct EnginePlugin;
 
 impl Plugin for EnginePlugin {
-    fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_system(Self::handle_player_input_events);
+    fn build(&self, app: &mut App) {
+        app
+            .add_systems(Update, Self::handle_player_input_events);
     }
 }
 

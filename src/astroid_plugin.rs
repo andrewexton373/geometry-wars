@@ -16,7 +16,7 @@ use bevy::hierarchy::DespawnRecursiveExt;
 use bevy::math::Vec2;
 use bevy::prelude::{
     default, Color, Commands, Component, Entity, EventReader, GlobalTransform, Query, Res, ResMut,
-    Resource, Text, Text2dBundle, TextStyle, Time, Timer, TimerMode, Transform, With, Without,
+    Resource, Text, Text2dBundle, TextStyle, Time, Timer, TimerMode, Transform, With, Without, Update,
 };
 use bevy_particle_systems::Playing;
 use bevy_prototype_lyon::draw::Fill;
@@ -51,20 +51,29 @@ const LASER_DAMAGE: f32 = 250.0;
 
 impl Plugin for AstroidPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(TweeningPlugin)
+        app.add_plugins(TweeningPlugin)
             .insert_resource(AstroidSpawner {
                 timer: Timer::from_seconds(0.25, TimerMode::Once),
             })
             .insert_resource(InventoryFullNotificationTimer(None))
             .add_event::<AblateEvent>()
-            .add_system(Self::spawn_astroids_aimed_at_ship)
-            .add_system(Self::despawn_far_astroids)
-            .add_system(Self::handle_astroid_collision_event)
-            .add_system(Self::ablate_astroids)
-            .add_system(Self::split_astroids_over_split_ratio)
-            .add_system(Self::remove_post_animation_text)
-            .add_system(Self::display_inventory_full_context_clue)
-            .add_system(Self::update_collectible_material_color);
+            .add_systems(Update, (
+                Self::spawn_astroids_aimed_at_ship,
+                Self::despawn_far_astroids,
+                Self::handle_astroid_collision_event,
+                Self::ablate_astroids,
+                Self::split_astroids_over_split_ratio,
+                Self::remove_post_animation_text,
+                Self::display_inventory_full_context_clue,
+                Self::update_collectible_material_color
+            ));
+            // .add_system(Self::despawn_far_astroids)
+            // .add_system(Self::handle_astroid_collision_event)
+            // .add_system(Self::ablate_astroids)
+            // .add_system(Self::split_astroids_over_split_ratio)
+            // .add_system(Self::remove_post_animation_text)
+            // .add_system(Self::display_inventory_full_context_clue)
+            // .add_system(Self::update_collectible_material_color);
         // .register_inspectable::<Astroid>();
     }
 }

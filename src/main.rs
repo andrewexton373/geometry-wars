@@ -4,7 +4,7 @@ use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 use bevy::{
-    diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
+    diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::*,
 };
 use bevy_particle_systems::ParticleSystemPlugin;
@@ -74,7 +74,7 @@ pub struct GameCamera;
 
 fn main() {
     App::new()
-        .add_plugins(
+        .add_plugins((
             DefaultPlugins
                 .set(WindowPlugin {
                     primary_window: Some(Window {
@@ -84,37 +84,39 @@ fn main() {
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest()),
-        )
-        .add_plugin(OverlayPlugin {
-            font_size: 24.0,
-            ..default()
-        })
-        .add_plugin(WorldInspectorPlugin::new())
-        .add_plugin(ShapePlugin)
-        .add_plugin(ParticleSystemPlugin::default()) // <-- Add the plugin
-        .add_plugin(PlayerPlugin)
-        .add_plugin(EnginePlugin)
-        .add_plugin(PlayerInputPlugin)
-        .add_plugin(InventoryPlugin)
-        .add_plugin(BaseStationPlugin)
-        .add_plugin(RefineryPlugin)
-        .add_plugin(FactoryPlugin)
-        .add_plugin(AstroidPlugin)
-        // .add_plugin(ProjectilePlugin)
-        .add_plugin(LaserPlugin)
-        .add_plugin(CrosshairPlugin)
-        // .insert_resource(ClearColor(BACKGROUND_COLOR))
-        .add_startup_system(setup)
-        .add_system(camera_follows_player)
-        .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
-            PIXELS_PER_METER,
+            OverlayPlugin {
+                font_size: 24.0,
+                ..default()
+            },
+            WorldInspectorPlugin::new(),
+            ShapePlugin,
+            ParticleSystemPlugin::default(),
+            RapierDebugRenderPlugin::default(),
+            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER),
+            FrameTimeDiagnosticsPlugin::default(),
         ))
-        .add_plugin(RapierDebugRenderPlugin::default())
-        .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugin(GameUIPlugin)
-        .add_plugin(ParticlePlugin)
-        .add_plugin(HexBasePlugin)
-        .add_system(screen_print_debug_text)
+        .add_plugins((
+            PlayerPlugin,
+            EnginePlugin,
+            PlayerInputPlugin,
+            InventoryPlugin,
+            BaseStationPlugin,
+            RefineryPlugin,
+            FactoryPlugin,
+            AstroidPlugin,
+            LaserPlugin,
+            CrosshairPlugin,
+            GameUIPlugin,
+            ParticlePlugin,
+            HexBasePlugin,
+        ))
+        .add_systems(Startup, (
+            setup,
+        ))
+        .add_systems(Update, (
+            camera_follows_player,
+            screen_print_debug_text
+        ))
         .run();
 }
 
@@ -143,7 +145,7 @@ fn camera_follows_player(
     camera_trans.translation.y = player_trans.translation.y;
 }
 
-fn screen_print_debug_text(diagnostics: Res<Diagnostics>) {
+fn screen_print_debug_text(diagnostics: Res<DiagnosticsStore>) {
     if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(average) = fps.average() {
             screen_print!(col: Color::WHITE, "fps: {average}");

@@ -30,12 +30,24 @@ pub struct CanDeposit(pub bool);
 
 impl Plugin for BaseStationPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(Self::spawn_base_station)
-            .add_startup_system(Self::spawn_player_base_guide_arrow)
-            .add_system(Self::guide_player_to_base_station)
-            .add_system(Self::repel_astroids_from_base_station)
-            .add_system(Self::handle_base_station_sensor_collision_event)
-            .insert_resource(CanDeposit(true));
+        app
+            .insert_resource(CanDeposit(true))
+            .add_systems(Startup, (
+                Self::spawn_base_station,
+                Self::spawn_player_base_guide_arrow,
+            ))
+            .add_systems(Update, (
+                Self::guide_player_to_base_station,
+                Self::repel_astroids_from_base_station,
+                Self::handle_base_station_sensor_collision_event
+            ));
+
+        // app.add_startup_system(Self::spawn_base_station)
+        //     .add_startup_system(Self::spawn_player_base_guide_arrow)
+        //     .add_system(Self::guide_player_to_base_station)
+        //     .add_system(Self::repel_astroids_from_base_station)
+        //     .add_system(Self::handle_base_station_sensor_collision_event)
+        //     .insert_resource(CanDeposit(true));
     }
 }
 

@@ -16,8 +16,10 @@ impl Plugin for PlayerInputPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_event::<EnginePowerEvent>()
             .insert_resource(MousePostion(Vec2::ZERO))
-            .add_system(Self::update_mouse_position_resource)
-            .add_system(Self::scroll_events);
+            .add_systems(Update, (
+                Self::update_mouse_position_resource,
+                Self::scroll_events
+            ));
     }
 }
 

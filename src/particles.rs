@@ -16,9 +16,12 @@ pub struct ShipAstroidImpactParticles;
 
 impl Plugin for ParticlePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_startup_system(Self::setup_projectile_impact_particle_system)
-            .add_system(Self::setup_player_ship_trail_particle_system)
-            .add_startup_system(Self::setup_ship_astroid_impact_particle_system);
+        app
+            .add_systems(Startup, (
+                Self::setup_projectile_impact_particle_system,
+                Self::setup_ship_astroid_impact_particle_system
+            ))
+            .add_systems(Update, Self::setup_player_ship_trail_particle_system);
     }
 }
 
@@ -41,9 +44,9 @@ impl ParticlePlugin {
                     spawn_rate_per_second: 2500.0.into(),
                     initial_speed: JitteredValue::jittered(200.0, -50.0..50.0),
                     lifetime: JitteredValue::jittered(0.30, -0.2..0.2),
-                    color: ColorOverTime::Gradient(Gradient::new(vec![
-                        ColorPoint::new(Color::RED, 0.0),
-                        ColorPoint::new(Color::rgba(1.0, 0.0, 0.0, 0.0), 1.0),
+                    color: ColorOverTime::Gradient(Curve::new(vec![
+                        CurvePoint::new(Color::RED, 0.0),
+                        CurvePoint::new(Color::rgba(1.0, 0.0, 0.0, 0.0), 1.0),
                     ])),
                     looping: true,
                     system_duration_seconds: 10.0,
@@ -82,9 +85,9 @@ impl ParticlePlugin {
                                 spawn_rate_per_second: 2500.0.into(),
                                 initial_speed: JitteredValue::jittered(15.0, -1.0..1.0),
                                 lifetime: JitteredValue::jittered(1.0, -0.5..0.5),
-                                color: ColorOverTime::Gradient(Gradient::new(vec![
-                                    ColorPoint::new(Color::WHITE, 0.0),
-                                    ColorPoint::new(Color::rgba(1.0, 1.0, 1.0, 0.0), 1.0),
+                                color: ColorOverTime::Gradient(Curve::new(vec![
+                                    CurvePoint::new(Color::WHITE, 0.0),
+                                    CurvePoint::new(Color::rgba(1.0, 1.0, 1.0, 0.0), 1.0),
                                 ])),
                                 looping: true,
                                 system_duration_seconds: 10.0,
@@ -110,9 +113,9 @@ impl ParticlePlugin {
                     spawn_rate_per_second: 2500.0.into(),
                     initial_speed: JitteredValue::jittered(200.0, -50.0..50.0),
                     lifetime: JitteredValue::jittered(0.30, -0.2..0.2),
-                    color: ColorOverTime::Gradient(Gradient::new(vec![
-                        ColorPoint::new(Color::YELLOW, 0.0),
-                        ColorPoint::new(Color::rgba(1.0, 1.0, 0.0, 0.0), 1.0),
+                    color: ColorOverTime::Gradient(Curve::new(vec![
+                        CurvePoint::new(Color::YELLOW, 0.0),
+                        CurvePoint::new(Color::rgba(1.0, 1.0, 0.0, 0.0), 1.0),
                     ])),
                     looping: true,
                     system_duration_seconds: 10.0,

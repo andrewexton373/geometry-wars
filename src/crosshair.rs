@@ -10,8 +10,12 @@ pub struct CrosshairPlugin;
 
 impl Plugin for CrosshairPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(Self::spawn_crosshair)
-            .add_system(Self::draw_crasshair);
+        app.add_systems(Startup,
+            Self::spawn_crosshair
+        );
+        app.add_systems(Update,
+            Self::draw_crosshair
+        );
     }
 }
 
@@ -37,7 +41,7 @@ impl CrosshairPlugin {
             .id();
     }
 
-    fn draw_crasshair(
+    fn draw_crosshair(
         mouse_position: Res<MousePostion>,
         player_query: Query<(&Player, &Transform), Without<Crosshair>>,
         mut crosshair_query: Query<(&mut Crosshair, &mut Path)>,

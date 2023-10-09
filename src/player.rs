@@ -63,21 +63,23 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         // add things to your app here
 
-        app.add_event::<UpgradeEvent>()
-            .add_startup_system(Self::spawn_player)
-            .add_system(Self::update_player_mass)
-            .add_system(Self::player_movement.after(Self::update_player_mass))
-            .add_system(Self::ship_rotate_towards_mouse.after(Self::player_movement))
-            // .add_system(Self::player_fire_weapon)
-            .add_system(Self::player_fire_laser)
-            .add_system(Self::player_camera_control)
-            .add_system(Self::player_deposit_control)
-            .add_system(Self::gravitate_collectibles)
-            .add_system(Self::trickle_charge)
-            .add_system(Self::ship_battery_is_empty_context_clue)
-            .add_system(Self::display_empty_ship_inventory_context_clue)
-            .add_system(Self::on_upgrade_event)
-            .insert_resource(EmptyInventoryDepositTimer(None));
+        app
+            .insert_resource(EmptyInventoryDepositTimer(None))
+            .add_event::<UpgradeEvent>()
+            .add_systems(Startup, Self::spawn_player)
+            .add_systems(Update, (
+                Self::update_player_mass,
+                Self::player_movement.after(Self::update_player_mass),
+                Self::ship_rotate_towards_mouse.after(Self::player_movement),
+                Self::player_fire_laser,
+                Self::player_camera_control,
+                Self::player_deposit_control,
+                Self::gravitate_collectibles,
+                Self::trickle_charge,
+                Self::ship_battery_is_empty_context_clue,
+                Self::display_empty_ship_inventory_context_clue,
+                Self::on_upgrade_event
+            ));
     }
 }
 

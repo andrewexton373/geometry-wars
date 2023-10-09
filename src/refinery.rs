@@ -113,8 +113,10 @@ impl Plugin for RefineryPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SmeltEvent>()
             .insert_resource(RefineryTimer(None))
-            .add_system(Self::on_smelt_event)
-            .add_system(Self::update_refinery_processing);
+            .add_systems(Update, (
+                Self::on_smelt_event,
+                Self::update_refinery_processing
+            ));
     }
 }
 
@@ -228,4 +230,5 @@ impl RefineryPlugin {
     }
 }
 
+#[derive(Event)]
 pub struct SmeltEvent(pub Recipe);

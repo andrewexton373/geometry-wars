@@ -136,8 +136,10 @@ impl Plugin for FactoryPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<CraftEvent>()
             .insert_resource(FactoryTimer(None))
-            .add_system(Self::on_craft_event)
-            .add_system(Self::update_factory_processing);
+            .add_systems(Update, (
+                Self::on_craft_event,
+                Self::update_factory_processing
+            ));
     }
 }
 

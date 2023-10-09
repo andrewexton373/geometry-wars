@@ -1,8 +1,8 @@
-use bevy::prelude::{Component, FromReflect, Reflect};
+use bevy::prelude::{Component, Reflect};
 use std::fmt;
 
 #[derive(
-    Component, Reflect, FromReflect, Default, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd,
+    Component, Reflect, Default, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd,
 )]
 pub enum AstroidMaterial {
     #[default]

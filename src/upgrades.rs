@@ -202,6 +202,7 @@ impl UpgradeType {
     }
 }
 
+#[derive(Event)]
 pub struct UpgradeEvent(pub UpgradeType);
 
 #[derive(Debug, Clone, PartialEq)]
