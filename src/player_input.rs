@@ -27,26 +27,18 @@ impl PlayerInputPlugin {
     pub fn update_mouse_position_resource(
         mut mouse_position: ResMut<MousePostion>,
         window_query: Query<&Window, With<PrimaryWindow>>,
+        _cursor_event: EventReader<CursorMoved>,
         q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
     ) {
-        let wnd = window_query.single();
+        let window = window_query.single();
+
         let (camera, camera_transform) = q_camera.single();
 
-        if let Some(screen_pos) = wnd.cursor_position() {
-            let window_size = Vec2::new(wnd.width() as f32, wnd.height() as f32);
-
-            // convert screen position [0..resolution] to ndc [-1..1] (gpu coordinates)
-            let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
-
-            // matrix for undoing the projection and camera transform
-            let ndc_to_world =
-                camera_transform.compute_matrix() * camera.projection_matrix().inverse();
-
-            // use it to convert ndc to world-space coordinates
-            let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
-            let cursor_pos: Vec2 = world_pos.truncate().clone();
-
-            *mouse_position = MousePostion(cursor_pos);
+        if let Some(world_position) = window.cursor_position()
+            .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
+            .map(|ray| ray.origin.truncate())
+        {
+            *mouse_position = MousePostion(world_position)
         }
     }
 
