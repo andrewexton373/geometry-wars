@@ -9,8 +9,6 @@ use bevy::{
 
 pub struct PlayerInputPlugin;
 
-
-// TODO: RENAME/REFACTOR to MouseWorldPosition
 #[derive(Resource)]
 pub struct MouseWorldPosition(pub(crate) Vec2);
 
@@ -56,7 +54,6 @@ impl PlayerInputPlugin {
     ) {
         let window = window_query.single();
         if let Some(pos) = window.cursor_position() {
-            dbg!(pos);
             *mouse_position = MouseScreenPosition(pos);
         }
     }

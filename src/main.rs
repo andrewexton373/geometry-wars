@@ -88,7 +88,7 @@ fn main() {
                 font_size: 24.0,
                 ..default()
             },
-            WorldInspectorPlugin::new(),
+            //WorldInspectorPlugin::new(),
             ShapePlugin,
             ParticleSystemPlugin::default(),
             RapierDebugRenderPlugin::default(),

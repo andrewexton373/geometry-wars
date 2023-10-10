@@ -1,6 +1,6 @@
 use bevy_egui::{
     egui::{self, Align2, Vec2},
-    EguiContext,
+    EguiContext, EguiContexts, EguiPlugin
 };
 
 use bevy::{prelude::*, utils::HashSet, window::PrimaryWindow};
@@ -83,7 +83,7 @@ pub struct GameUIPlugin;
 impl Plugin for GameUIPlugin {
     fn build(&self, app: &mut bevy::app::App) {
         app
-            // .add_plugin(EguiPlugin)
+            .add_plugin(EguiPlugin)
             .insert_resource(ContextClues(HashSet::new()))
             .add_systems(Update, (
                 Self::ui_ship_information,
@@ -91,14 +91,14 @@ impl Plugin for GameUIPlugin {
                 Self::ui_context_clue,
                 Self::dnd_ship_inventory,
                 Self::ui_mouse_hover_context,
-                Self::ui_ship_hover_context
+                Self::ui_ship_hover_context,
             ));
     }
 }
 
 impl GameUIPlugin {
+
     fn dnd_ship_inventory(
-       // mut _dnd: Local<DND>,
         mut egui_context: Query<&mut EguiContext, With<PrimaryWindow>>,
         mut inventory_query: Query<(&Player, &mut Inventory)>,
     ) {
@@ -117,10 +117,7 @@ impl GameUIPlugin {
 
             ui.group(|ui| {
 
-                let response =
-                // make sure this is called in a vertical layout.
-                // Horizontal sorting is not supported yet.
-                dnd(ui, "INVENTORY?").show_vec(&mut inventory.items.clone(), |ui, item, handle, _state| {
+                let response = dnd(ui, "INVENTORY?").show_vec(&mut inventory.items.clone(), |ui, item, handle, _state| {
 
                     handle.ui(ui, |ui| {
                         ui.group(|ui| {
@@ -130,27 +127,15 @@ impl GameUIPlugin {
                     });
                 });
                 
-                // dnd.0.ui::<InventoryItem>(ui, inventory.items.clone().iter_mut(), |item, ui, handle| {
+                // After the drag is complete, we get a response containing the old index of the
+                // dragged item, as well as the index it was moved to. You can use the
+                // shift_vec function as a helper if you store your items in a Vec.
+                if let Some(response) = response.update {
+                    shift_vec(response.from, response.to, &mut inventory.items);
+                }
 
-                //     handle.ui(ui, item, |ui| {
-                //         ui.group(|ui| {
-                //             ui.label(format!("{:?}", item));
-                //         });
+                });
 
-                //     });
-
-                // });
-
-            // After the drag is complete, we get a response containing the old index of the
-            // dragged item, as well as the index it was moved to. You can use the
-            // shift_vec function as a helper if you store your items in a Vec.
-            if let Some(response) = response.update {
-                shift_vec(response.from, response.to, &mut inventory.items);
-            }
-
-            });
-
-            
         });
     }
 
