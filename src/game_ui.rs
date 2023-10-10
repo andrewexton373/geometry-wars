@@ -1,6 +1,6 @@
 use bevy_egui::{
     egui::{self, Align2, Vec2},
-    EguiContext, EguiContexts, EguiPlugin
+    EguiContext, EguiPlugin
 };
 
 use bevy::{prelude::*, utils::HashSet, window::PrimaryWindow};
@@ -83,7 +83,7 @@ pub struct GameUIPlugin;
 impl Plugin for GameUIPlugin {
     fn build(&self, app: &mut bevy::app::App) {
         app
-            .add_plugin(EguiPlugin)
+            .add_plugins(EguiPlugin)
             .insert_resource(ContextClues(HashSet::new()))
             .add_systems(Update, (
                 Self::ui_ship_information,

@@ -1,7 +1,6 @@
 // #![feature(array_methods)]
 
 use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
@@ -88,7 +87,6 @@ fn main() {
                 font_size: 24.0,
                 ..default()
             },
-            //WorldInspectorPlugin::new(),
             ShapePlugin,
             ParticleSystemPlugin::default(),
             RapierDebugRenderPlugin::default(),

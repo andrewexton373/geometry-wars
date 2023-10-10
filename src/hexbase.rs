@@ -112,7 +112,7 @@ impl HexBasePlugin {
         let entities = shapes::hexagon(Hex::default(), 3)
             .map(|hex| {
                 let pos = layout.hex_to_world_pos(hex);
-                println!("{:?}", pos);
+                //println!("{:?}", pos);
                 let id = commands
                     .spawn(MaterialMesh2dBundle {
                         transform: Transform::from_xyz(pos.x, pos.y, 100.0)
