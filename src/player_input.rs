@@ -9,23 +9,30 @@ use bevy::{
 
 pub struct PlayerInputPlugin;
 
+
+// TODO: RENAME/REFACTOR to MouseWorldPosition
 #[derive(Resource)]
-pub struct MousePostion(pub(crate) Vec2);
+pub struct MouseWorldPosition(pub(crate) Vec2);
+
+#[derive(Resource)]
+pub struct MouseScreenPosition(pub(crate) Vec2);
 
 impl Plugin for PlayerInputPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_event::<EnginePowerEvent>()
-            .insert_resource(MousePostion(Vec2::ZERO))
+            .insert_resource(MouseWorldPosition(Vec2::ZERO))
+            .insert_resource(MouseScreenPosition(Vec2::ZERO))
             .add_systems(Update, (
-                Self::update_mouse_position_resource,
+                Self::update_mouse_world_position_resource,
+                Self::update_mouse_screen_position_resource,
                 Self::scroll_events
             ));
     }
 }
 
 impl PlayerInputPlugin {
-    pub fn update_mouse_position_resource(
-        mut mouse_position: ResMut<MousePostion>,
+    pub fn update_mouse_world_position_resource(
+        mut mouse_position: ResMut<MouseWorldPosition>,
         window_query: Query<&Window, With<PrimaryWindow>>,
         _cursor_event: EventReader<CursorMoved>,
         q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
@@ -38,7 +45,19 @@ impl PlayerInputPlugin {
             .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
             .map(|ray| ray.origin.truncate())
         {
-            *mouse_position = MousePostion(world_position)
+            *mouse_position = MouseWorldPosition(world_position)
+        }
+    }
+
+    pub fn update_mouse_screen_position_resource(
+        mut mouse_position: ResMut<MouseScreenPosition>,
+        window_query: Query<&Window, With<PrimaryWindow>>,
+        _cursor_event: EventReader<CursorMoved>,
+    ) {
+        let window = window_query.single();
+        if let Some(pos) = window.cursor_position() {
+            dbg!(pos);
+            *mouse_position = MouseScreenPosition(pos);
         }
     }
 

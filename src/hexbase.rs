@@ -1,5 +1,5 @@
 use crate::player::Player;
-use crate::player_input::MousePostion;
+use crate::player_input::MouseWorldPosition;
 use bevy::prelude::*;
 use bevy::sprite::MaterialMesh2dBundle;
 
@@ -155,7 +155,7 @@ impl HexBasePlugin {
     /// Input interaction
     fn handle_mouse_interaction(
         mut _commands: Commands,
-        mouse_position: Res<MousePostion>,
+        mouse_position: Res<MouseWorldPosition>,
         map: Res<Map>,
         mut highlighted_hexes: ResMut<HighlightedHexes>,
         mouse_input: Res<Input<MouseButton>>,
@@ -224,7 +224,7 @@ impl HexBasePlugin {
 
     fn color_hexes(
         mut commands: Commands,
-        _mouse_pos: Res<MousePostion>,
+        _mouse_pos: Res<MouseWorldPosition>,
         map: Res<Map>,
         highlighted: Res<HighlightedHexes>,
         mut hex_query: Query<(Entity, &BaseHex, &mut Building)>,

@@ -1,5 +1,5 @@
 use crate::player::Player;
-use crate::player_input::MousePostion;
+use crate::player_input::MouseWorldPosition;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
@@ -42,7 +42,7 @@ impl CrosshairPlugin {
     }
 
     fn draw_crosshair(
-        mouse_position: Res<MousePostion>,
+        mouse_position: Res<MouseWorldPosition>,
         player_query: Query<(&Player, &Transform), Without<Crosshair>>,
         mut crosshair_query: Query<(&mut Crosshair, &mut Path)>,
     ) {

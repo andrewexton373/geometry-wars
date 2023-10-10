@@ -20,6 +20,7 @@ impl Battery {
         }
     }
 
+
     pub fn current(&self) -> f32 {
         self._current_capacity
     }

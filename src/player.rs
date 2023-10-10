@@ -7,7 +7,7 @@ use crate::events::LaserEvent;
 use crate::game_ui::{ContextClue, ContextClues};
 use crate::health::Health;
 use crate::inventory::{Capacity, Inventory, InventoryPlugin};
-use crate::player_input::MousePostion;
+use crate::player_input::MouseWorldPosition;
 use crate::upgrades::{UpgradeEvent, UpgradesComponent};
 use crate::PIXELS_PER_METER;
 use bevy::prelude::*;
@@ -217,7 +217,7 @@ impl PlayerPlugin {
     }
 
     fn ship_rotate_towards_mouse(
-        mouse_position: Res<MousePostion>,
+        mouse_position: Res<MouseWorldPosition>,
         mut player_query: Query<(&mut Player, &mut Transform, &mut Velocity), Without<Crosshair>>,
     ) {
         let cursor_pos = mouse_position.0;

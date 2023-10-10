@@ -67,14 +67,6 @@ impl Plugin for AstroidPlugin {
                 Self::display_inventory_full_context_clue,
                 Self::update_collectible_material_color
             ));
-            // .add_system(Self::despawn_far_astroids)
-            // .add_system(Self::handle_astroid_collision_event)
-            // .add_system(Self::ablate_astroids)
-            // .add_system(Self::split_astroids_over_split_ratio)
-            // .add_system(Self::remove_post_animation_text)
-            // .add_system(Self::display_inventory_full_context_clue)
-            // .add_system(Self::update_collectible_material_color);
-        // .register_inspectable::<Astroid>();
     }
 }
 
