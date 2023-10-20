@@ -96,7 +96,9 @@ impl LaserPlugin {
                     }
 
                     let line = shapes::Line(ray_pos, hit_point);
+                    
                     *laser_path = ShapePath::build_as(&line);
+                    dbg!(line);
 
                     ablate_event_writer.send(AblateEvent(entity, hit_point, hit_normal));
                 }

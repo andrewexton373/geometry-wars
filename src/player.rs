@@ -240,7 +240,6 @@ impl PlayerPlugin {
         }
     }
 
-    // TODO: I think a laser might be better, need to do some raycasting though.
     fn player_fire_laser(
         keyboard_input: Res<Input<MouseButton>>,
         mut player_query: Query<(
@@ -268,10 +267,10 @@ impl PlayerPlugin {
             player.drain_battery(1.0);
         } else {
             // Raycast to Find Target
-            let ray_dir = player_direction.truncate();
-            let ray_pos = global_trans.translation().truncate() + ray_dir * 100.0; // move racasting ray ahead of ship to avoid contact (there's probably a better way lol)
+            // let ray_dir = player_direction.truncate();
+            // let ray_pos = global_trans.translation().truncate() + ray_dir * 100.0; // move racasting ray ahead of ship to avoid contact (there's probably a better way lol)
 
-            laser_event_writer.send(LaserEvent(false, ray_pos, ray_dir));
+            // laser_event_writer.send(LaserEvent(false, ray_pos, ray_dir));
         }
     }
 
