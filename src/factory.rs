@@ -237,7 +237,7 @@ impl FactoryPlugin {
         >,
         mut factory_timer: ResMut<FactoryTimer>,
     ) {
-        for event in reader.iter() {
+        for event in reader.read() {
             println!("Craft Event Detected!");
             let (_base_station, inventory, factory) = base_station_query.single_mut();
 

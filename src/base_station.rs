@@ -65,10 +65,8 @@ impl BaseStationPlugin {
             .spawn((
                 ShapeBundle {
                     path: GeometryBuilder::build_as(&base_shape),
-                    transform: Transform {
-                        translation: Vec3::new(0.0, 0.0, -100.0),
-                        ..Default::default()
-                    },
+                    spatial: Transform::from_xyz(0.0, 0.0, -100.0).into(),
+
                     ..default()
                 },
                 //TODO: Fill and Stroke aren't applying for some reason

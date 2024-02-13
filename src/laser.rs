@@ -32,10 +32,7 @@ impl LaserPlugin {
                 Laser {},
                 ShapeBundle {
                     path: GeometryBuilder::build_as(&line),
-                    transform: Transform {
-                        scale: Vec3::new(1.0, 1.0, 1.0),
-                        ..Default::default()
-                    },
+                    spatial: Transform::from_xyz(1.0, 1.0, 1.0).into(),
                     ..default()
                 },
                 Stroke::new(Color::rgba(1.0, 0.0, 0.0, 0.9), 5.0),
@@ -70,7 +67,7 @@ impl LaserPlugin {
         let line = shapes::Line(Vec2::ZERO, Vec2::ZERO);
         *laser_path = ShapePath::build_as(&line);
 
-        for fire_laser_event in laser_event_reader.iter() {
+        for fire_laser_event in laser_event_reader.read() {
             let laser_active = fire_laser_event.0;
             let ray_pos = fire_laser_event.1;
             let ray_dir = fire_laser_event.2;

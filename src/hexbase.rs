@@ -141,14 +141,13 @@ impl HexBasePlugin {
         });
     }
 
-    /// Compute a bevy mesh from the layout
     fn hexagonal_plane(hex_layout: &HexLayout) -> Mesh {
-        let mesh_info = MeshInfo::hexagonal_plane(hex_layout, Hex::ZERO);
-        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, mesh_info.vertices.to_vec());
-        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, mesh_info.normals.to_vec());
-        mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, mesh_info.uvs.to_vec());
-        mesh.set_indices(Some(Indices::U16(mesh_info.indices)));
+        let mesh_info = PlaneMeshBuilder::new(hex_layout).build();
+        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList)
+            .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, mesh_info.vertices)
+            .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, mesh_info.normals)
+            .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, mesh_info.uvs)
+            .with_indices(Some(Indices::U16(mesh_info.indices)));
         mesh
     }
 
@@ -174,7 +173,7 @@ impl HexBasePlugin {
             // Draw a  line
             highlighted_hexes.line = Hex::ZERO.line_to(hex).collect();
             // Draw a ring
-            highlighted_hexes.ring = Hex::ZERO.ring(hex.ulength());
+            // highlighted_hexes.ring = Hex::ZERO.ring(hex.ulength());
 
             highlighted_hexes.selected = hex;
         }
@@ -273,7 +272,7 @@ impl HexBasePlugin {
         mut commands: Commands,
         mut build_events: EventReader<BuildHexBuildingEvent>,
     ) {
-        for evt in build_events.iter() {
+        for evt in build_events.read() {
             println!("HANDLING!");
             commands.entity(evt.0).insert(Building(evt.1));
         }

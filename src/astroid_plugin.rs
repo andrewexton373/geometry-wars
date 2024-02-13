@@ -24,7 +24,7 @@ use bevy_prototype_lyon::entity::ShapeBundle;
 use bevy_prototype_lyon::geometry::GeometryBuilder;
 use bevy_prototype_lyon::prelude::FillOptions;
 use bevy_rapier2d::dynamics::{
-    Ccd, MassProperties, ReadMassProperties, RigidBody, Sleeping, Velocity,
+    AdditionalMassProperties, Ccd, ReadMassProperties, RigidBody, Sleeping, Velocity
 };
 use bevy_rapier2d::geometry::{ActiveEvents, Collider, Restitution};
 use bevy_rapier2d::plugin::RapierContext;
@@ -58,7 +58,7 @@ impl Plugin for AstroidPlugin {
             .insert_resource(InventoryFullNotificationTimer(None))
             .add_event::<AblateEvent>()
             .add_systems(Update, (
-                Self::spawn_astroids_aimed_at_ship,
+                // Self::spawn_astroids_aimed_at_ship,
                 Self::despawn_far_astroids,
                 Self::handle_astroid_collision_event,
                 Self::ablate_astroids,
@@ -149,19 +149,20 @@ impl AstroidPlugin {
                 astroid.clone(),
                 ShapeBundle {
                     path: GeometryBuilder::build_as(&astroid.polygon()),
-                    transform: Transform::from_xyz(position.x, position.y, 0.0),
+                    // transform: Transform::from_xyz(position.x, position.y, 0.0),
                     ..default()
                 },
+                Transform::from_xyz(position.x, position.y, 0.0),
                 Fill::color(Color::DARK_GRAY),
                 RigidBody::Dynamic,
                 Velocity {
                     linvel: velocity,
                     angvel: 0.0,
                 },
-                Sleeping::disabled(),
+                // Sleeping::disabled(),
                 Collider::convex_hull(&astroid.polygon().points).unwrap(),
                 ActiveEvents::COLLISION_EVENTS,
-                ReadMassProperties(MassProperties::default()),
+                AdditionalMassProperties::default(),
                 Restitution::coefficient(0.01),
                 splittable,
                 Name::new("Astroid"),
@@ -242,7 +243,8 @@ impl AstroidPlugin {
 
                         match astroid.size {
                             AstroidSize::OreChunk => {
-                                let ore_chunk_mass = mass_properties.0.mass;
+                                let ore_chunk_mass = mass_properties.mass;
+
                                 for comp in astroid.composition.percent_composition().iter() {
                                     if !inventory.add_to_inventory(&InventoryItem::Material(
                                         *comp.0,
@@ -303,7 +305,7 @@ impl AstroidPlugin {
         mut commands: Commands,
         mut tween_completed: EventReader<TweenCompleted>,
     ) {
-        for evt in tween_completed.iter() {
+        for evt in tween_completed.read() {
             if evt.user_data == 111 {
                 commands.entity(evt.entity).despawn_recursive();
             }
@@ -318,7 +320,7 @@ impl AstroidPlugin {
     ) {
         let font = asset_server.load("fonts/FiraMono-Regular.ttf");
 
-        for ablate_event in ablate_event_reader.iter() {
+        for ablate_event in ablate_event_reader.read() {
             let mut rng = rand::thread_rng();
             // let split_angle = rng.gen_range(0.0..PI / 4.0); TODO: Might keep splititng astroids
 
@@ -390,9 +392,9 @@ impl AstroidPlugin {
                         astroid.clone(),
                         ShapeBundle {
                             path: GeometryBuilder::build_as(&astroid.polygon()),
-                            transform: Transform::from_xyz(ablate_event.1.x, ablate_event.1.y, 0.0),
                             ..default()
                         },
+                        Transform::from_xyz(ablate_event.1.x, ablate_event.1.y, 0.0),
                         Fill::color(Color::DARK_GRAY),
                         RigidBody::Dynamic,
                         Velocity {
@@ -403,7 +405,7 @@ impl AstroidPlugin {
                         Ccd::enabled(),
                         Collider::convex_hull(&astroid.polygon().points).unwrap(),
                         ActiveEvents::COLLISION_EVENTS,
-                        ReadMassProperties(MassProperties::default()),
+                        AdditionalMassProperties::default(),
                         Restitution::coefficient(0.01),
                         Name::new("Astroid"),
                     ))

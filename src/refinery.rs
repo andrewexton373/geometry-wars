@@ -214,7 +214,7 @@ impl RefineryPlugin {
         >,
         mut refinery_timer: ResMut<RefineryTimer>,
     ) {
-        for event in reader.iter() {
+        for event in reader.read() {
             println!("Smelt Event Detected!");
             let (_base_station, inventory, refinery) = base_station_query.single_mut();
 

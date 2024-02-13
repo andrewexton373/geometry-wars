@@ -18,7 +18,7 @@ impl EnginePlugin {
         mut player_query: Query<&mut Player>,
     ) {
         for mut player in player_query.iter_mut() {
-            for event in engine_events.iter() {
+            for event in engine_events.read() {
                 let delta = event.0;
                 player.engine.delta_power_level(delta);
             }

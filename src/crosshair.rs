@@ -28,10 +28,7 @@ impl CrosshairPlugin {
                 Crosshair {},
                 ShapeBundle {
                     path: GeometryBuilder::build_as(&line),
-                    transform: Transform {
-                        scale: Vec3::new(1.0, 1.0, 1.0),
-                        ..Default::default()
-                    },
+                    spatial: Transform::from_xyz(1.0, 1.0, 1.0).into(),
                     ..default()
                 },
                 Fill::color(Color::rgba(1.0, 1.0, 1.0, 0.45)),

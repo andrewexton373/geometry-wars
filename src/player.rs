@@ -110,14 +110,8 @@ impl PlayerPlugin {
                 Player::new(),
                 ShapeBundle {
                     path: GeometryBuilder::build_as(&player_shape),
-                    transform: Transform {
-                        translation: Vec3 {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 100.0,
-                        },
-                        ..Default::default()
-                    },
+                    spatial: Transform::from_xyz(0.0, 0.0, 100.0).into(),
+
                     ..default()
                 },
                 Fill::color(Color::CYAN),
@@ -421,7 +415,7 @@ impl PlayerPlugin {
         mut base_station_query: Query<(&BaseStation, &mut Inventory), With<BaseStation>>,
         mut player_query: Query<(&mut Player, &mut UpgradesComponent), Without<BaseStation>>, // mut refinery_timer: ResMut<RefineryTimer>,
     ) {
-        for event in reader.iter() {
+        for event in reader.read() {
             println!("Upgrade Event Detected!");
             let (_base_station, mut inventory) = base_station_query.single_mut();
             let (mut player, mut upgrades) = player_query.single_mut();

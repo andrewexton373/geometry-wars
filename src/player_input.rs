@@ -64,7 +64,7 @@ impl PlayerInputPlugin {
     ) {
         use bevy::input::mouse::MouseScrollUnit;
 
-        for event in scroll_events.iter() {
+        for event in scroll_events.read() {
             match event.unit {
                 MouseScrollUnit::Line => {
                     engine_events.send(EnginePowerEvent(event.y));
