@@ -1,7 +1,7 @@
 use bevy_egui::{
-    egui::{self, Align2, Vec2}, EguiContext, EguiContexts, EguiPlugin
+    egui::{self, Align2}, EguiContext, EguiContexts, EguiPlugin
 };
-
+use bevy::math::Vec2;
 use bevy::{prelude::*, utils::HashSet, window::PrimaryWindow};
 // use bevy_rapier2d::prelude::{QueryFilter, RapierContext, Velocity};
 use bevy_xpbd_2d::prelude::*;
@@ -91,7 +91,7 @@ impl Plugin for GameUIPlugin {
                 Self::ui_context_clue,
                 Self::dnd_ship_inventory,
                 Self::ui_mouse_hover_context,
-                // Self::ui_ship_hover_context,
+                Self::ui_ship_hover_context,
             ));
     }
 }
@@ -105,7 +105,7 @@ impl GameUIPlugin {
     ) {
 
 
-        egui::Window::new("DND Ship Inventory").auto_sized().anchor(Align2::LEFT_BOTTOM, Vec2::ZERO).show(ctx.ctx_mut(), |ui| {
+        egui::Window::new("DND Ship Inventory").auto_sized().anchor(Align2::LEFT_BOTTOM, bevy_inspector_egui::egui::Vec2 {x: 0.0, y: 0.0}).show(ctx.ctx_mut(), |ui| {
 
             let (_, mut inventory) = inventory_query.single_mut();
 
@@ -214,7 +214,7 @@ impl GameUIPlugin {
 
 
         egui::Window::new("Ship Information")
-            .anchor(Align2::LEFT_TOP, Vec2::ZERO)
+            .anchor(Align2::LEFT_TOP, bevy_inspector_egui::egui::Vec2 {x: 0.0, y: 0.0})
             .show(ctx.ctx_mut(), |ui| {
                 ui.vertical_centered_justified(|ui| {
                     ui.horizontal(|ui| {
@@ -241,6 +241,8 @@ impl GameUIPlugin {
                         );
                         ui.label(format!("Speed: {:.2}", velocity.0.length()));
                         // ui.label(format!("Direction: {:.2}", player.1.linvel.angle_between(Vec2::X)));
+                        ui.label(format!("Direction: {:.2}", velocity.0.angle_between(Vec2::X)));
+
                     });
                 });
             });
@@ -255,7 +257,7 @@ impl GameUIPlugin {
 
         if !cc.is_empty() {
             egui::Window::new("Context Clue")
-                .anchor(Align2::CENTER_BOTTOM, Vec2::new(0.0, 100.0))
+                .anchor(Align2::CENTER_BOTTOM, bevy_inspector_egui::egui::Vec2 {x: 0.0, y: 100.0})
                 .show(ctx.ctx_mut(), |ui| {
                     ui.vertical(|ui| {
                         for clue in cc {
@@ -284,7 +286,7 @@ impl GameUIPlugin {
             let building = &player_hovering_building.0.as_ref().unwrap().1;
 
             egui::Window::new("Ship Hovering Context")
-                .anchor(Align2::RIGHT_BOTTOM, Vec2::ZERO)
+                .anchor(Align2::RIGHT_BOTTOM, bevy_inspector_egui::egui::Vec2 {x: 0.0, y: 0.0})
                 .show(ctx.ctx_mut(), |ui| {
                     ui.group(|ui| {
                         ui.heading(format!("Ship Hovering Over {:?}", building));
@@ -468,7 +470,7 @@ impl GameUIPlugin {
             .map(|ray| ray.origin.truncate())
         {
             egui::Window::new("Mouse Context")
-                .anchor(Align2::CENTER_TOP, Vec2::ZERO)
+                .anchor(Align2::CENTER_TOP, bevy_inspector_egui::egui::Vec2 {x: 0.0, y: 0.0})
                 .show(ctx.ctx_mut(), |ui| {
                     // Raycast Mouse Position Into Viewport
 

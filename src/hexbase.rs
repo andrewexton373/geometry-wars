@@ -67,7 +67,7 @@ impl Plugin for HexBasePlugin {
                 Self::setup_hex_grid
             )
             .add_systems(Update, (
-                // Self::color_hexes,
+                Self::color_hexes,
                 Self::handle_mouse_interaction,
                 Self::handle_ship_hovering_context,
                 // Self::handle_build_events,
@@ -115,7 +115,7 @@ impl HexBasePlugin {
                 //println!("{:?}", pos);
                 let id = commands
                     .spawn(MaterialMesh2dBundle {
-                        transform: Transform::from_xyz(pos.x, pos.y, 100.0)
+                        transform: Transform::from_xyz(pos.x, pos.y, 0.0)
                             .with_rotation(Quat::from_rotation_x(PI / 2.0)),
                         mesh: bevy::sprite::Mesh2dHandle(mesh_handle.clone()),
                         material: default_material.clone(),
@@ -169,6 +169,8 @@ impl HexBasePlugin {
                     building.0 = BuildingType::Factory;
                 }
             }
+
+            dbg!("HIT MOUSE HOVER");
 
             // Draw a  line
             highlighted_hexes.line = Hex::ZERO.line_to(hex).collect();
@@ -255,6 +257,8 @@ impl HexBasePlugin {
         commands
             .entity(*mouse_hover_ent)
             .insert(map.selected_material.clone());
+
+        dbg!("MOUSE HOVER ENT: :?", mouse_hover_ent);
 
         // 4: Ring?
         // for (vec, mat) in [

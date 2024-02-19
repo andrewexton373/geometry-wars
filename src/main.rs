@@ -8,7 +8,6 @@ use bevy::{
 };
 use bevy_particle_systems::ParticleSystemPlugin;
 use bevy_prototype_lyon::prelude::*;
-// use bevy_rapier2d::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
@@ -96,8 +95,6 @@ fn main() {
             PhysicsPlugins::default(),
             // Enables debug rendering
             PhysicsDebugPlugin::default(),
-            // RapierDebugRenderPlugin::default(),
-            // RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER),
             FrameTimeDiagnosticsPlugin::default(),
         ))
         .add_plugins((

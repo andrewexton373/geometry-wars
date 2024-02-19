@@ -98,14 +98,7 @@ impl PlayerPlugin {
                 Vec2 {x: -1.0 * crate::PIXELS_PER_METER, y: -1.0 * crate::PIXELS_PER_METER}
             ],
             closed: true
-        };
-
-        let points = vec![
-            Point2::new(0.0, 2.0 * crate::PIXELS_PER_METER),
-            Point2::new(1.0 * crate::PIXELS_PER_METER, -1.0 * crate::PIXELS_PER_METER),
-            Point2::new(-1.0 * crate::PIXELS_PER_METER, -1.0 * crate::PIXELS_PER_METER),
-        ];
-        
+        };        
 
         let player = commands.spawn(Player::new())
             .insert((
@@ -117,26 +110,11 @@ impl PlayerPlugin {
                 Mass(1.0),
                 Inertia(1.0),
                 AngularDamping(0.99),
-                // AdditionalMassProperties::Mass(10.0),
-                // ExternalForce {
-                //     force: Vec2::new(0.0, 0.0),
-                //     torque: 0.0,
-                // },
-                // Damping {
-                //     linear_damping: 0.8,
-                //     angular_damping: 0.0,
-                // },
-                // Velocity::zero(),
                 ExternalForce::ZERO,
                 AngularVelocity::ZERO,
                 LinearVelocity::ZERO,
                 Friction::new(10.0),
-                // Sleeping::disabled(),
-                // Ccd::enabled(),
-                // Collider::shape(&player_poly.points).unwrap(),
                 Collider::convex_hull(player_poly.points.clone()).unwrap(),
-                // Collider::convex_hull(&player_poly.points).unwrap(),
-                // ActiveEvents::COLLISION_EVENTS,
             ))
             .insert((
                 ShapeBundle {
@@ -377,7 +355,6 @@ impl PlayerPlugin {
         for (_player, inventory, mut mass) in player_query.iter_mut() {
             let inventory_weight = inventory.gross_material_weight();
             mass.0 = (inventory_weight + PLAYER_MASS).0;
-            dbg!("MASS: :?", mass.0);
         }
     }
 

@@ -2,7 +2,6 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::{
     self as lyon, Fill, FillOptions, GeometryBuilder, ShapeBundle, Stroke,
 };
-// use bevy_rapier2d::prelude::{ActiveEvents, Collider, RapierContext, Sensor, Sleeping, Velocity};
 use bevy_xpbd_2d::prelude::*;
 use ordered_float::OrderedFloat;
 
@@ -42,13 +41,6 @@ impl Plugin for BaseStationPlugin {
                 Self::repel_astroids_from_base_station,
                 Self::handle_base_station_sensor_collision_event
             ));
-
-        // app.add_startup_system(Self::spawn_base_station)
-        //     .add_startup_system(Self::spawn_player_base_guide_arrow)
-        //     .add_system(Self::guide_player_to_base_station)
-        //     .add_system(Self::repel_astroids_from_base_station)
-        //     .add_system(Self::handle_base_station_sensor_collision_event)
-        //     .insert_resource(CanDeposit(true));
     }
 }
 
@@ -70,13 +62,9 @@ impl BaseStationPlugin {
 
                     ..default()
                 },
-                //TODO: Fill and Stroke aren't applying for some reason
                 Fill::color(Color::BLUE),
                 Stroke::new(Color::WHITE, 5.0),
-                // Sleeping::disabled(),
                 Collider::ball(crate::PIXELS_PER_METER * BASE_STATION_SIZE),
-                // Sensor,
-                // ActiveEvents::COLLISION_EVENTS,
                 BaseStation,
                 Name::new("Base Station"),
             ))
@@ -189,25 +177,25 @@ impl BaseStationPlugin {
     }
 
     fn handle_base_station_sensor_collision_event(
-        // rapier_context: Res<RapierContext>,
-        mut can_deposit_res: ResMut<CanDeposit>,
-        mut context_clues_res: ResMut<ContextClues>,
+        collisions: Res<Collisions>,
         mut player_query: Query<(Entity, &mut Player), With<Player>>,
         base_station_query: Query<(Entity, &BaseStation), With<BaseStation>>,
+        mut can_deposit_res: ResMut<CanDeposit>,
+        mut context_clues_res: ResMut<ContextClues>,
         time: Res<Time>,
     ) {
         let (player_ent, mut player) = player_query.single_mut();
         let (base_station_ent, _base_station) = base_station_query.single();
 
-        // if rapier_context.intersection_pair(player_ent, base_station_ent) == Some(true) {
-        //     *can_deposit_res = CanDeposit(true);
-        //     context_clues_res.0.insert(ContextClue::NearBaseStation);
+        if let Some(collision) = collisions.get(player_ent, base_station_ent) {
+            *can_deposit_res = CanDeposit(true);
+            context_clues_res.0.insert(ContextClue::NearBaseStation);
 
-        //     player.charge_battery(100.0 * time.delta_seconds());
-        //     player.repair_damage(10.0 * time.delta_seconds());
-        // } else {
-        //     *can_deposit_res = CanDeposit(false);
-        //     context_clues_res.0.remove(&ContextClue::NearBaseStation);
-        // }
+            player.charge_battery(100.0 * time.delta_seconds());
+            player.repair_damage(10.0 * time.delta_seconds());
+        } else {
+            *can_deposit_res = CanDeposit(false);
+            context_clues_res.0.remove(&ContextClue::NearBaseStation);
+        }
     }
 }

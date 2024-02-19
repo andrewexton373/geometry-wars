@@ -28,7 +28,6 @@ impl CrosshairPlugin {
                 Crosshair {},
                 ShapeBundle {
                     path: GeometryBuilder::build_as(&line),
-                    // spatial: Transform::from_xyz(1.0, 1.0, 1.0).into(),
                     ..default()
                 },
                 Fill::color(Color::rgba(1.0, 1.0, 1.0, 0.45)),
@@ -50,8 +49,8 @@ impl CrosshairPlugin {
         // Draw Crosshair
         {
             let line = shapes::Line(player_trans.translation.truncate(), world_pos);
-            dbg!("Crosshair: :?", line);
-            dbg!("Path: :?", &path.0);
+            // dbg!("Crosshair: :?", line);
+            // dbg!("Path: :?", &path.0);
 
             *path = ShapePath::build_as(&line);
         }
