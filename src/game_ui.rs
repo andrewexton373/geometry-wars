@@ -3,7 +3,8 @@ use bevy_egui::{
 };
 
 use bevy::{prelude::*, utils::HashSet, window::PrimaryWindow};
-use bevy_rapier2d::prelude::{QueryFilter, RapierContext, Velocity};
+// use bevy_rapier2d::prelude::{QueryFilter, RapierContext, Velocity};
+use bevy_xpbd_2d::prelude::*;
 use egui_dnd::{dnd, utils::shift_vec};
 
 use crate::events::{BuildHexBuildingEvent, CraftEvent};
@@ -90,7 +91,7 @@ impl Plugin for GameUIPlugin {
                 Self::ui_context_clue,
                 Self::dnd_ship_inventory,
                 Self::ui_mouse_hover_context,
-                Self::ui_ship_hover_context,
+                // Self::ui_ship_hover_context,
             ));
     }
 }
@@ -205,7 +206,7 @@ impl GameUIPlugin {
     }
 
     fn ui_ship_information(
-        player_query: Query<(&mut Player, &mut Velocity)>,
+        player_query: Query<(&mut Player, &mut LinearVelocity)>,
         mut ctx: EguiContexts
     ) {
 
@@ -238,7 +239,7 @@ impl GameUIPlugin {
                             egui::Slider::new(&mut player.engine.power_level.clone(), 0.0..=100.0)
                                 .text("Engine Power"),
                         );
-                        ui.label(format!("Speed: {:.2}", velocity.linvel.length()));
+                        ui.label(format!("Speed: {:.2}", velocity.0.length()));
                         // ui.label(format!("Direction: {:.2}", player.1.linvel.angle_between(Vec2::X)));
                     });
                 });
@@ -453,7 +454,7 @@ impl GameUIPlugin {
         mut ctx: EguiContexts,
         window_query: Query<&Window>,
         camera_q: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
-        rapier_context: Res<RapierContext>,
+        // rapier_context: Res<RapierContext>,
         ent_query: Query<(Entity, &Name, Option<&Astroid>)>,
     ) {
 
@@ -476,38 +477,38 @@ impl GameUIPlugin {
 
                     let max_toi = 0.001;
                     let solid = true; // i think?
-                    let filter = QueryFilter::default();
+                    // let filter = QueryFilter::default();
 
-                    if let Some((entity, intersection)) = rapier_context
-                        .cast_ray_and_get_normal(ray_pos, ray_dir, max_toi, solid, filter)
-                    {
-                        let _hit_point = intersection.point;
-                        let _hit_normal = intersection.normal;
-                        ui.group(|ui| {
-                            ui.label(format!(
-                                "X:{:.2} Y:{:.2}",
-                                world_position.x, world_position.y
-                            ));
-                        });
+                    // if let Some((entity, intersection)) = rapier_context
+                    //     .cast_ray_and_get_normal(ray_pos, ray_dir, max_toi, solid, filter)
+                    // {
+                    //     let _hit_point = intersection.point;
+                    //     let _hit_normal = intersection.normal;
+                    //     ui.group(|ui| {
+                    //         ui.label(format!(
+                    //             "X:{:.2} Y:{:.2}",
+                    //             world_position.x, world_position.y
+                    //         ));
+                    //     });
 
-                        if let Ok((_ent, name, astroid)) = ent_query.get(entity) {
-                            ui.group(|ui| {
-                                ui.heading(format!("{}", name));
+                    //     if let Ok((_ent, name, astroid)) = ent_query.get(entity) {
+                    //         ui.group(|ui| {
+                    //             ui.heading(format!("{}", name));
 
-                                if let Some(astroid) = astroid {
-                                    ui.label(format!(
-                                        "Health: {:.2}%",
-                                        astroid.health.current_percent() * 100.0
-                                    ));
-                                    let health_percent = astroid.health.current_percent();
-                                    ui.label(Self::progress_string(health_percent));
+                    //             if let Some(astroid) = astroid {
+                    //                 ui.label(format!(
+                    //                     "Health: {:.2}%",
+                    //                     astroid.health.current_percent() * 100.0
+                    //                 ));
+                    //                 let health_percent = astroid.health.current_percent();
+                    //                 ui.label(Self::progress_string(health_percent));
 
-                                    ui.label("Composition:");
-                                    ui.label(format!("{:?}", astroid.composition));
-                                }
-                            });
-                        };
-                    }
+                    //                 ui.label("Composition:");
+                    //                 ui.label(format!("{:?}", astroid.composition));
+                    //             }
+                    //         });
+                    //     };
+                    // }
                 });
         };
     }

@@ -12,7 +12,12 @@ use crate::upgrades::{UpgradeEvent, UpgradesComponent};
 use crate::PIXELS_PER_METER;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::{self as lyon, Fill, GeometryBuilder, ShapeBundle};
-use bevy_rapier2d::prelude::*;
+use bevy_prototype_lyon::shapes;
+use bevy_xpbd_2d::prelude::*;
+use bevy_xpbd_2d::components::{Collider, ExternalForce, LinearVelocity, RigidBody};
+use bevy_xpbd_2d::parry::na::Point2;
+use bevy_xpbd_2d::parry::shape::{ConvexPolygon, SharedShape};
+// use bevy_rapier2d::prelude::*;
 use ordered_float::OrderedFloat;
 use std::f32::consts::PI;
 
@@ -85,55 +90,61 @@ impl Plugin for PlayerPlugin {
 
 impl PlayerPlugin {
     fn spawn_player(mut commands: Commands) {
-        let points = vec![
-            Vec2 {
-                x: 0.0,
-                y: 2.0 * crate::PIXELS_PER_METER,
-            },
-            Vec2 {
-                x: 1.0 * crate::PIXELS_PER_METER,
-                y: -1.0 * crate::PIXELS_PER_METER,
-            },
-            Vec2 {
-                x: -1.0 * crate::PIXELS_PER_METER,
-                y: -1.0 * crate::PIXELS_PER_METER,
-            },
-        ];
 
-        let player_shape = lyon::shapes::Polygon {
-            points,
-            closed: true,
+        let player_poly = shapes::Polygon {
+            points: vec![
+                Vec2 {x: 0.0, y: 2.0 * crate::PIXELS_PER_METER},
+                Vec2 {x: 1.0 * crate::PIXELS_PER_METER, y: -1.0 * crate::PIXELS_PER_METER},
+                Vec2 {x: -1.0 * crate::PIXELS_PER_METER, y: -1.0 * crate::PIXELS_PER_METER}
+            ],
+            closed: true
         };
 
-        let player = commands
-            .spawn((
-                Player::new(),
-                ShapeBundle {
-                    path: GeometryBuilder::build_as(&player_shape),
-                    spatial: Transform::from_xyz(0.0, 0.0, 100.0).into(),
+        let points = vec![
+            Point2::new(0.0, 2.0 * crate::PIXELS_PER_METER),
+            Point2::new(1.0 * crate::PIXELS_PER_METER, -1.0 * crate::PIXELS_PER_METER),
+            Point2::new(-1.0 * crate::PIXELS_PER_METER, -1.0 * crate::PIXELS_PER_METER),
+        ];
+        
 
+        let player = commands.spawn(Player::new())
+            .insert((
+                Name::new("Player"),
+                UpgradesComponent::new(),
+            ))
+            .insert((
+                RigidBody::Dynamic,
+                Mass(1.0),
+                Inertia(1.0),
+                AngularDamping(0.99),
+                // AdditionalMassProperties::Mass(10.0),
+                // ExternalForce {
+                //     force: Vec2::new(0.0, 0.0),
+                //     torque: 0.0,
+                // },
+                // Damping {
+                //     linear_damping: 0.8,
+                //     angular_damping: 0.0,
+                // },
+                // Velocity::zero(),
+                ExternalForce::ZERO,
+                AngularVelocity::ZERO,
+                LinearVelocity::ZERO,
+                Friction::new(10.0),
+                // Sleeping::disabled(),
+                // Ccd::enabled(),
+                // Collider::shape(&player_poly.points).unwrap(),
+                Collider::convex_hull(player_poly.points.clone()).unwrap(),
+                // Collider::convex_hull(&player_poly.points).unwrap(),
+                // ActiveEvents::COLLISION_EVENTS,
+            ))
+            .insert((
+                ShapeBundle {
+                    path: GeometryBuilder::build_as(&player_poly),
                     ..default()
                 },
-                Fill::color(Color::CYAN),
-                RigidBody::Dynamic,
-                AdditionalMassProperties::Mass(10.0),
-                ExternalForce {
-                    force: Vec2::new(0.0, 0.0),
-                    torque: 0.0,
-                },
-                Damping {
-                    linear_damping: 0.8,
-                    angular_damping: 0.0,
-                },
-                Velocity::zero(),
-                Sleeping::disabled(),
-                Ccd::enabled(),
-                Collider::convex_hull(&player_shape.points).unwrap(),
-                ActiveEvents::COLLISION_EVENTS,
-                UpgradesComponent::new(),
-                Name::new("Player"),
-            ))
-            .id();
+                Fill::color(Color::WHITE),
+            )).id();
 
         InventoryPlugin::attach_inventory_to_entity(
             &mut commands,
@@ -158,13 +169,13 @@ impl PlayerPlugin {
             (
                 &mut Player,
                 &mut Transform,
-                &mut Velocity,
+                &mut LinearVelocity,
                 &mut ExternalForce,
             ),
             (With<Player>, Without<Crosshair>),
         >,
     ) {
-        const ACCELERATION: f32 = 12000.0 * PIXELS_PER_METER;
+        const ACCELERATION: f32 = 120000.0 * PIXELS_PER_METER;
 
         let (mut player, mut transform, mut velocity, mut ext_force) = player_query.single_mut();
 
@@ -195,7 +206,7 @@ impl PlayerPlugin {
 
             player.drain_battery(energy_spent);
 
-            ext_force.force = force;
+            ext_force.set_force(force);
 
             // TODO: Remove Playing Component from Respective Particle System
 
@@ -204,7 +215,7 @@ impl PlayerPlugin {
             }
         }
 
-        velocity.angvel = 0.0; // Prevents spin on astrid impact
+        // velocity.angvel = 0.0; // Prevents spin on astrid impact
 
         // TODO: is there a better place to do this?
         transform.scale = Vec3::new(2.0, 2.0, 1.0);
@@ -212,12 +223,12 @@ impl PlayerPlugin {
 
     fn ship_rotate_towards_mouse(
         mouse_position: Res<MouseWorldPosition>,
-        mut player_query: Query<(&mut Player, &mut Transform, &mut Velocity), Without<Crosshair>>,
+        mut player_query: Query<(&mut Player, &mut Transform, &mut AngularVelocity), Without<Crosshair>>,
     ) {
         let cursor_pos = mouse_position.0;
-        let (_player, player_trans, mut velocity) = player_query.single_mut();
+        let (_player, player_trans, mut ang_velocity) = player_query.single_mut();
 
-        const SPIN_ACCELERATION: f32 = 0.4;
+        const SPIN_ACCELERATION: f32 = 0.5;
 
         let player_to_mouse =
             Vec2::new(player_trans.translation.x, player_trans.translation.y) - cursor_pos;
@@ -228,9 +239,9 @@ impl PlayerPlugin {
 
         //Rotate towards position mouse is on
         if ship_angle_difference > 0.0 {
-            velocity.angvel += SPIN_ACCELERATION * (2.0 * PI - ship_angle_difference.abs());
+            ang_velocity.0 = SPIN_ACCELERATION * (2.0 * PI - ship_angle_difference.abs());
         } else if ship_angle_difference < 0.0 {
-            velocity.angvel += -SPIN_ACCELERATION * (2.0 * PI - ship_angle_difference.abs());
+            ang_velocity.0 = -SPIN_ACCELERATION * (2.0 * PI - ship_angle_difference.abs());
         }
     }
 
@@ -241,11 +252,11 @@ impl PlayerPlugin {
             &mut Player,
             &mut Transform,
             &GlobalTransform,
-            &Velocity,
         )>,
         mut laser_event_writer: EventWriter<LaserEvent>,
     ) {
-        let (_ent, mut player, transform, global_trans, _velocity) = player_query.single_mut();
+        let (_ent, mut player, transform, global_trans) = player_query.single_mut();
+
         let player_direction = (transform.rotation * Vec3::Y).normalize();
 
         // Update Line and Opacity When Fired
@@ -257,38 +268,12 @@ impl PlayerPlugin {
             let ray_dir = player_direction.truncate();
             let ray_pos = global_trans.translation().truncate() + ray_dir * 100.0; // move racasting ray ahead of ship to avoid contact (there's probably a better way lol)
 
+            // dbg!("{:?}", ray_pos);
+
             laser_event_writer.send(LaserEvent(true, ray_pos, ray_dir));
             player.drain_battery(1.0);
-        } else {
-            // Raycast to Find Target
-            // let ray_dir = player_direction.truncate();
-            // let ray_pos = global_trans.translation().truncate() + ray_dir * 100.0; // move racasting ray ahead of ship to avoid contact (there's probably a better way lol)
-
-            // laser_event_writer.send(LaserEvent(false, ray_pos, ray_dir));
         }
     }
-
-    // fn player_fire_weapon(
-    //     mut commands: Commands,
-    //     keyboard_input: Res<Input<MouseButton>>,
-    //     player_query: Query<(&mut Player, &mut Transform, &Velocity)>,
-    // ) {
-    //     // should be just pressed, but it's fun with keyboard_input.pressed()d
-    //     if keyboard_input.just_pressed(MouseButton::Left) {
-    //         let (player, transform, _velocity) = player_query.single();
-
-    //         // why does this work? https://www.reddit.com/r/rust_gamedev/comments/rphgsf/calculating_bullet_x_and_y_position_based_off_of/
-    //         // FIXME: clean this up, it's confusing..., should also be using velocity here.
-    //         let player_velocity = (transform.rotation * Vec3::Y)
-    //             + Vec3::new(player.delta_x, player.delta_y, 0.0) * PIXELS_PER_METER;
-
-    //         ProjectilePlugin::spawn_projectile(
-    //             &mut commands,
-    //             transform.translation.truncate(),
-    //             player_velocity.truncate(),
-    //         );
-    //     }
-    // }
 
     fn player_camera_control(
         kb: Res<Input<KeyCode>>,
@@ -354,13 +339,13 @@ impl PlayerPlugin {
     }
 
     fn gravitate_collectibles(
-        mut collectible_query: Query<(Entity, &Collectible, &Transform, &mut Velocity)>,
+        mut collectible_query: Query<(Entity, &Collectible, &Transform, &mut LinearVelocity)>,
         player_query: Query<(Entity, &Player, &Transform), With<Player>>,
     ) {
         const MAX_GRAVITATION_DISTANCE: f32 = 30.0 * crate::PIXELS_PER_METER;
         let (_player_ent, _player, player_transform) = player_query.single();
 
-        for (_ent, _collectible, collectible_tranform, mut veclocity) in
+        for (_ent, _collectible, collectible_tranform, mut velocity) in
             collectible_query.iter_mut()
         {
             let distance_to_player_from_collectible = player_transform
@@ -375,7 +360,7 @@ impl PlayerPlugin {
                         - collectible_tranform.translation.truncate())
                     .normalize();
                 let gravitation_factor = 1.0 - percent_distance_from_max;
-                veclocity.linvel += direction_to_player_from_collectible
+                velocity.0 += direction_to_player_from_collectible
                     * gravitation_factor
                     * 5.0
                     * crate::PIXELS_PER_METER;
@@ -383,16 +368,16 @@ impl PlayerPlugin {
         }
     }
 
-    /// Updates the player mass with the ship's net mass for rapier2d movement physics.
+    /// Updates the player mass with the ship's net mass for physics engine.
     fn update_player_mass(
-        mut player_query: Query<(&Player, &Inventory, &mut AdditionalMassProperties)>,
+        mut player_query: Query<(&Player, &Inventory, &mut Mass)>,
     ) {
-        const PLAYER_MASS: f32 = 100.0;
+        const PLAYER_MASS: f32 = 1000.0;
 
-        for (_player, inventory, mut mass_properties) in player_query.iter_mut() {
+        for (_player, inventory, mut mass) in player_query.iter_mut() {
             let inventory_weight = inventory.gross_material_weight();
-            let mass_properties = mass_properties.as_mut();
-            *mass_properties = AdditionalMassProperties::Mass(inventory_weight.0 + PLAYER_MASS);
+            mass.0 = (inventory_weight + PLAYER_MASS).0;
+            dbg!("MASS: :?", mass.0);
         }
     }
 

@@ -28,7 +28,7 @@ impl CrosshairPlugin {
                 Crosshair {},
                 ShapeBundle {
                     path: GeometryBuilder::build_as(&line),
-                    spatial: Transform::from_xyz(1.0, 1.0, 1.0).into(),
+                    // spatial: Transform::from_xyz(1.0, 1.0, 1.0).into(),
                     ..default()
                 },
                 Fill::color(Color::rgba(1.0, 1.0, 1.0, 0.45)),
@@ -41,15 +41,18 @@ impl CrosshairPlugin {
     fn draw_crosshair(
         mouse_position: Res<MouseWorldPosition>,
         player_query: Query<(&Player, &Transform), Without<Crosshair>>,
-        mut crosshair_query: Query<(&mut Crosshair, &mut Path)>,
+        mut crosshair_query: Query<&mut Path, With<Crosshair>>,
     ) {
         let world_pos = mouse_position.0;
         let (_player, player_trans) = player_query.single();
-        let (_crosshair, mut path) = crosshair_query.single_mut();
+        let mut path = crosshair_query.single_mut();
 
         // Draw Crosshair
         {
             let line = shapes::Line(player_trans.translation.truncate(), world_pos);
+            dbg!("Crosshair: :?", line);
+            dbg!("Path: :?", &path.0);
+
             *path = ShapePath::build_as(&line);
         }
     }

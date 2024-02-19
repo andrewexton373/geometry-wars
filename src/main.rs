@@ -8,7 +8,9 @@ use bevy::{
 };
 use bevy_particle_systems::ParticleSystemPlugin;
 use bevy_prototype_lyon::prelude::*;
-use bevy_rapier2d::prelude::*;
+// use bevy_rapier2d::prelude::*;
+use bevy_xpbd_2d::prelude::*;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 use crosshair::CrosshairPlugin;
 use engine::EnginePlugin;
@@ -83,14 +85,19 @@ fn main() {
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest()),
+            // WorldInspectorPlugin::new(),
+
             OverlayPlugin {
                 font_size: 24.0,
                 ..default()
             },
             ShapePlugin,
             ParticleSystemPlugin::default(),
-            RapierDebugRenderPlugin::default(),
-            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER),
+            PhysicsPlugins::default(),
+            // Enables debug rendering
+            PhysicsDebugPlugin::default(),
+            // RapierDebugRenderPlugin::default(),
+            // RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER),
             FrameTimeDiagnosticsPlugin::default(),
         ))
         .add_plugins((
@@ -108,6 +115,7 @@ fn main() {
             ParticlePlugin,
             HexBasePlugin,
         ))
+        .insert_resource(Gravity::ZERO)
         .add_systems(Startup, (
             setup,
         ))
@@ -118,18 +126,17 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands, mut rapier_config: ResMut<RapierConfiguration>) {
+fn setup(
+    mut commands: Commands,
+    // mut rapier_config: ResMut<RapierConfiguration>
+) {
     commands.spawn((
-        Camera2dBundle {
-            transform: Transform::from_xyz(0.0, 0.0, 999.0).looking_at(Vec3::ZERO, Vec3::Y),
-            projection: OrthographicProjection::default().into(),
-            ..default()
-        },
         GameCamera,
+        Camera2dBundle::default(),
         Name::new("GameCamera"),
     ));
 
-    rapier_config.gravity = Vec2::new(0.0, 0.0);
+    // rapier_config.gravity = Vec2::new(0.0, 0.0);
 }
 
 fn camera_follows_player(

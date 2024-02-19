@@ -9,7 +9,7 @@ num = "0.4.0"
 bevy = { version = "0.12", features = ["bevy_sprite", "wayland", "dynamic_linking"] }
 bevy_egui = "0.24"
 egui_dnd = "0.7.0"
-bevy_rapier2d = { version = "0.24.0", features = ["debug-render-2d"] }
+bevy_xpbd_2d = "0.3"
 bevy_prototype_lyon = "0.10.0"
 bevy_particle_systems = { version = "0.11.0" }
 bevy_tweening = "0.9"

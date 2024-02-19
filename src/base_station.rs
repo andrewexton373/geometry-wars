@@ -2,7 +2,8 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::{
     self as lyon, Fill, FillOptions, GeometryBuilder, ShapeBundle, Stroke,
 };
-use bevy_rapier2d::prelude::{ActiveEvents, Collider, RapierContext, Sensor, Sleeping, Velocity};
+// use bevy_rapier2d::prelude::{ActiveEvents, Collider, RapierContext, Sensor, Sleeping, Velocity};
+use bevy_xpbd_2d::prelude::*;
 use ordered_float::OrderedFloat;
 
 use crate::{
@@ -72,10 +73,10 @@ impl BaseStationPlugin {
                 //TODO: Fill and Stroke aren't applying for some reason
                 Fill::color(Color::BLUE),
                 Stroke::new(Color::WHITE, 5.0),
-                Sleeping::disabled(),
+                // Sleeping::disabled(),
                 Collider::ball(crate::PIXELS_PER_METER * BASE_STATION_SIZE),
-                Sensor,
-                ActiveEvents::COLLISION_EVENTS,
+                // Sensor,
+                // ActiveEvents::COLLISION_EVENTS,
                 BaseStation,
                 Name::new("Base Station"),
             ))
@@ -143,10 +144,15 @@ impl BaseStationPlugin {
 
         dir_indicator_transform.rotation = Quat::from_rotation_z(rotation);
         dir_indicator_transform.translation =
-            (player_trans.translation().truncate() + direction_to_base * 100.0).extend(999.0);
+            (player_trans.translation().truncate() + direction_to_base * 100.0).extend(0.0);
+
+        // dbg!(":?", &dir_indicator_transform);
+
         dir_indicator_transform.scale = Vec3::new(0.3, 1.0, 1.0);
 
         let opacity = (distance_to_base / FADE_DISTANCE).powi(2).clamp(0.0, 1.0);
+
+        // dbg!(":?", opacity);
 
         *dir_indicator_fill = Fill {
             color: Color::Rgba {
@@ -161,7 +167,7 @@ impl BaseStationPlugin {
 
     fn repel_astroids_from_base_station(
         base_query: Query<(&BaseStation, &GlobalTransform), With<BaseStation>>,
-        mut astroid_query: Query<(&Astroid, &GlobalTransform, &mut Velocity), With<Astroid>>,
+        mut astroid_query: Query<(&Astroid, &GlobalTransform, &mut LinearVelocity), With<Astroid>>,
     ) {
         const REPEL_RADIUS: f32 = 120.0 * PIXELS_PER_METER;
         const REPEL_STRENGTH: f32 = 25.0;
@@ -177,13 +183,13 @@ impl BaseStationPlugin {
 
             if distance < REPEL_RADIUS {
                 let repel_vector = (astroid_pos - base_station_pos).normalize();
-                astroid_velocity.linvel += repel_vector * distance_weight * REPEL_STRENGTH;
+                astroid_velocity.0 += repel_vector * distance_weight * REPEL_STRENGTH;
             }
         }
     }
 
     fn handle_base_station_sensor_collision_event(
-        rapier_context: Res<RapierContext>,
+        // rapier_context: Res<RapierContext>,
         mut can_deposit_res: ResMut<CanDeposit>,
         mut context_clues_res: ResMut<ContextClues>,
         mut player_query: Query<(Entity, &mut Player), With<Player>>,
@@ -193,15 +199,15 @@ impl BaseStationPlugin {
         let (player_ent, mut player) = player_query.single_mut();
         let (base_station_ent, _base_station) = base_station_query.single();
 
-        if rapier_context.intersection_pair(player_ent, base_station_ent) == Some(true) {
-            *can_deposit_res = CanDeposit(true);
-            context_clues_res.0.insert(ContextClue::NearBaseStation);
+        // if rapier_context.intersection_pair(player_ent, base_station_ent) == Some(true) {
+        //     *can_deposit_res = CanDeposit(true);
+        //     context_clues_res.0.insert(ContextClue::NearBaseStation);
 
-            player.charge_battery(100.0 * time.delta_seconds());
-            player.repair_damage(10.0 * time.delta_seconds());
-        } else {
-            *can_deposit_res = CanDeposit(false);
-            context_clues_res.0.remove(&ContextClue::NearBaseStation);
-        }
+        //     player.charge_battery(100.0 * time.delta_seconds());
+        //     player.repair_damage(10.0 * time.delta_seconds());
+        // } else {
+        //     *can_deposit_res = CanDeposit(false);
+        //     context_clues_res.0.remove(&ContextClue::NearBaseStation);
+        // }
     }
 }

@@ -12,24 +12,24 @@ use crate::PIXELS_PER_METER;
 use bevy::app::{App, Plugin};
 use bevy::asset::AssetServer;
 use bevy::core::Name;
-use bevy::hierarchy::DespawnRecursiveExt;
-use bevy::math::Vec2;
+use bevy::hierarchy::{BuildChildren, DespawnRecursiveExt};
+use bevy::math::{Vec2, Vec3};
 use bevy::prelude::{
-    default, Color, Commands, Component, Entity, EventReader, GlobalTransform, Query, Res, ResMut,
-    Resource, Text, Text2dBundle, TextStyle, Time, Timer, TimerMode, Transform, With, Without, Update,
+    default, Color, Commands, Component, Entity, EventReader, GlobalTransform, Query, Res, ResMut, Resource, SpatialBundle, Text, Text2dBundle, TextStyle, Time, Timer, TimerMode, Transform, Update, With, Without
 };
 use bevy_particle_systems::Playing;
 use bevy_prototype_lyon::draw::Fill;
 use bevy_prototype_lyon::entity::ShapeBundle;
 use bevy_prototype_lyon::geometry::GeometryBuilder;
 use bevy_prototype_lyon::prelude::FillOptions;
-use bevy_rapier2d::dynamics::{
-    AdditionalMassProperties, Ccd, ReadMassProperties, RigidBody, Sleeping, Velocity
-};
-use bevy_rapier2d::geometry::{ActiveEvents, Collider, Restitution};
-use bevy_rapier2d::plugin::RapierContext;
+// use bevy_rapier2d::dynamics::{
+//     AdditionalMassProperties, Ccd, ReadMassProperties, RigidBody, Sleeping, Velocity
+// };
+// use bevy_rapier2d::geometry::{ActiveEvents, Collider, Restitution};
+// use bevy_rapier2d::plugin::RapierContext;
 use bevy_tweening::lens::TextColorLens;
 use bevy_tweening::{Animator, EaseFunction, RepeatCount, Tween, TweenCompleted, TweeningPlugin};
+use bevy_xpbd_2d::prelude::*;
 use ordered_float::OrderedFloat;
 use rand::Rng;
 use std::f32::consts::PI;
@@ -58,7 +58,7 @@ impl Plugin for AstroidPlugin {
             .insert_resource(InventoryFullNotificationTimer(None))
             .add_event::<AblateEvent>()
             .add_systems(Update, (
-                // Self::spawn_astroids_aimed_at_ship,
+                Self::spawn_astroids_aimed_at_ship,
                 Self::despawn_far_astroids,
                 Self::handle_astroid_collision_event,
                 Self::ablate_astroids,
@@ -145,29 +145,61 @@ impl AstroidPlugin {
         let splittable = Splittable(rng.gen_range(0.4..0.8));
 
         let astroid_ent = commands
-            .spawn((
-                astroid.clone(),
-                ShapeBundle {
-                    path: GeometryBuilder::build_as(&astroid.polygon()),
-                    // transform: Transform::from_xyz(position.x, position.y, 0.0),
-                    ..default()
-                },
-                Transform::from_xyz(position.x, position.y, 0.0),
-                Fill::color(Color::DARK_GRAY),
+            .spawn(astroid.clone())
+            .insert((
+                // astroid.clone(),
                 RigidBody::Dynamic,
-                Velocity {
-                    linvel: velocity,
-                    angvel: 0.0,
-                },
+                // Velocity {
+                //     linvel: velocity,
+                //     angvel: 0.0,
+                // },
+                LinearVelocity(velocity),
                 // Sleeping::disabled(),
-                Collider::convex_hull(&astroid.polygon().points).unwrap(),
-                ActiveEvents::COLLISION_EVENTS,
-                AdditionalMassProperties::default(),
-                Restitution::coefficient(0.01),
+                Collider::convex_hull(astroid.polygon().points).unwrap(),
+                // ActiveEvents::COLLISION_EVENTS,
+                // AdditionalMassProperties::default(),
+                // Restitution::coefficient(0.01),
                 splittable,
                 Name::new("Astroid"),
-            ))
-            .id();
+            )).insert((
+                ShapeBundle {
+                    path: GeometryBuilder::build_as(&astroid.polygon()),
+                    spatial: SpatialBundle::from_transform(Transform::from_xyz(position.x, position.y, 0.0)),
+                    ..default()
+                },                        
+                Fill::color(Color::DARK_GRAY),
+            )).id();
+            // .spawn((
+            //     astroid.clone(),
+            //     SpatialBundle {
+            //         transform: Transform::from_xyz(position.x, position.y, 0.0),
+            //         ..default()
+            //     },
+            //     RigidBody::Dynamic,
+            //     Velocity {
+            //         linvel: velocity,
+            //         angvel: 0.0,
+            //     },
+            //     Sleeping::disabled(),
+            //     Collider::convex_hull(&astroid.polygon().points).unwrap(),
+            //     ActiveEvents::COLLISION_EVENTS,
+            //     AdditionalMassProperties::default(),
+            //     Restitution::coefficient(0.01),
+            //     splittable,
+            //     Name::new("Astroid"),
+            // ))
+            // .with_children(|parent| {
+            //     parent.spawn(
+            //         (
+            //             ShapeBundle {
+            //                 path: GeometryBuilder::build_as(&astroid.polygon()),
+            //                 ..default()
+            //             },
+            //             Fill::color(Color::DARK_GRAY),
+            //         )
+            //     );
+            // })
+            // .id();
 
         // If the astroid is an ore chunk, add Collectible Tag
         if astroid.clone().size == AstroidSize::OreChunk {
@@ -214,8 +246,10 @@ impl AstroidPlugin {
 
     fn handle_astroid_collision_event(
         mut commands: Commands,
-        rapier_context: Res<RapierContext>,
-        mut astroid_query: Query<(Entity, &Astroid, &ReadMassProperties), With<Astroid>>,
+        // rapier_context: Res<RapierContext>,
+        // mut astroid_query: Query<(Entity, &Astroid, &ReadMassProperties), With<Astroid>>,
+        mut astroid_query: Query<(Entity, &Astroid), With<Astroid>>,
+
         mut player_query: Query<(Entity, &mut Player, &mut Inventory), With<Player>>,
         mut inventory_full_notification: ResMut<InventoryFullNotificationTimer>,
         mut player_damage_particle_query: Query<(
@@ -230,56 +264,58 @@ impl AstroidPlugin {
             player_damage_particle_query.single_mut();
         commands.entity(damage_particles_ent).remove::<Playing>();
 
-        for (astroid_entity, astroid, mass_properties) in astroid_query.iter_mut() {
-            if let Some(contact_pair_view) = rapier_context.contact_pair(player_ent, astroid_entity)
-            {
-                for manifold in contact_pair_view.manifolds() {
-                    // Read the solver contacts.
+        // for (astroid_entity, astroid, mass_properties) in astroid_query.iter_mut() {
+        for (astroid_entity, astroid) in astroid_query.iter_mut() {
 
-                    for solver_contact in manifold.solver_contacts() {
-                        // Keep in mind that all the solver contact data are expressed in world-space.
+            // if let Some(contact_pair_view) = rapier_context.contact_pair(player_ent, astroid_entity)
+            // {
+            //     for manifold in contact_pair_view.manifolds() {
+            //         // Read the solver contacts.
 
-                        let mut astroid_collision = false;
+            //         for solver_contact in manifold.solver_contacts() {
+            //             // Keep in mind that all the solver contact data are expressed in world-space.
 
-                        match astroid.size {
-                            AstroidSize::OreChunk => {
-                                let ore_chunk_mass = mass_properties.mass;
+            //             let mut astroid_collision = false;
 
-                                for comp in astroid.composition.percent_composition().iter() {
-                                    if !inventory.add_to_inventory(&InventoryItem::Material(
-                                        *comp.0,
-                                        Amount::Weight(OrderedFloat(comp.1 * ore_chunk_mass)),
-                                    )) {
-                                        inventory_full_notification.0 =
-                                            Some(Timer::from_seconds(3.0, TimerMode::Once));
-                                    }
-                                }
+            //             // match astroid.size {
+            //             //     AstroidSize::OreChunk => {
+            //             //         let ore_chunk_mass = mass_properties.mass;
 
-                                // FIXME: will despawn even if there's no room in inventory to collect.
-                                commands.entity(astroid_entity).despawn_recursive();
-                            }
-                            AstroidSize::Small => {
-                                player.take_damage(1.0);
-                                astroid_collision = true;
-                            }
-                            AstroidSize::Medium => {
-                                player.take_damage(2.5);
-                                astroid_collision = true;
-                            }
-                            AstroidSize::Large => {
-                                player.take_damage(5.0);
-                                astroid_collision = true;
-                            }
-                        }
+            //             //         for comp in astroid.composition.percent_composition().iter() {
+            //             //             if !inventory.add_to_inventory(&InventoryItem::Material(
+            //             //                 *comp.0,
+            //             //                 Amount::Weight(OrderedFloat(comp.1 * ore_chunk_mass)),
+            //             //             )) {
+            //             //                 inventory_full_notification.0 =
+            //             //                     Some(Timer::from_seconds(3.0, TimerMode::Once));
+            //             //             }
+            //             //         }
 
-                        if astroid_collision {
-                            damage_particles_t.translation =
-                                (solver_contact.point() * crate::PIXELS_PER_METER).extend(999.0);
-                            commands.entity(damage_particles_ent).insert(Playing);
-                        }
-                    }
-                }
-            }
+            //             //         // FIXME: will despawn even if there's no room in inventory to collect.
+            //             //         commands.entity(astroid_entity).despawn_recursive();
+            //             //     }
+            //             //     AstroidSize::Small => {
+            //             //         player.take_damage(1.0);
+            //             //         astroid_collision = true;
+            //             //     }
+            //             //     AstroidSize::Medium => {
+            //             //         player.take_damage(2.5);
+            //             //         astroid_collision = true;
+            //             //     }
+            //             //     AstroidSize::Large => {
+            //             //         player.take_damage(5.0);
+            //             //         astroid_collision = true;
+            //             //     }
+            //             // }
+
+            //             if astroid_collision {
+            //                 damage_particles_t.translation =
+            //                     (solver_contact.point() * crate::PIXELS_PER_METER).extend(999.0);
+            //                 commands.entity(damage_particles_ent).insert(Playing);
+            //             }
+            //         }
+            //     }
+            // }
         }
     }
 
@@ -392,21 +428,18 @@ impl AstroidPlugin {
                         astroid.clone(),
                         ShapeBundle {
                             path: GeometryBuilder::build_as(&astroid.polygon()),
+                            spatial: Transform::from_xyz(ablate_event.1.x, ablate_event.1.y, 0.0).into(),
                             ..default()
                         },
-                        Transform::from_xyz(ablate_event.1.x, ablate_event.1.y, 0.0),
                         Fill::color(Color::DARK_GRAY),
                         RigidBody::Dynamic,
-                        Velocity {
-                            linvel: ablate_event.2,
-                            angvel: 0.0,
-                        },
-                        Sleeping::disabled(),
-                        Ccd::enabled(),
-                        Collider::convex_hull(&astroid.polygon().points).unwrap(),
-                        ActiveEvents::COLLISION_EVENTS,
-                        AdditionalMassProperties::default(),
-                        Restitution::coefficient(0.01),
+                        LinearVelocity(ablate_event.2),
+                        // Sleeping::disabled(),
+                        // Ccd::enabled(),
+                        Collider::convex_hull(astroid.polygon().points).unwrap(),
+                        // ActiveEvents::COLLISION_EVENTS,
+                        // AdditionalMassProperties::default(),
+                        // Restitution::coefficient(0.01),
                         Name::new("Astroid"),
                     ))
                     .id();
@@ -435,7 +468,7 @@ impl AstroidPlugin {
         astroid_ent: Entity,
         astroid: &Astroid,
         astroid_translation: Vec2,
-        // projectile_velocity: &Velocity,
+        // projectile_velocity: &LinearVelocity,
     ) {
         // let mut rng = rand::thread_rng();
         // let split_angle = rng.gen_range(0.0..PI / 4.0);

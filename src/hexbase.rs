@@ -67,10 +67,10 @@ impl Plugin for HexBasePlugin {
                 Self::setup_hex_grid
             )
             .add_systems(Update, (
-                Self::color_hexes,
+                // Self::color_hexes,
                 Self::handle_mouse_interaction,
                 Self::handle_ship_hovering_context,
-                Self::handle_build_events,
+                // Self::handle_build_events,
             ));
     }
 }

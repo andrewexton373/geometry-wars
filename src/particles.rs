@@ -39,7 +39,7 @@ impl ParticlePlugin {
         commands
             .spawn(ParticleSystemBundle {
                 particle_system: ParticleSystem {
-                    max_particles: 10_000,
+                    max_particles: 1_000,
                     texture: ParticleTexture::Sprite(asset_server.load("px.png")),
                     spawn_rate_per_second: 2500.0.into(),
                     initial_speed: JitteredValue::jittered(200.0, -50.0..50.0),
@@ -80,7 +80,7 @@ impl ParticlePlugin {
                     parent
                         .spawn(ParticleSystemBundle {
                             particle_system: ParticleSystem {
-                                max_particles: 10_000,
+                                max_particles: 1_000,
                                 texture: ParticleTexture::Sprite(asset_server.load("px.png")),
                                 spawn_rate_per_second: 2500.0.into(),
                                 initial_speed: JitteredValue::jittered(15.0, -1.0..1.0),
@@ -108,7 +108,7 @@ impl ParticlePlugin {
         commands
             .spawn(ParticleSystemBundle {
                 particle_system: ParticleSystem {
-                    max_particles: 10_000,
+                    max_particles: 1_000,
                     texture: ParticleTexture::Sprite(asset_server.load("px.png")),
                     spawn_rate_per_second: 2500.0.into(),
                     initial_speed: JitteredValue::jittered(200.0, -50.0..50.0),
