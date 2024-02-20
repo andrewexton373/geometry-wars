@@ -19,6 +19,7 @@ use bevy_xpbd_2d::parry::shape::{ConvexPolygon, SharedShape};
 // use bevy_rapier2d::prelude::*;
 use ordered_float::OrderedFloat;
 use std::f32::consts::PI;
+use bevy::input::gamepad::GamepadEvent::Axis;
 
 pub struct PlayerPlugin;
 
@@ -205,20 +206,23 @@ impl PlayerPlugin {
         let cursor_pos = mouse_position.0;
         let (_player, player_trans, mut ang_velocity) = player_query.single_mut();
 
-        const SPIN_ACCELERATION: f32 = 0.5;
+        const SPIN_ACCELERATION: f32 = 1000.0;
 
-        let player_to_mouse =
-            Vec2::new(player_trans.translation.x, player_trans.translation.y) - cursor_pos;
-        let ship_angle_difference = Vec2::angle_between(
+        let player_to_mouse = (cursor_pos - player_trans.translation.truncate()).normalize();
+        let player_ship_rotation = (player_trans.rotation * Vec3::Y).truncate().normalize();
+
+        let ship_angle_difference_percent = Vec2::angle_between(
             player_to_mouse,
-            (player_trans.rotation * Vec3::Y).truncate(),
-        );
+            player_ship_rotation,
+        ) / PI;
 
         //Rotate towards position mouse is on
-        if ship_angle_difference > 0.0 {
-            ang_velocity.0 = SPIN_ACCELERATION * (2.0 * PI - ship_angle_difference.abs());
-        } else if ship_angle_difference < 0.0 {
-            ang_velocity.0 = -SPIN_ACCELERATION * (2.0 * PI - ship_angle_difference.abs());
+        if ship_angle_difference_percent > 0.001 {
+            ang_velocity.0 = -SPIN_ACCELERATION * ship_angle_difference_percent.powf(2.0);
+        } else if ship_angle_difference_percent < -0.001 {
+            ang_velocity.0 = SPIN_ACCELERATION * ship_angle_difference_percent.powf(2.0);
+        } else {
+            ang_velocity.0 = 0.0;
         }
     }
 
