@@ -206,7 +206,7 @@ impl PlayerPlugin {
         let cursor_pos = mouse_position.0;
         let (_player, player_trans, mut ang_velocity) = player_query.single_mut();
 
-        const SPIN_ACCELERATION: f32 = 1000.0;
+        const SPIN_ACCELERATION: f32 = 500.0;
 
         let player_to_mouse = (cursor_pos - player_trans.translation.truncate()).normalize();
         let player_ship_rotation = (player_trans.rotation * Vec3::Y).truncate().normalize();
@@ -236,18 +236,18 @@ impl PlayerPlugin {
         )>,
         mut laser_event_writer: EventWriter<LaserEvent>,
     ) {
-        let (_ent, mut player, transform, global_trans) = player_query.single_mut();
-
-        let player_direction = (transform.rotation * Vec3::Y).normalize();
+        let (_ent, mut player, player_transform, player_global_trans) = player_query.single_mut();
+        let player_direction = (player_transform.rotation * Vec3::Y).truncate().normalize();
 
         // Update Line and Opacity When Fired
+
         if keyboard_input.pressed(MouseButton::Left) {
             if player.battery.is_empty() {
                 return;
             }
 
-            let ray_dir = player_direction.truncate();
-            let ray_pos = global_trans.translation().truncate() + ray_dir * 10.0; // move racasting ray ahead of ship to avoid contact (there's probably a better way lol)
+            let ray_pos = player_global_trans.translation().truncate();
+            let ray_dir = player_direction;
 
             // dbg!("{:?}", ray_pos);
 
