@@ -244,7 +244,7 @@ impl PlayerPlugin {
             }
 
             let ray_dir = player_direction.truncate();
-            let ray_pos = global_trans.translation().truncate() + ray_dir * 100.0; // move racasting ray ahead of ship to avoid contact (there's probably a better way lol)
+            let ray_pos = global_trans.translation().truncate() + ray_dir * 10.0; // move racasting ray ahead of ship to avoid contact (there's probably a better way lol)
 
             // dbg!("{:?}", ray_pos);
 

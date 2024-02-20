@@ -2,11 +2,13 @@ use crate::events::{AblateEvent, LaserEvent};
 use crate::particles::LaserImpactParticleSystem;
 use crate::player::Player;
 use bevy::prelude::*;
+use bevy::utils::hashbrown::HashSet;
 use bevy_particle_systems::Playing;
 use bevy_prototype_lyon::{
     prelude::{GeometryBuilder, Path, ShapeBundle, ShapePath, Stroke},
     shapes,
 };
+use bevy_xpbd_2d::plugins::spatial_query::{self, SpatialQuery, SpatialQueryFilter};
 // use bevy_rapier2d::prelude::*;
 
 #[derive(Component)]
@@ -55,6 +57,8 @@ impl LaserPlugin {
             (Entity, &LaserImpactParticleSystem, &mut Transform),
             Without<Laser>,
         >,
+        player_q: Query<Entity, &Player>,
+        spatial_query: SpatialQuery
     ) {
         // TODO: Change Laser State To Off On Player Left Unclick
         for (ent, _, mut _t) in laser_impact_particles_query.iter_mut() {
@@ -62,15 +66,16 @@ impl LaserPlugin {
         }
 
         let mut laser_path = laser_query.single_mut();
+        let player_ent = player_q.single();
+
+        // Exclude Player from Raycasting
+        let excluded_entities: HashSet<Entity> = vec![player_ent].into_iter().collect();
 
         // dbg!("{:?}", &laser_path.0);
 
         // Reset laser
         let line = shapes::Line(Vec2::ZERO, Vec2::ZERO);
         *laser_path = ShapePath::build_as(&line);
-
-        // dbg!("SET 0: {:?}", &laser_path.0);
-
 
         for fire_laser_event in laser_event_reader.read() {
             let laser_active = fire_laser_event.0;
@@ -82,30 +87,36 @@ impl LaserPlugin {
                 let line = shapes::Line(ray_pos, ray_pos + ray_dir * 10000.0);
                 *laser_path = ShapePath::build_as(&line);
 
-                let max_toi = 10000.0;
-                let solid = false; // i think?
-                // let filter = QueryFilter::default();
+                if let Some(first_hit) = spatial_query.cast_ray(
+                    ray_pos,
+                    ray_dir,
+                    10000.0,
+                    false,
+                    SpatialQueryFilter {
+                        excluded_entities: excluded_entities.clone(),
+                        ..default()
+                    }
+                ) {
 
-                // if let Some((entity, intersection)) =
-                //     rapier_context.cast_ray_and_get_normal(ray_pos, ray_dir, max_toi, solid, filter)
-                // {
-                //     let hit_point = intersection.point;
-                //     let hit_normal = intersection.normal;
+                        let hit_point = ray_pos + ray_dir * first_hit.time_of_impact;
+                        let hit_normal = first_hit.normal;
+                        let hit_ent = first_hit.entity;
 
-                //     for (ent, _, mut t) in laser_impact_particles_query.iter_mut() {
-                //         commands.entity(ent).insert(Playing);
-                //         t.translation = hit_point.extend(0.0);
-                //     }
+                        for (ent, _, mut t) in laser_impact_particles_query.iter_mut() {
+                            commands.entity(ent).insert(Playing);
+                            t.translation = hit_point.extend(0.0);
+                        }
 
-                //     let line = shapes::Line(ray_pos, hit_point);
-                    
-                //     *laser_path = ShapePath::build_as(&line);
+                        let line = shapes::Line(ray_pos, hit_point);
+                        
+                        *laser_path = ShapePath::build_as(&line);
 
-                //     // dbg!("LASER PATH: {:?}", &laser_path.0);
+                        // dbg!("LASER PATH: {:?}", &laser_path.0);
 
+                        ablate_event_writer.send(AblateEvent(hit_ent, hit_point, hit_normal));
 
-                //     ablate_event_writer.send(AblateEvent(entity, hit_point, hit_normal));
-                // }
+                }
+
             }
         }
     }
