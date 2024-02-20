@@ -3,7 +3,6 @@ use bevy_egui::{
 };
 use bevy::math::Vec2;
 use bevy::{prelude::*, utils::HashSet, window::PrimaryWindow};
-// use bevy_rapier2d::prelude::{QueryFilter, RapierContext, Velocity};
 use bevy_xpbd_2d::prelude::*;
 use egui_dnd::{dnd, utils::shift_vec};
 
@@ -91,7 +90,7 @@ impl Plugin for GameUIPlugin {
                 Self::ui_context_clue,
                 Self::dnd_ship_inventory,
                 Self::ui_mouse_hover_context,
-                Self::ui_ship_hover_context,
+                // Self::ui_ship_hover_context,
             ));
     }
 }

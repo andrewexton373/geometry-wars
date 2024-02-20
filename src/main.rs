@@ -110,7 +110,7 @@ fn main() {
             CrosshairPlugin,
             GameUIPlugin,
             ParticlePlugin,
-            HexBasePlugin,
+            // HexBasePlugin,
         ))
         .insert_resource(Gravity::ZERO)
         .add_systems(Startup, (
