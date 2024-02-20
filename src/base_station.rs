@@ -187,7 +187,7 @@ impl BaseStationPlugin {
         let (player_ent, mut player) = player_query.single_mut();
         let (base_station_ent, _base_station) = base_station_query.single();
 
-        if let Some(collision) = collisions.get(player_ent, base_station_ent) {
+        if let Some(_collision) = collisions.get(player_ent, base_station_ent) {
             *can_deposit_res = CanDeposit(true);
             context_clues_res.0.insert(ContextClue::NearBaseStation);
 

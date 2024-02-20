@@ -1,8 +1,7 @@
 use bevy_egui::{
-    egui::{self, Align2}, EguiContext, EguiContexts, EguiPlugin
+    egui::{self, Align2}, EguiContexts, EguiPlugin
 };
-use bevy::math::Vec2;
-use bevy::{prelude::*, utils::HashSet, window::PrimaryWindow};
+use bevy::{prelude::*, utils::HashSet};
 use bevy_xpbd_2d::prelude::*;
 use egui_dnd::{dnd, utils::shift_vec};
 
@@ -18,6 +17,7 @@ use crate::{
     upgrades::UpgradeType,
     GameCamera,
 };
+use crate::upgrades::{UpgradeEvent, UpgradesComponent};
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct UIItems {
@@ -112,25 +112,31 @@ impl GameUIPlugin {
             ui.label(format!("Capacity: {:.2}%", inventory_capacity_percent));
             ui.label(Self::progress_string(inventory_capacity_percent / 100.0));
 
+            ui.group(|ui| {
+                for item in inventory.items.clone() {
+                    ui.label(format!("{:?}", item));
+                }
+            })
+
             // ui.group(|ui| {
-
+            //
             //     let response = dnd(ui, "INVENTORY?").show_vec(&mut inventory.items.clone(), |ui, item, handle, _state| {
-
+            //
             //         handle.ui(ui, |ui| {
             //             ui.group(|ui| {
             //                 ui.label(format!("{:?}", item));
             //             });
-
+            //
             //         });
             //     });
-                
+            //
             //     // After the drag is complete, we get a response containing the old index of the
             //     // dragged item, as well as the index it was moved to. You can use the
             //     // shift_vec function as a helper if you store your items in a Vec.
             //     if let Some(response) = response.update {
             //         shift_vec(response.from, response.to, &mut inventory.items);
             //     }
-
+            //
             //     });
 
         });
@@ -154,16 +160,25 @@ impl GameUIPlugin {
         );
     }
 
-    fn ui_station_menu(// mut contexts: EguiContexts,
-        // cc_res: Res<ContextClues>,
-        // player_query: Query<(&Player, &UpgradesComponent)>,
-        // inventory_query: Query<&Inventory, With<BaseStation>>,
-        // factory_query: Query<&Factory>,
-        // refinery_query: Query<&Refinery>,
-        // mut craft_events: EventWriter<CraftEvent>,
-        // mut smelt_events: EventWriter<SmeltEvent>,
-        // mut upgrade_events: EventWriter<UpgradeEvent>,
+    fn ui_station_menu(
+        mut ctx: EguiContexts,
+        cc_res: Res<ContextClues>,
+        player_query: Query<(&Player, &UpgradesComponent)>,
+        inventory_query: Query<&Inventory, With<BaseStation>>,
+        factory_query: Query<&Factory>,
+        refinery_query: Query<&Refinery>,
+        mut craft_events: EventWriter<CraftEvent>,
+        mut smelt_events: EventWriter<SmeltEvent>,
+        mut upgrade_events: EventWriter<UpgradeEvent>,
     ) {
+
+        egui::Window::new("BaseStation Information")
+            .anchor(Align2::RIGHT_BOTTOM, egui::Vec2 {x: 0.0, y: 0.0})
+            .show(ctx.ctx_mut(), |ui| {
+                ui.group(|ui| {
+                    ui.label("HELLO WORLD");
+                });
+            });
 
         //     ui.group(|ui| {
         //
@@ -457,11 +472,11 @@ impl GameUIPlugin {
         camera_q: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
         // rapier_context: Res<RapierContext>,
         ent_query: Query<(Entity, &Name, Option<&Astroid>)>,
+        spatial_q: SpatialQuery
     ) {
 
         let window = window_query.single();
         let (camera, camera_transform) = camera_q.single();
-
 
         if let Some(world_position) = window
             .cursor_position()
@@ -471,6 +486,14 @@ impl GameUIPlugin {
             egui::Window::new("Mouse Context")
                 .anchor(Align2::CENTER_TOP, bevy_inspector_egui::egui::Vec2 {x: 0.0, y: 0.0})
                 .show(ctx.ctx_mut(), |ui| {
+
+                    ui.group(|ui| {
+                        ui.label(format!(
+                            "X:{:.2} Y:{:.2}",
+                            world_position.x, world_position.y
+                        ));
+                    });
+
                     // Raycast Mouse Position Into Viewport
 
                     let ray_pos = world_position;
@@ -478,38 +501,28 @@ impl GameUIPlugin {
 
                     let max_toi = 0.001;
                     let solid = true; // i think?
-                    // let filter = QueryFilter::default();
 
-                    // if let Some((entity, intersection)) = rapier_context
-                    //     .cast_ray_and_get_normal(ray_pos, ray_dir, max_toi, solid, filter)
-                    // {
-                    //     let _hit_point = intersection.point;
-                    //     let _hit_normal = intersection.normal;
-                    //     ui.group(|ui| {
-                    //         ui.label(format!(
-                    //             "X:{:.2} Y:{:.2}",
-                    //             world_position.x, world_position.y
-                    //         ));
-                    //     });
+                    if let Some(ray_hit) = spatial_q.cast_ray(ray_pos, ray_dir, max_toi, true, SpatialQueryFilter::default()) {
 
-                    //     if let Ok((_ent, name, astroid)) = ent_query.get(entity) {
-                    //         ui.group(|ui| {
-                    //             ui.heading(format!("{}", name));
+                            if let Ok((_ent, name, astroid)) = ent_query.get(ray_hit.entity) {
+                                ui.group(|ui| {
+                                    ui.heading(format!("{}", name));
 
-                    //             if let Some(astroid) = astroid {
-                    //                 ui.label(format!(
-                    //                     "Health: {:.2}%",
-                    //                     astroid.health.current_percent() * 100.0
-                    //                 ));
-                    //                 let health_percent = astroid.health.current_percent();
-                    //                 ui.label(Self::progress_string(health_percent));
+                                    if let Some(astroid) = astroid {
+                                        ui.label(format!(
+                                            "Health: {:.2}%",
+                                            astroid.health.current_percent() * 100.0
+                                        ));
+                                        let health_percent = astroid.health.current_percent();
+                                        ui.label(Self::progress_string(health_percent));
 
-                    //                 ui.label("Composition:");
-                    //                 ui.label(format!("{:?}", astroid.composition));
-                    //             }
-                    //         });
-                    //     };
-                    // }
+                                        ui.label("Composition:");
+                                        ui.label(format!("{:?}", astroid.composition));
+                                    }
+                                });
+                            };
+                    }
+
                 });
         };
     }

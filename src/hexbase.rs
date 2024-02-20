@@ -170,8 +170,6 @@ impl HexBasePlugin {
                 }
             }
 
-            dbg!("HIT MOUSE HOVER");
-
             // Draw a  line
             highlighted_hexes.line = Hex::ZERO.line_to(hex).collect();
             // Draw a ring

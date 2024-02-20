@@ -15,7 +15,6 @@ use bevy_prototype_lyon::prelude::{self as lyon, Fill, GeometryBuilder, ShapeBun
 use bevy_prototype_lyon::shapes;
 use bevy_xpbd_2d::prelude::*;
 use bevy_xpbd_2d::components::{Collider, ExternalForce, LinearVelocity, RigidBody};
-use bevy_xpbd_2d::parry::na::Point2;
 use bevy_xpbd_2d::parry::shape::{ConvexPolygon, SharedShape};
 // use bevy_rapier2d::prelude::*;
 use ordered_float::OrderedFloat;

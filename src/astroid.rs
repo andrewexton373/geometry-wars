@@ -1,11 +1,17 @@
 use crate::astroid_composition::AstroidComposition;
 use crate::astroid_material::AstroidMaterial;
-use crate::astroid_size::AstroidSize;
+use crate::astroid_plugin::Splittable;
+use crate::astroid_size::{AstroidSize, Collectible};
 use crate::health::Health;
 use bevy::prelude::*;
+use bevy_prototype_lyon::draw::Fill;
+use bevy_prototype_lyon::entity::ShapeBundle;
+use bevy_prototype_lyon::geometry::GeometryBuilder;
 use bevy_prototype_lyon::prelude::{self as lyon};
 use bevy_prototype_lyon::shapes::Polygon;
+use bevy_xpbd_2d::components::{Collider, LinearVelocity, RigidBody};
 use rand::seq::SliceRandom;
+use rand::Rng;
 use std::cmp::Ordering; // Contains the ratio the asteroid will split at
 
 #[derive(Component, Clone, Debug)]
@@ -51,6 +57,43 @@ impl Astroid {
             composition: comp,
             polygon: astroid_polygon,
         }
+    }
+
+    pub fn spawn_astroid(
+        commands: &mut Commands,
+        size: AstroidSize,
+        composition: AstroidComposition,
+        velocity: Vec2,
+        position: Vec2,
+    ) {
+        let astroid = Astroid::new_with(size, composition);
+        
+        let mut rng = rand::thread_rng();
+
+        let splittable = Splittable(rng.gen_range(0.4..0.8));
+
+        let astroid_ent = commands
+            .spawn(astroid.clone())
+            .insert((
+                RigidBody::Dynamic,
+                LinearVelocity(velocity),
+                Collider::convex_hull(astroid.polygon().points).unwrap(),
+                splittable,
+                Name::new("Astroid"),
+            )).insert((
+                ShapeBundle {
+                    path: GeometryBuilder::build_as(&astroid.polygon()),
+                    spatial: SpatialBundle::from_transform(Transform::from_xyz(position.x, position.y, 0.0)),
+                    ..default()
+                },                        
+                Fill::color(Color::DARK_GRAY),
+            )).id();
+
+        // If the astroid is an ore chunk, add Collectible Tag
+        if astroid.clone().size == AstroidSize::OreChunk {
+            commands.entity(astroid_ent).insert(Collectible);
+        }
+        
     }
 
     pub fn primary_composition(&self) -> AstroidMaterial {

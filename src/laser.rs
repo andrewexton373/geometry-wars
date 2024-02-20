@@ -71,8 +71,6 @@ impl LaserPlugin {
         // Exclude Player from Raycasting
         let excluded_entities: HashSet<Entity> = vec![player_ent].into_iter().collect();
 
-        // dbg!("{:?}", &laser_path.0);
-
         // Reset laser
         let line = shapes::Line(Vec2::ZERO, Vec2::ZERO);
         *laser_path = ShapePath::build_as(&line);
