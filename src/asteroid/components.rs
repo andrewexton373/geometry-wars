@@ -6,10 +6,8 @@ use rand::{distributions::Distribution, seq::SliceRandom, Rng};
 use rand_distr::Normal;
 use std::{cmp::Ordering, fmt};
 
-use crate::health::Health;
+use crate::{collectible::components::Collectible, health::Health};
 
-#[derive(Component)]
-pub struct Collectible;
 
 #[derive(Component)]
 pub struct Splittable(pub f32);
@@ -39,7 +37,7 @@ impl Asteroid {
             })
             .collect::<LineString<f32>>();
 
-        let poly = Polygon::new(LineString::from(asteroid_polygon_tuple), vec![]);
+        let poly = Polygon::new(asteroid_polygon_tuple, vec![]);
         poly.signed_area()
     }
 
@@ -51,7 +49,7 @@ impl Asteroid {
         // Compute Health from Generated Shape Mass?
 
         Self {
-            size: size,
+            size,
             health: Health {
                 current: poly_area,
                 maximum: poly_area,
@@ -217,7 +215,7 @@ impl Asteroid {
             vector_chain
         }
 
-        fn get_centroid(verticies: &Vec<Vec2>) -> Vec2 {
+        fn get_centroid(verticies: &[Vec2]) -> Vec2 {
             let mut centroid: Vec2 = Vec2 { x: 0.0, y: 0.0 };
             let n = verticies.len();
             let mut signed_area = 0.0;

@@ -7,11 +7,17 @@ use ordered_float::OrderedFloat;
 use rand::Rng;
 use crate::player::components::Player;
 
-use crate::{base_station::BaseStation, game_ui::{ContextClue, ContextClues}, inventory::{Amount, Inventory, InventoryItem}, particles::ShipDamageParticleSystem, PIXELS_PER_METER};
+use crate::{
+    base_station::BaseStation,
+    game_ui::{ContextClue, ContextClues},
+    inventory::{Amount, Inventory, InventoryItem},
+    particles::ShipDamageParticleSystem,
+    collectible::components::Collectible,
+    PIXELS_PER_METER};
 
 use super::{
     components::{
-        Asteroid, AsteroidComposition, AsteroidMaterial, AsteroidSize, Collectible, Splittable
+        Asteroid, AsteroidComposition, AsteroidMaterial, AsteroidSize, Splittable
     },
     plugin::LASER_DAMAGE, resources::InventoryFullNotificationTimer,
     resources::AsteroidSpawner,
@@ -81,7 +87,7 @@ pub fn despawn_far_asteroids(
 }
 
 
-
+// TODO: Verify this is working...
 pub fn update_collectible_material_color(
     mut asteroid_query: Query<(&Asteroid, &mut Fill), With<Asteroid>>,
 ) {

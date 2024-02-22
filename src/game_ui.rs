@@ -208,8 +208,11 @@ impl GameUIPlugin {
                                 .text("Engine Power"),
                         );
                         ui.label(format!("Speed: {:.2}", velocity.0.length()));
-                        // ui.label(format!("Direction: {:.2}", player.1.linvel.angle_between(Vec2::X)));
-                        ui.label(format!("Direction: {:.2}", velocity.0.angle_between(Vec2::X)));
+
+                        let direction_radians = velocity.0.angle_between(Vec2::X);
+
+                        // TODO: procedure to convert direction_radians to cardinal directions (nice to have)
+                        ui.label(format!("Direction: {:.2}", direction_radians));
 
                     });
                 });
@@ -229,7 +232,7 @@ impl GameUIPlugin {
                 .show(ctx.ctx_mut(), |ui| {
                     ui.vertical(|ui| {
                         for clue in cc {
-                            ui.label(format!("{}", clue.text()));
+                            ui.label(clue.text());
                         }
                     });
                 });

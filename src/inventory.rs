@@ -354,18 +354,6 @@ impl Inventory {
     }
 }
 
-// #[derive(Component, Default, Debug, Inspectable, Copy, Clone, PartialEq, PartialOrd)]
-// pub struct ItemAndWeight {
-//     pub item: AsteroidMaterial,
-//     pub weight: f32
-// }
-
-// impl fmt::Display for ItemAndWeight {
-//     fn fmt(&self, f: &mut  fmt::Formatter<'_>) -> fmt::Result {
-//         write!(f, "Item: {:?} | Weight: {}", &self.item, &self.weight)
-//     }
-// }
-
 pub struct InventoryPlugin;
 
 impl Plugin for InventoryPlugin {

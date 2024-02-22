@@ -21,7 +21,6 @@ impl Plugin for PlayerPlugin {
                 player_fire_laser.after(ship_rotate_towards_mouse),
                 player_camera_control,
                 player_deposit_control,
-                gravitate_collectibles,
                 trickle_charge,
                 ship_battery_is_empty_context_clue,
                 display_empty_ship_inventory_context_clue,

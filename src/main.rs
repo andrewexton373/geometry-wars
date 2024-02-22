@@ -49,6 +49,7 @@ mod projectile;
 mod recipe;
 mod refinery;
 mod upgrades;
+mod collectible;
 
 // Defines the amount of time that should elapse between each physics step.
 // const TIME_STEP: f32 = 1.0 / 60.0;
