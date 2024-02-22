@@ -16,7 +16,10 @@ use factory::FactoryPlugin;
 use game_ui::GameUIPlugin;
 use inventory::InventoryPlugin;
 use particles::ParticlePlugin;
-use player::{Player, PlayerPlugin};
+use player::{
+    components::Player,
+    plugin::PlayerPlugin
+};
 use player_input::PlayerInputPlugin;
 // use projectile::ProjectilePlugin;
 use asteroid::plugin::AsteroidPlugin;

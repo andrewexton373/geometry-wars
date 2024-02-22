@@ -10,7 +10,7 @@ use crate::{
     base_station::BaseStation,
     factory::Factory,
     inventory::{Inventory, InventoryItem},
-    player::Player,
+    player::components::Player,
     refinery::{Refinery, SmeltEvent},
     upgrades::UpgradeType,
     GameCamera,

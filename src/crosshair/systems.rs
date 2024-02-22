@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
 use crate::player_input::MouseWorldPosition;
-use crate::player::Player;
+use crate::player::components::Player;
 use super::components::Crosshair;
 
 pub fn spawn_crosshair(mut commands: Commands) {

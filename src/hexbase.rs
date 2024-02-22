@@ -1,17 +1,15 @@
-use crate::player::Player;
-use crate::player_input::MouseWorldPosition;
 use bevy::prelude::*;
 use bevy::sprite::MaterialMesh2dBundle;
-
+use bevy::render::mesh::Indices;
+use bevy::render::render_resource::PrimitiveTopology;
+use hexx::*;
 use std::collections::HashMap;
 use std::f32::consts::PI;
 
+use crate::player::components::Player;
+use crate::player_input::MouseWorldPosition;
 use crate::events::BuildHexBuildingEvent;
-use bevy::render::mesh::Indices;
-use bevy::render::render_resource::PrimitiveTopology;
-use hexx::shapes;
-use hexx::Vec2;
-use hexx::*;
+
 
 /// World size of the hexagons (outer radius)
 const HEX_SIZE: Vec2  = Vec2::splat(10.0 * crate::PIXELS_PER_METER);

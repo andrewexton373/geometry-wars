@@ -1,9 +1,11 @@
-use crate::factory::UpgradeComponent;
-use crate::inventory::{Amount, Inventory, InventoryItem};
-use crate::player::Player;
 use bevy::prelude::*;
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, FromRepr};
+
+use crate::factory::UpgradeComponent;
+use crate::inventory::{Amount, Inventory, InventoryItem};
+use crate::player::components::Player;
+
 
 pub trait Upgradeable {
     fn set_upgrade_level(&mut self, upgrade_level: UpgradeLevel);
@@ -24,7 +26,7 @@ impl UpgradesComponent {
             }
         }
 
-        Self { upgrades: upgrades }
+        Self { upgrades }
     }
 
     pub fn upgrade(

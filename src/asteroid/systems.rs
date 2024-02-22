@@ -5,8 +5,9 @@ use bevy_tweening::{lens::TextColorLens, Animator, EaseFunction, RepeatCount, Tw
 use bevy_xpbd_2d::{components::{Collider, LinearVelocity, Mass, RigidBody}, math::PI, plugins::{collision::Collisions, spatial_query::SpatialQuery}};
 use ordered_float::OrderedFloat;
 use rand::Rng;
+use crate::player::components::Player;
 
-use crate::{base_station::BaseStation, game_ui::{ContextClue, ContextClues}, inventory::{Amount, Inventory, InventoryItem}, particles::ShipDamageParticleSystem, player::Player, PIXELS_PER_METER};
+use crate::{base_station::BaseStation, game_ui::{ContextClue, ContextClues}, inventory::{Amount, Inventory, InventoryItem}, particles::ShipDamageParticleSystem, PIXELS_PER_METER};
 
 use super::{
     components::{

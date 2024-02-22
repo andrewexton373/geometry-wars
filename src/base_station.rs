@@ -6,7 +6,13 @@ use bevy_xpbd_2d::prelude::*;
 use ordered_float::OrderedFloat;
 
 use crate::{
-    asteroid::components::Asteroid, factory::FactoryPlugin, game_ui::{ContextClue, ContextClues}, inventory::{Capacity, Inventory, InventoryPlugin}, player::Player, refinery::RefineryPlugin, PIXELS_PER_METER
+    asteroid::components::Asteroid,
+    factory::FactoryPlugin,
+    game_ui::{ContextClue, ContextClues},
+    inventory::{Capacity, Inventory, InventoryPlugin},
+    player::components::Player,
+    refinery::RefineryPlugin,
+    PIXELS_PER_METER
 };
 
 pub const BASE_STATION_SIZE: f32 = 20.0;

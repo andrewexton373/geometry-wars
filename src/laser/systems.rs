@@ -1,9 +1,3 @@
-use super::events::LaserEvent;
-use super::components::Laser;
-
-use crate::asteroid::events::AblateEvent;
-use crate::particles::LaserImpactParticleSystem;
-use crate::player::Player;
 use bevy::prelude::*;
 use bevy::utils::hashbrown::HashSet;
 use bevy_particle_systems::Playing;
@@ -13,6 +7,12 @@ use bevy_prototype_lyon::{
 };
 use bevy_xpbd_2d::plugins::spatial_query::{SpatialQuery, SpatialQueryFilter};
 
+use super::events::LaserEvent;
+use super::components::Laser;
+
+use crate::asteroid::events::AblateEvent;
+use crate::particles::LaserImpactParticleSystem;
+use crate::player::components::Player;
 
 
 pub fn setup_laser(mut commands: Commands, mut laser_query: Query<&mut Laser>) {

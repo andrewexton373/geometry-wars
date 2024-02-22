@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::player::Player;
+use crate::player::components::Player;
 use bevy_particle_systems::*;
 
 pub struct ParticlePlugin;
