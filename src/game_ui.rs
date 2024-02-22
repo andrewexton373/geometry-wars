@@ -4,10 +4,9 @@ use bevy_egui::{
 use bevy::{prelude::*, utils::HashSet};
 use bevy_xpbd_2d::prelude::*;
 
-use crate::events::{BuildHexBuildingEvent, CraftEvent};
+use crate::{asteroid::components::Asteroid, events::{BuildHexBuildingEvent, CraftEvent}};
 use crate::hexbase::{BuildingType, PlayerHoveringBuilding};
 use crate::{
-    asteroid::asteroid_component::Asteroid,
     base_station::BaseStation,
     factory::Factory,
     inventory::{Inventory, InventoryItem},
@@ -88,7 +87,7 @@ impl GameUIPlugin {
 
         egui::Window::new("Ship Inventory").auto_sized().anchor(Align2::LEFT_BOTTOM, bevy_inspector_egui::egui::Vec2 {x: 0.0, y: 0.0}).show(ctx.ctx_mut(), |ui| {
 
-            let (_, mut inventory) = inventory_query.single_mut();
+            let (_, inventory) = inventory_query.single_mut();
 
             let inventory_capacity_percent = (1.0 - inventory.remaining_capacity().0 / inventory.capacity.maximum.0) * 100.0;
             ui.label(format!("Capacity: {:.2}%", inventory_capacity_percent));
@@ -106,19 +105,16 @@ impl GameUIPlugin {
     fn progress_string(progress: f32) -> String {
         let progress_bar_len = 10;
 
-        return format!(
-            "{}",
-            (0..progress_bar_len)
-                .map(|i| {
-                    let percent = i as f32 / progress_bar_len as f32;
-                    if percent < progress {
-                        '◼'
-                    } else {
-                        '◻'
-                    }
-                })
-                .collect::<String>()
-        );
+        (0..progress_bar_len)
+            .map(|i| {
+                let percent = i as f32 / progress_bar_len as f32;
+                if percent < progress {
+                    '◼'
+                } else {
+                    '◻'
+                }
+            })
+            .collect::<String>()
     }
 
     fn ui_station_menu(
@@ -136,48 +132,45 @@ impl GameUIPlugin {
         egui::Window::new("BaseStation Information")
             .anchor(Align2::RIGHT_BOTTOM, egui::Vec2 {x: 0.0, y: 0.0})
             .show(ctx.ctx_mut(), |ui| {
-                ui.group(|ui| {
-                    ui.label("HELLO WORLD");
-                });
+
+            ui.group(|ui| {
+        
+                let (_, upgrades) = player_query.single();
+        
+                ui.heading("Ship Upgrades:");
+        
+                for upgrade in &upgrades.upgrades {
+        
+                    ui.group(|ui| {
+                        ui.horizontal(|ui| {
+        
+                            ui.vertical(|ui| {
+        
+                                ui.label(format!("{:?}", upgrade));
+                                if ui.button("Upgrade").clicked() {
+                                    upgrade_events.send(UpgradeEvent(*upgrade));
+                                }
+                            });
+        
+                            ui.vertical(|ui| {
+                                ui.label("Requires: ");
+                                if upgrade.requirements().is_some() {
+                                    for requirement in upgrade.requirements().unwrap().requirements { // TODO: This seems unnecessairly convoluted..
+                                        ui.label(format!("{:?}", requirement));
+        
+                                    }
+                                }
+                            });
+        
+                        });
+                    });
+        
+                }
+        
             });
 
-        //     ui.group(|ui| {
-        //
-        //         let (_, upgrades) = player_query.single();
-        //
-        //         ui.heading("Ship Upgrades:");
-        //
-        //         for upgrade in &upgrades.upgrades {
-        //
-        //             ui.group(|ui| {
-        //                 ui.horizontal(|ui| {
-        //
-        //                     ui.vertical(|ui| {
-        //
-        //                         ui.label(format!("{:?}", upgrade));
-        //                         if ui.button("Upgrade").clicked() {
-        //                             upgrade_events.send(UpgradeEvent(upgrade.clone()));
-        //                         }
-        //                     });
-        //
-        //                     ui.vertical(|ui| {
-        //                         ui.label("Requires: ");
-        //                         if upgrade.requirements().is_some() {
-        //                             for requirement in upgrade.requirements().unwrap().requirements { // TODO: This seems unnecessairly convoluted..
-        //                                 ui.label(format!("{:?}", requirement));
-        //
-        //                             }
-        //                         }
-        //                     });
-        //
-        //                 });
-        //             });
-        //
-        //         }
-        //
-        //     });
-        //
-        // });
+        });
+        
     }
 
     fn ui_ship_information(

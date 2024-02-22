@@ -49,9 +49,6 @@ impl CrosshairPlugin {
         // Draw Crosshair
         {
             let line = shapes::Line(player_trans.translation.truncate(), world_pos);
-            // dbg!("Crosshair: :?", line);
-            // dbg!("Path: :?", &path.0);
-
             *path = ShapePath::build_as(&line);
         }
     }

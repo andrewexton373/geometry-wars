@@ -1,4 +1,4 @@
-use crate::asteroid::asteroid_material::AsteroidMaterial;
+use crate::asteroid::components::AsteroidMaterial;
 use crate::factory::UpgradeComponent;
 use crate::refinery::MetalIngot;
 use bevy::prelude::*;

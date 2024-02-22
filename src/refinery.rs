@@ -3,12 +3,8 @@ use std::time::Duration;
 use bevy::prelude::*;
 use ordered_float::OrderedFloat;
 
-use crate::asteroid::asteroid_material::AsteroidMaterial;
 use crate::{
-    base_station::BaseStation,
-    inventory::{Amount, Inventory, InventoryItem},
-    item_producer::ItemProducer,
-    recipe::Recipe,
+    asteroid::components::AsteroidMaterial, base_station::BaseStation, inventory::{Amount, Inventory, InventoryItem}, item_producer::ItemProducer, recipe::Recipe
 };
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Hash)]
@@ -34,11 +30,13 @@ impl ItemProducer for Refinery {
     fn new() -> Self {
         let mut recipes = Vec::new();
 
-        let mut items_required = Vec::new();
-        items_required.push(InventoryItem::Material(
-            AsteroidMaterial::Iron,
-            Amount::Weight(OrderedFloat(20.0)),
-        ));
+
+        let items_required = vec![
+            InventoryItem::Material(
+                AsteroidMaterial::Iron,
+                Amount::Weight(OrderedFloat(20.0)),
+            )
+        ];
 
         let iron_recipe = Recipe {
             items_required,
@@ -46,11 +44,12 @@ impl ItemProducer for Refinery {
             time_required: 2.0,
         };
 
-        let mut items_required = Vec::new();
-        items_required.push(InventoryItem::Material(
-            AsteroidMaterial::Silver,
-            Amount::Weight(OrderedFloat(50.0)),
-        ));
+        let items_required = vec![
+            InventoryItem::Material(
+                AsteroidMaterial::Silver,
+                Amount::Weight(OrderedFloat(50.0)),
+            )
+        ];
 
         let silver_recipe = Recipe {
             items_required,
@@ -58,11 +57,12 @@ impl ItemProducer for Refinery {
             time_required: 5.0,
         };
 
-        let mut items_required = Vec::new();
-        items_required.push(InventoryItem::Material(
-            AsteroidMaterial::Gold,
-            Amount::Weight(OrderedFloat(100.0)),
-        ));
+        let items_required = vec![
+            InventoryItem::Material(
+                AsteroidMaterial::Gold,
+                Amount::Weight(OrderedFloat(100.0)),
+            )
+        ];
 
         let gold_recipe = Recipe {
             items_required,

@@ -1,4 +1,4 @@
-use crate::asteroid::asteroid_size::Collectible;
+use crate::asteroid::components::Collectible;
 use crate::base_station::{BaseStation, CanDeposit};
 use crate::battery::Battery;
 use crate::crosshair::Crosshair;
@@ -248,8 +248,6 @@ impl PlayerPlugin {
 
             let ray_pos = player_global_trans.translation().truncate();
             let ray_dir = player_direction;
-
-            // dbg!("{:?}", ray_pos);
 
             laser_event_writer.send(LaserEvent(true, ray_pos, ray_dir));
             player.drain_battery(1.0);

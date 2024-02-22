@@ -6,13 +6,7 @@ use bevy_xpbd_2d::prelude::*;
 use ordered_float::OrderedFloat;
 
 use crate::{
-    asteroid::asteroid_component::Asteroid,
-    factory::FactoryPlugin,
-    game_ui::{ContextClue, ContextClues},
-    inventory::{Capacity, Inventory, InventoryPlugin},
-    player::Player,
-    refinery::RefineryPlugin,
-    PIXELS_PER_METER,
+    asteroid::components::Asteroid, factory::FactoryPlugin, game_ui::{ContextClue, ContextClues}, inventory::{Capacity, Inventory, InventoryPlugin}, player::Player, refinery::RefineryPlugin, PIXELS_PER_METER
 };
 
 pub const BASE_STATION_SIZE: f32 = 20.0;
@@ -134,13 +128,9 @@ impl BaseStationPlugin {
         dir_indicator_transform.translation =
             (player_trans.translation().truncate() + direction_to_base * 100.0).extend(0.0);
 
-        // dbg!(":?", &dir_indicator_transform);
-
         dir_indicator_transform.scale = Vec3::new(0.3, 1.0, 1.0);
 
         let opacity = (distance_to_base / FADE_DISTANCE).powi(2).clamp(0.0, 1.0);
-
-        // dbg!(":?", opacity);
 
         *dir_indicator_fill = Fill {
             color: Color::Rgba {

@@ -43,7 +43,6 @@ impl PlayerInputPlugin {
             .map(|ray| ray.origin.truncate())
         {
             *mouse_position = MouseWorldPosition(world_position);
-            dbg!("MOUSE POS: :?", mouse_position.0);
         }
     }
 

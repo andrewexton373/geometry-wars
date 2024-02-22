@@ -1,7 +1,3 @@
-use crate::asteroid::asteroid_component::Asteroid;
-use crate::asteroid::asteroid_composition::AsteroidComposition;
-use crate::asteroid::asteroid_material::AsteroidMaterial;
-use crate::asteroid::asteroid_size::{AsteroidSize, Collectible};
 use crate::base_station::BaseStation;
 use crate::events::AblateEvent;
 use crate::game_ui::{ContextClue, ContextClues};
@@ -22,18 +18,14 @@ use ordered_float::OrderedFloat;
 use rand::Rng;
 use std::f32::consts::PI;
 
+use super::components::{
+    Asteroid, AsteroidComposition, AsteroidMaterial, AsteroidSize, AsteroidSpawner, Collectible, Splittable
+};
+
 pub struct AsteroidPlugin;
 
 #[derive(Resource)]
 pub struct InventoryFullNotificationTimer(pub Option<Timer>);
-
-#[derive(Component)]
-pub struct Splittable(pub f32);
-
-#[derive(Component, Resource)]
-pub struct AsteroidSpawner {
-    timer: Timer,
-}
 
 const LASER_DAMAGE: f32 = 250.0;
 

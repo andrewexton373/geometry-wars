@@ -256,8 +256,6 @@ impl HexBasePlugin {
             .entity(*mouse_hover_ent)
             .insert(map.selected_material.clone());
 
-        dbg!("MOUSE HOVER ENT: :?", mouse_hover_ent);
-
         // 4: Ring?
         // for (vec, mat) in [
         //     (&highlighted_hexes.ring, &map.ring_material),

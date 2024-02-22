@@ -8,7 +8,7 @@ use bevy_prototype_lyon::{
     prelude::{GeometryBuilder, Path, ShapeBundle, ShapePath, Stroke},
     shapes,
 };
-use bevy_xpbd_2d::plugins::spatial_query::{self, SpatialQuery, SpatialQueryFilter};
+use bevy_xpbd_2d::plugins::spatial_query::{SpatialQuery, SpatialQueryFilter};
 // use bevy_rapier2d::prelude::*;
 
 #[derive(Component)]
@@ -108,8 +108,6 @@ impl LaserPlugin {
                         let line = shapes::Line(ray_pos, hit_point);
                         
                         *laser_path = ShapePath::build_as(&line);
-
-                        // dbg!("LASER PATH: {:?}", &laser_path.0);
 
                         ablate_event_writer.send(AblateEvent(hit_ent, hit_point, hit_normal));
 
