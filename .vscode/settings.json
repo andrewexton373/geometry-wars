@@ -7,5 +7,6 @@
   //   "-- -D warnings --target-dir target/check"
   // ],
   "rust-analyzer.checkOnSave": true,
-  "rust-analyzer.rust.analyzerTargetDir": true
+  "rust-analyzer.rust.analyzerTargetDir": true,
+  "rust-analyzer.diagnostics.disabled": ["unresolved-proc-macro"]
 }

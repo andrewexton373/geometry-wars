@@ -10,7 +10,7 @@
             "name": "Debug executable 'geometry-wars'",
             "cargo": {
                 "args": [
-                    "run",
+                    "build",
                     "--bin=geometry-wars",
                     "--package=geometry-wars",
                     "--color=always",
