@@ -6,7 +6,7 @@ use bevy_xpbd_2d::prelude::*;
 use ordered_float::OrderedFloat;
 
 use crate::{
-    astroid::Astroid,
+    asteroid::asteroid_component::Asteroid,
     factory::FactoryPlugin,
     game_ui::{ContextClue, ContextClues},
     inventory::{Capacity, Inventory, InventoryPlugin},
@@ -38,7 +38,7 @@ impl Plugin for BaseStationPlugin {
             ))
             .add_systems(Update, (
                 Self::guide_player_to_base_station,
-                Self::repel_astroids_from_base_station,
+                Self::repel_asteroids_from_base_station,
                 Self::handle_base_station_sensor_collision_event
             ));
     }
@@ -153,25 +153,25 @@ impl BaseStationPlugin {
         }
     }
 
-    fn repel_astroids_from_base_station(
+    fn repel_asteroids_from_base_station(
         base_query: Query<(&BaseStation, &GlobalTransform), With<BaseStation>>,
-        mut astroid_query: Query<(&Astroid, &GlobalTransform, &mut LinearVelocity), With<Astroid>>,
+        mut asteroid_query: Query<(&Asteroid, &GlobalTransform, &mut LinearVelocity), With<Asteroid>>,
     ) {
         const REPEL_RADIUS: f32 = 120.0 * PIXELS_PER_METER;
         const REPEL_STRENGTH: f32 = 25.0;
 
         let (_base_station, base_station_transform) = base_query.single();
 
-        for (_astroid, astroid_transform, mut astroid_velocity) in astroid_query.iter_mut() {
+        for (_asteroid, asteroid_transform, mut asteroid_velocity) in asteroid_query.iter_mut() {
             let base_station_pos = base_station_transform.translation().truncate();
-            let astroid_pos = astroid_transform.translation().truncate();
+            let asteroid_pos = asteroid_transform.translation().truncate();
 
-            let distance = base_station_pos.distance(astroid_pos);
+            let distance = base_station_pos.distance(asteroid_pos);
             let distance_weight = 1.0 - (distance / REPEL_RADIUS);
 
             if distance < REPEL_RADIUS {
-                let repel_vector = (astroid_pos - base_station_pos).normalize();
-                astroid_velocity.0 += repel_vector * distance_weight * REPEL_STRENGTH;
+                let repel_vector = (asteroid_pos - base_station_pos).normalize();
+                asteroid_velocity.0 += repel_vector * distance_weight * REPEL_STRENGTH;
             }
         }
     }

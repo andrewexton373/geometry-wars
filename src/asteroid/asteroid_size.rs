@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum AstroidSize {
+pub enum AsteroidSize {
     OreChunk,
     Small,
     Medium,
@@ -11,7 +11,7 @@ pub enum AstroidSize {
 #[derive(Component)]
 pub struct Collectible;
 
-impl AstroidSize {
+impl AsteroidSize {
     pub fn radius(self) -> f32 {
         match self {
             Self::OreChunk => 25.0,

@@ -4,7 +4,7 @@ use std::fmt;
 #[derive(
     Component, Reflect, Default, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd,
 )]
-pub enum AstroidMaterial {
+pub enum AsteroidMaterial {
     #[default]
     Rock,
     Iron,
@@ -12,13 +12,13 @@ pub enum AstroidMaterial {
     Gold,
 }
 
-impl fmt::Display for AstroidMaterial {
+impl fmt::Display for AsteroidMaterial {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            AstroidMaterial::Rock => write!(f, "Rock"),
-            AstroidMaterial::Iron => write!(f, "Iron"),
-            AstroidMaterial::Silver => write!(f, "Silver"),
-            AstroidMaterial::Gold => write!(f, "Gold"),
+            AsteroidMaterial::Rock => write!(f, "Rock"),
+            AsteroidMaterial::Iron => write!(f, "Iron"),
+            AsteroidMaterial::Silver => write!(f, "Silver"),
+            AsteroidMaterial::Gold => write!(f, "Gold"),
         }
     }
 }

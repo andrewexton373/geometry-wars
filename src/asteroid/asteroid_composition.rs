@@ -1,4 +1,4 @@
-use crate::astroid_material::AstroidMaterial;
+use crate::asteroid::asteroid_material::AsteroidMaterial;
 use bevy::prelude::Component;
 use bevy::utils::HashMap;
 use rand::distributions::Distribution;
@@ -6,11 +6,11 @@ use rand_distr::Normal;
 use std::fmt;
 
 #[derive(Component, Clone)]
-pub struct AstroidComposition {
-    composition: HashMap<AstroidMaterial, f32>,
+pub struct AsteroidComposition {
+    composition: HashMap<AsteroidMaterial, f32>,
 }
 
-impl AstroidComposition {
+impl AsteroidComposition {
     pub fn new_with_distance(distance: f32) -> Self {
         const MIN_DISTANCE: f32 = 0.0;
         const MAX_DISTANCE: f32 = 100000.0;
@@ -18,15 +18,15 @@ impl AstroidComposition {
         let percentage =
             ((distance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE)).clamp(0.0, 1.0);
 
-        let mut near_composition: HashMap<AstroidMaterial, f32> = HashMap::new();
-        near_composition.insert(AstroidMaterial::Iron, 0.95);
-        near_composition.insert(AstroidMaterial::Silver, 0.04);
-        near_composition.insert(AstroidMaterial::Gold, 0.01);
+        let mut near_composition: HashMap<AsteroidMaterial, f32> = HashMap::new();
+        near_composition.insert(AsteroidMaterial::Iron, 0.95);
+        near_composition.insert(AsteroidMaterial::Silver, 0.04);
+        near_composition.insert(AsteroidMaterial::Gold, 0.01);
 
-        let mut far_composition: HashMap<AstroidMaterial, f32> = HashMap::new();
-        far_composition.insert(AstroidMaterial::Iron, 1.0);
-        far_composition.insert(AstroidMaterial::Silver, 2.0);
-        far_composition.insert(AstroidMaterial::Gold, 2.0);
+        let mut far_composition: HashMap<AsteroidMaterial, f32> = HashMap::new();
+        far_composition.insert(AsteroidMaterial::Iron, 1.0);
+        far_composition.insert(AsteroidMaterial::Silver, 2.0);
+        far_composition.insert(AsteroidMaterial::Gold, 2.0);
 
         let mut composition = HashMap::new();
 
@@ -39,28 +39,28 @@ impl AstroidComposition {
         Self { composition }
     }
 
-    pub fn most_abundant(&self) -> AstroidMaterial {
+    pub fn most_abundant(&self) -> AsteroidMaterial {
         self.composition
             .iter()
-            .max_by(|a, b| a.1.total_cmp(&b.1))
-            .map(|(k, _v)| k.clone())
+            .max_by(|a, b| a.1.total_cmp(b.1))
+            .map(|(k, _v)| *k)
             .unwrap()
     }
 
-    pub fn percent_composition(&self) -> HashMap<AstroidMaterial, f32> {
-        let cloned: HashMap<AstroidMaterial, f32> = self.composition.clone();
+    pub fn percent_composition(&self) -> HashMap<AsteroidMaterial, f32> {
+        let cloned: HashMap<AsteroidMaterial, f32> = self.composition.clone();
         let total_weights: f32 = cloned.iter().map(|e| e.1).sum();
         cloned
             .into_iter()
             .map(|e| (e.0, e.1 / total_weights))
-            .collect::<HashMap<AstroidMaterial, f32>>()
+            .collect::<HashMap<AsteroidMaterial, f32>>()
     }
 
-    pub fn jitter(&self) -> AstroidComposition {
+    pub fn jitter(&self) -> AsteroidComposition {
         let mut rng = rand::thread_rng();
         let normal = Normal::new(0.0, 0.05).unwrap();
 
-        AstroidComposition {
+        AsteroidComposition {
             composition: self
                 .percent_composition()
                 .into_iter()
@@ -70,7 +70,7 @@ impl AstroidComposition {
     }
 }
 
-impl fmt::Debug for AstroidComposition {
+impl fmt::Debug for AsteroidComposition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for element in &self.composition {
             let _ = writeln!(f, "{:?}: {:.2}%", element.0, element.1 * 100.0);
@@ -82,11 +82,11 @@ impl fmt::Debug for AstroidComposition {
 #[test]
 fn test_most_abundant() {
     assert_eq!(
-        AstroidComposition::new_with_distance(0.0).most_abundant(),
-        AstroidMaterial::Iron
+        AsteroidComposition::new_with_distance(0.0).most_abundant(),
+        AsteroidMaterial::Iron
     );
     assert_eq!(
-        AstroidComposition::new_with_distance(10000.0).most_abundant(),
-        AstroidMaterial::Gold
+        AsteroidComposition::new_with_distance(10000.0).most_abundant(),
+        AsteroidMaterial::Gold
     );
 }

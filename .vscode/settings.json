@@ -1,0 +1,11 @@
+{
+  "rust-analyzer.cargo.extraEnv": {
+    "RUSTFLAGS": "-Clinker=clang -Clink-arg=-fuse-ld=lld"
+  },
+  "rust-analyzer.check.command": "clippy",
+  // "rust-analyzer.check.extraArgs": [
+  //   "-- -D warnings --target-dir target/check"
+  // ],
+  "rust-analyzer.checkOnSave": true,
+  "rust-analyzer.rust.analyzerTargetDir": true
+}

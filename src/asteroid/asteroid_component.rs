@@ -1,7 +1,7 @@
-use crate::astroid_composition::AstroidComposition;
-use crate::astroid_material::AstroidMaterial;
-use crate::astroid_plugin::Splittable;
-use crate::astroid_size::{AstroidSize, Collectible};
+use crate::asteroid::asteroid_composition::AsteroidComposition;
+use crate::asteroid::asteroid_material::AsteroidMaterial;
+
+use crate::asteroid::asteroid_size::{AsteroidSize, Collectible};
 use crate::health::Health;
 use bevy::prelude::*;
 use bevy_prototype_lyon::draw::Fill;
@@ -12,21 +12,25 @@ use bevy_prototype_lyon::shapes::Polygon;
 use bevy_xpbd_2d::components::{Collider, LinearVelocity, RigidBody};
 use rand::seq::SliceRandom;
 use rand::Rng;
-use std::cmp::Ordering; // Contains the ratio the asteroid will split at
+use std::cmp::Ordering;
+
+use super::plugin::Splittable; // Contains the ratio the asteroid will split at
+
 
 #[derive(Component, Clone, Debug)]
-pub struct Astroid {
-    pub size: AstroidSize,
+pub struct Asteroid {
+    pub size: AsteroidSize,
     pub health: Health,
-    pub composition: AstroidComposition,
+    pub composition: AsteroidComposition,
     polygon: Polygon,
 }
 
-impl Astroid {
+
+impl Asteroid {
     fn polygon_area(verticies: Vec<Vec2>) -> f32 {
         use geo::{Area, Coord, LineString, Point, Polygon};
 
-        let astroid_polygon_tuple = verticies
+        let asteroid_polygon_tuple = verticies
             .into_iter()
             .map(|item| {
                 Point(Coord {
@@ -36,14 +40,14 @@ impl Astroid {
             })
             .collect::<LineString<f32>>();
 
-        let poly = Polygon::new(LineString::from(astroid_polygon_tuple), vec![]);
+        let poly = Polygon::new(LineString::from(asteroid_polygon_tuple), vec![]);
         poly.signed_area()
     }
 
-    pub fn new_with(size: AstroidSize, comp: AstroidComposition) -> Self {
-        let astroid_polygon = Self::generate_shape_from_size(size);
+    pub fn new_with(size: AsteroidSize, comp: AsteroidComposition) -> Self {
+        let asteroid_polygon = Self::generate_shape_from_size(size);
 
-        let poly_area = Self::polygon_area(astroid_polygon.points.clone());
+        let poly_area = Self::polygon_area(asteroid_polygon.points.clone());
 
         // Compute Health from Generated Shape Mass?
 
@@ -55,48 +59,48 @@ impl Astroid {
                 upgrade_level: crate::upgrades::UpgradeLevel::Level0,
             },
             composition: comp,
-            polygon: astroid_polygon,
+            polygon: asteroid_polygon,
         }
     }
 
-    pub fn spawn_astroid(
+    pub fn spawn_asteroid(
         commands: &mut Commands,
-        size: AstroidSize,
-        composition: AstroidComposition,
+        size: AsteroidSize,
+        composition: AsteroidComposition,
         velocity: Vec2,
         position: Vec2,
     ) {
-        let astroid = Astroid::new_with(size, composition);
+        let asteroid = Asteroid::new_with(size, composition);
         
         let mut rng = rand::thread_rng();
 
         let splittable = Splittable(rng.gen_range(0.4..0.8));
 
-        let astroid_ent = commands
-            .spawn(astroid.clone())
+        let asteroid_ent = commands
+            .spawn(asteroid.clone())
             .insert((
                 RigidBody::Dynamic,
                 LinearVelocity(velocity),
-                Collider::convex_hull(astroid.polygon().points).unwrap(),
+                Collider::convex_hull(asteroid.polygon().points).unwrap(),
                 splittable,
-                Name::new("Astroid"),
+                Name::new("Asteroid"),
             )).insert((
                 ShapeBundle {
-                    path: GeometryBuilder::build_as(&astroid.polygon()),
+                    path: GeometryBuilder::build_as(&asteroid.polygon()),
                     spatial: SpatialBundle::from_transform(Transform::from_xyz(position.x, position.y, 0.0)),
                     ..default()
                 },                        
                 Fill::color(Color::DARK_GRAY),
             )).id();
 
-        // If the astroid is an ore chunk, add Collectible Tag
-        if astroid.clone().size == AstroidSize::OreChunk {
-            commands.entity(astroid_ent).insert(Collectible);
+        // If the asteroid is an ore chunk, add Collectible Tag
+        if asteroid.clone().size == AsteroidSize::OreChunk {
+            commands.entity(asteroid_ent).insert(Collectible);
         }
         
     }
 
-    pub fn primary_composition(&self) -> AstroidMaterial {
+    pub fn primary_composition(&self) -> AsteroidMaterial {
         self.composition.most_abundant()
     }
 
@@ -104,33 +108,33 @@ impl Astroid {
         self.polygon.clone()
     }
 
-    fn generate_shape_from_size(size: AstroidSize) -> Polygon {
+    fn generate_shape_from_size(size: AsteroidSize) -> Polygon {
         match size {
-            AstroidSize::OreChunk => lyon::shapes::Polygon {
+            AsteroidSize::OreChunk => lyon::shapes::Polygon {
                 points: Self::make_valtr_convex_polygon_coords(
-                    AstroidSize::OreChunk.num_sides(),
-                    AstroidSize::OreChunk.radius(),
+                    AsteroidSize::OreChunk.num_sides(),
+                    AsteroidSize::OreChunk.radius(),
                 ),
                 closed: true,
             },
-            AstroidSize::Small => lyon::shapes::Polygon {
+            AsteroidSize::Small => lyon::shapes::Polygon {
                 points: Self::make_valtr_convex_polygon_coords(
-                    AstroidSize::Small.num_sides(),
-                    AstroidSize::Small.radius(),
+                    AsteroidSize::Small.num_sides(),
+                    AsteroidSize::Small.radius(),
                 ),
                 closed: true,
             },
-            AstroidSize::Medium => lyon::shapes::Polygon {
+            AsteroidSize::Medium => lyon::shapes::Polygon {
                 points: Self::make_valtr_convex_polygon_coords(
-                    AstroidSize::Medium.num_sides(),
-                    AstroidSize::Medium.radius(),
+                    AsteroidSize::Medium.num_sides(),
+                    AsteroidSize::Medium.radius(),
                 ),
                 closed: true,
             },
-            AstroidSize::Large => lyon::shapes::Polygon {
+            AsteroidSize::Large => lyon::shapes::Polygon {
                 points: Self::make_valtr_convex_polygon_coords(
-                    AstroidSize::Large.num_sides(),
-                    AstroidSize::Large.radius(),
+                    AsteroidSize::Large.num_sides(),
+                    AsteroidSize::Large.radius(),
                 ),
                 closed: true,
             },

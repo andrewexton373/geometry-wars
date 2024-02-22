@@ -12,14 +12,14 @@ pub struct PlayerShipTrailParticles;
 pub struct ProjectileImpactParticles;
 
 #[derive(Component)]
-pub struct ShipAstroidImpactParticles;
+pub struct ShipAsteroidImpactParticles;
 
 impl Plugin for ParticlePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app
             .add_systems(Startup, (
                 Self::setup_projectile_impact_particle_system,
-                Self::setup_ship_astroid_impact_particle_system
+                Self::setup_ship_asteroid_impact_particle_system
             ))
             .add_systems(Update, Self::setup_player_ship_trail_particle_system);
     }
@@ -101,7 +101,7 @@ impl ParticlePlugin {
         }
     }
 
-    fn setup_ship_astroid_impact_particle_system(
+    fn setup_ship_asteroid_impact_particle_system(
         mut commands: Commands,
         asset_server: Res<AssetServer>,
     ) {

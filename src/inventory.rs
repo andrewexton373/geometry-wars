@@ -1,4 +1,4 @@
-use crate::astroid_material::AstroidMaterial;
+use crate::asteroid::asteroid_material::AsteroidMaterial;
 use crate::factory::UpgradeComponent;
 use crate::refinery::MetalIngot;
 use bevy::prelude::*;
@@ -76,14 +76,14 @@ impl SubAssign for Amount {
 #[derive(Clone, PartialEq, Hash)]
 
 pub enum InventoryItem {
-    Material(AstroidMaterial, Amount),
+    Material(AsteroidMaterial, Amount),
     Ingot(MetalIngot, Amount),
     Component(UpgradeComponent, Amount),
 }
 
 impl Default for InventoryItem {
     fn default() -> Self {
-        InventoryItem::Material(AstroidMaterial::Iron, Amount::Weight(OrderedFloat(0.0)))
+        InventoryItem::Material(AsteroidMaterial::Iron, Amount::Weight(OrderedFloat(0.0)))
     }
 }
 
@@ -356,7 +356,7 @@ impl Inventory {
 
 // #[derive(Component, Default, Debug, Inspectable, Copy, Clone, PartialEq, PartialOrd)]
 // pub struct ItemAndWeight {
-//     pub item: AstroidMaterial,
+//     pub item: AsteroidMaterial,
 //     pub weight: f32
 // }
 

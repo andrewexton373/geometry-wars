@@ -3,12 +3,11 @@ use bevy_egui::{
 };
 use bevy::{prelude::*, utils::HashSet};
 use bevy_xpbd_2d::prelude::*;
-use egui_dnd::{dnd, utils::shift_vec};
 
 use crate::events::{BuildHexBuildingEvent, CraftEvent};
 use crate::hexbase::{BuildingType, PlayerHoveringBuilding};
 use crate::{
-    astroid::Astroid,
+    asteroid::asteroid_component::Asteroid,
     base_station::BaseStation,
     factory::Factory,
     inventory::{Inventory, InventoryItem},
@@ -61,22 +60,6 @@ pub struct ContextClues(pub HashSet<ContextClue>);
 struct ItemType {
     name: String,
 }
-
-pub struct DND(Vec<ItemType>);
-
-impl Default for DND {
-    fn default() -> Self {
-        Self(
-            ["iron", "silver", "gold"]
-                .iter()
-                .map(|name| ItemType {
-                    name: name.to_string(),
-                })
-                .collect(),
-        )
-    }
-}
-
 pub struct GameUIPlugin;
 
 impl Plugin for GameUIPlugin {
@@ -88,7 +71,7 @@ impl Plugin for GameUIPlugin {
                 Self::ui_ship_information,
                 Self::ui_station_menu,
                 Self::ui_context_clue,
-                Self::dnd_ship_inventory,
+                Self::ship_inventory,
                 Self::ui_mouse_hover_context,
                 // Self::ui_ship_hover_context,
             ));
@@ -97,14 +80,13 @@ impl Plugin for GameUIPlugin {
 
 impl GameUIPlugin {
 
-    fn dnd_ship_inventory(
+    fn ship_inventory(
         // world: &mut World,
         mut ctx: EguiContexts,
         mut inventory_query: Query<(&Player, &mut Inventory)>,
     ) {
 
-
-        egui::Window::new("DND Ship Inventory").auto_sized().anchor(Align2::LEFT_BOTTOM, bevy_inspector_egui::egui::Vec2 {x: 0.0, y: 0.0}).show(ctx.ctx_mut(), |ui| {
+        egui::Window::new("Ship Inventory").auto_sized().anchor(Align2::LEFT_BOTTOM, bevy_inspector_egui::egui::Vec2 {x: 0.0, y: 0.0}).show(ctx.ctx_mut(), |ui| {
 
             let (_, mut inventory) = inventory_query.single_mut();
 
@@ -117,27 +99,6 @@ impl GameUIPlugin {
                     ui.label(format!("{:?}", item));
                 }
             })
-
-            // ui.group(|ui| {
-            //
-            //     let response = dnd(ui, "INVENTORY?").show_vec(&mut inventory.items.clone(), |ui, item, handle, _state| {
-            //
-            //         handle.ui(ui, |ui| {
-            //             ui.group(|ui| {
-            //                 ui.label(format!("{:?}", item));
-            //             });
-            //
-            //         });
-            //     });
-            //
-            //     // After the drag is complete, we get a response containing the old index of the
-            //     // dragged item, as well as the index it was moved to. You can use the
-            //     // shift_vec function as a helper if you store your items in a Vec.
-            //     if let Some(response) = response.update {
-            //         shift_vec(response.from, response.to, &mut inventory.items);
-            //     }
-            //
-            //     });
 
         });
     }
@@ -471,7 +432,7 @@ impl GameUIPlugin {
         window_query: Query<&Window>,
         camera_q: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
         // rapier_context: Res<RapierContext>,
-        ent_query: Query<(Entity, &Name, Option<&Astroid>)>,
+        ent_query: Query<(Entity, &Name, Option<&Asteroid>)>,
         spatial_q: SpatialQuery
     ) {
 
@@ -504,20 +465,20 @@ impl GameUIPlugin {
 
                     if let Some(ray_hit) = spatial_q.cast_ray(ray_pos, ray_dir, max_toi, true, SpatialQueryFilter::default()) {
 
-                            if let Ok((_ent, name, astroid)) = ent_query.get(ray_hit.entity) {
+                            if let Ok((_ent, name, asteroid)) = ent_query.get(ray_hit.entity) {
                                 ui.group(|ui| {
                                     ui.heading(format!("{}", name));
 
-                                    if let Some(astroid) = astroid {
+                                    if let Some(asteroid) = asteroid {
                                         ui.label(format!(
                                             "Health: {:.2}%",
-                                            astroid.health.current_percent() * 100.0
+                                            asteroid.health.current_percent() * 100.0
                                         ));
-                                        let health_percent = astroid.health.current_percent();
+                                        let health_percent = asteroid.health.current_percent();
                                         ui.label(Self::progress_string(health_percent));
 
                                         ui.label("Composition:");
-                                        ui.label(format!("{:?}", astroid.composition));
+                                        ui.label(format!("{:?}", asteroid.composition));
                                     }
                                 });
                             };

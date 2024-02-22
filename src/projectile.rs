@@ -1,10 +1,10 @@
 // use crate::{
-//     astroid::Astroid,
+//     asteroid::Asteroid,
 //     particles::ProjectileImpactParticles,
 // };
 // use bevy::prelude::*;
 // use bevy_rapier2d::prelude::*;
-// use crate::astroid_plugin::AstroidPlugin;
+// use crate::asteroid_plugin::AsteroidPlugin;
 //
 // #[derive(Component)]
 // pub struct Projectile {
@@ -56,24 +56,24 @@
 // }
 
 //     fn handle_projectile_collision_event(
-//         mut astroid_query: Query<(Entity, &Astroid, &Transform, &Velocity), With<Astroid>>,
+//         mut asteroid_query: Query<(Entity, &Asteroid, &Transform, &Velocity), With<Asteroid>>,
 //         projectile_query: Query<(Entity, &Projectile, &Velocity), With<Projectile>>,
 //         mut commands: Commands,
 //         rapier_context: Res<RapierContext>,
 //     ) {
 //         for (projectile_ent, _projectile, projectile_velocity) in projectile_query.iter() {
-//             for (astroid_ent, astroid, astroid_transform, _astroid_velocity) in
-//                 astroid_query.iter_mut()
+//             for (asteroid_ent, asteroid, asteroid_transform, _asteroid_velocity) in
+//                 asteroid_query.iter_mut()
 //             {
 //                 if let Some(contact_pair_view) =
-//                     rapier_context.contact_pair(projectile_ent, astroid_ent)
+//                     rapier_context.contact_pair(projectile_ent, asteroid_ent)
 //                 {
 //                     for manifold in contact_pair_view.manifolds() {
 //                         // Read the solver contacts.
 //
 //                         for solver_contact in manifold.solver_contacts() {
 //                             // Keep in mind that all the solver contact data are expressed in world-space.
-//                             println!("PROJECTILE COLLISION WITH ASTROID");
+//                             println!("PROJECTILE COLLISION WITH ASTEROID");
 //
 //                             let (mut effect, mut effect_translation) = effect.single_mut();
 //
@@ -81,11 +81,11 @@
 //                                 (solver_contact.point() * crate::PIXELS_PER_METER).extend(200.0);
 //                             effect.maybe_spawner().unwrap().reset();
 //
-//                             AstroidPlugin::split_astroid(
+//                             AsteroidPlugin::split_asteroid(
 //                                 &mut commands,
-//                                 astroid_ent,
-//                                 astroid,
-//                                 astroid_transform.translation.truncate(),
+//                                 asteroid_ent,
+//                                 asteroid,
+//                                 asteroid_transform.translation.truncate(),
 //                                 projectile_velocity,
 //                             );
 //                             commands.entity(projectile_ent).despawn_recursive();

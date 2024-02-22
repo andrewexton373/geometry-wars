@@ -1,4 +1,4 @@
-use crate::astroid_size::Collectible;
+use crate::asteroid::asteroid_size::Collectible;
 use crate::base_station::{BaseStation, CanDeposit};
 use crate::battery::Battery;
 use crate::crosshair::Crosshair;

@@ -1,7 +1,7 @@
-use crate::astroid::Astroid;
-use crate::astroid_composition::AstroidComposition;
-use crate::astroid_material::AstroidMaterial;
-use crate::astroid_size::{AstroidSize, Collectible};
+use crate::asteroid::asteroid_component::Asteroid;
+use crate::asteroid::asteroid_composition::AsteroidComposition;
+use crate::asteroid::asteroid_material::AsteroidMaterial;
+use crate::asteroid::asteroid_size::{AsteroidSize, Collectible};
 use crate::base_station::BaseStation;
 use crate::events::AblateEvent;
 use crate::game_ui::{ContextClue, ContextClues};
@@ -22,7 +22,7 @@ use ordered_float::OrderedFloat;
 use rand::Rng;
 use std::f32::consts::PI;
 
-pub struct AstroidPlugin;
+pub struct AsteroidPlugin;
 
 #[derive(Resource)]
 pub struct InventoryFullNotificationTimer(pub Option<Timer>);
@@ -31,26 +31,26 @@ pub struct InventoryFullNotificationTimer(pub Option<Timer>);
 pub struct Splittable(pub f32);
 
 #[derive(Component, Resource)]
-pub struct AstroidSpawner {
+pub struct AsteroidSpawner {
     timer: Timer,
 }
 
 const LASER_DAMAGE: f32 = 250.0;
 
-impl Plugin for AstroidPlugin {
+impl Plugin for AsteroidPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(TweeningPlugin)
-            .insert_resource(AstroidSpawner {
+            .insert_resource(AsteroidSpawner {
                 timer: Timer::from_seconds(1.0, TimerMode::Once),
             })
             .insert_resource(InventoryFullNotificationTimer(None))
             .add_event::<AblateEvent>()
             .add_systems(Update, (
-                Self::spawn_astroids_aimed_at_ship,
-                Self::despawn_far_astroids,
-                Self::handle_astroid_collision_event,
-                Self::ablate_astroids,
-                Self::split_astroids_over_split_ratio,
+                Self::spawn_asteroids_aimed_at_ship,
+                Self::despawn_far_asteroids,
+                Self::handle_asteroid_collision_event,
+                Self::ablate_asteroids,
+                Self::split_asteroids_over_split_ratio,
                 Self::remove_post_animation_text,
                 Self::display_inventory_full_context_clue,
                 Self::update_collectible_material_color
@@ -58,24 +58,24 @@ impl Plugin for AstroidPlugin {
     }
 }
 
-impl AstroidPlugin {
-    // System to spawn astroids at some distance away from the ship in random directions,
-    // each astroid with an initial velocity aimed towards the players ship
-    fn spawn_astroids_aimed_at_ship(
+impl AsteroidPlugin {
+    // System to spawn asteroids at some distance away from the ship in random directions,
+    // each asteroid with an initial velocity aimed towards the players ship
+    fn spawn_asteroids_aimed_at_ship(
         mut commands: Commands,
         player_query: Query<(&Player, &GlobalTransform)>,
         base_station_query: Query<(&BaseStation, &GlobalTransform)>,
-        mut astroid_spawner: ResMut<AstroidSpawner>,
+        mut asteroid_spawner: ResMut<AsteroidSpawner>,
         time: Res<Time>,
         _spatial: SpatialQuery,
         _query: Query<(&Collider, &Transform)>
     ) {
         const SPAWN_DISTANCE: f32 = 350.0;
 
-        astroid_spawner.timer.tick(time.delta());
+        asteroid_spawner.timer.tick(time.delta());
 
-        if astroid_spawner.timer.finished() {
-            astroid_spawner.timer.reset();
+        if asteroid_spawner.timer.finished() {
+            asteroid_spawner.timer.reset();
 
             let mut rng = rand::thread_rng();
             let (_player, player_g_transform) = player_query.single();
@@ -94,28 +94,28 @@ impl AstroidPlugin {
                 player_position + (rand_direction * SPAWN_DISTANCE * crate::PIXELS_PER_METER);
             let direction_to_player = (player_position - random_spawn_position).normalize() * 20.0; // maybe?
 
-            Astroid::spawn_astroid(
+            Asteroid::spawn_asteroid(
                 &mut commands,
-                AstroidSize::Large,
-                AstroidComposition::new_with_distance(distance_to_base_station),
+                AsteroidSize::Large,
+                AsteroidComposition::new_with_distance(distance_to_base_station),
                 direction_to_player * crate::PIXELS_PER_METER,
                 random_spawn_position,
             );
         }
     }
 
-    fn despawn_far_astroids(
+    fn despawn_far_asteroids(
         mut commands: Commands,
-        astroid_query: Query<(Entity, &mut Astroid, &mut Transform), With<Astroid>>,
-        player_query: Query<(&Player, &Transform), (With<Player>, Without<Astroid>)>,
+        asteroid_query: Query<(Entity, &mut Asteroid, &mut Transform), With<Asteroid>>,
+        player_query: Query<(&Player, &Transform), (With<Player>, Without<Asteroid>)>,
     ) {
         const DESPAWN_DISTANCE: f32 = 1000.0 * PIXELS_PER_METER;
         let (_player, transform) = player_query.single();
         let player_position = transform.translation.truncate();
 
-        for (entity, _astroid, transform) in astroid_query.iter() {
-            let astroid_position = transform.translation.truncate();
-            if player_position.distance(astroid_position) > DESPAWN_DISTANCE {
+        for (entity, _asteroid, transform) in asteroid_query.iter() {
+            let asteroid_position = transform.translation.truncate();
+            if player_position.distance(asteroid_position) > DESPAWN_DISTANCE {
                 commands.entity(entity).despawn_recursive();
             }
         }
@@ -124,24 +124,24 @@ impl AstroidPlugin {
     
 
     fn update_collectible_material_color(
-        mut astroid_query: Query<(&Astroid, &mut Fill), With<Astroid>>,
+        mut asteroid_query: Query<(&Asteroid, &mut Fill), With<Asteroid>>,
     ) {
-        for (astroid, mut fill) in astroid_query.iter_mut() {
-            if astroid.size == AstroidSize::OreChunk {
-                match astroid.primary_composition() {
-                    AstroidMaterial::Iron => {
+        for (asteroid, mut fill) in asteroid_query.iter_mut() {
+            if asteroid.size == AsteroidSize::OreChunk {
+                match asteroid.primary_composition() {
+                    AsteroidMaterial::Iron => {
                         *fill = Fill {
                             color: Color::GRAY,
                             options: FillOptions::default(),
                         };
                     }
-                    AstroidMaterial::Silver => {
+                    AsteroidMaterial::Silver => {
                         *fill = Fill {
                             color: Color::SILVER,
                             options: FillOptions::default(),
                         };
                     }
-                    AstroidMaterial::Gold => {
+                    AsteroidMaterial::Gold => {
                         *fill = Fill {
                             color: Color::GOLD,
                             options: FillOptions::default(),
@@ -153,10 +153,10 @@ impl AstroidPlugin {
         }
     }
 
-    fn handle_astroid_collision_event(
+    fn handle_asteroid_collision_event(
         mut commands: Commands,
         collisions: Res<Collisions>,
-        mut astroid_query: Query<(Entity, &Astroid, &Mass), With<Astroid>>,
+        mut asteroid_query: Query<(Entity, &Asteroid, &Mass), With<Asteroid>>,
         mut player_query: Query<(Entity, &mut Player, &mut Inventory), With<Player>>,
         mut inventory_full_notification: ResMut<InventoryFullNotificationTimer>,
         mut player_damage_particle_query: Query<(
@@ -171,16 +171,16 @@ impl AstroidPlugin {
             player_damage_particle_query.single_mut();
         commands.entity(damage_particles_ent).remove::<Playing>();
 
-        for (astroid_entity, astroid, mass) in astroid_query.iter_mut() {
+        for (asteroid_entity, asteroid, mass) in asteroid_query.iter_mut() {
 
-            if let Some(collision) = collisions.get(player_ent, astroid_entity) {
-                let mut astroid_collision = false;
+            if let Some(collision) = collisions.get(player_ent, asteroid_entity) {
+                let mut asteroid_collision = false;
 
-                match astroid.size {
-                    AstroidSize::OreChunk => {
+                match asteroid.size {
+                    AsteroidSize::OreChunk => {
                         let ore_chunk_mass = mass.0;
 
-                        for comp in astroid.composition.percent_composition().iter() {
+                        for comp in asteroid.composition.percent_composition().iter() {
                             if !inventory.add_to_inventory(&InventoryItem::Material(
                                 *comp.0,
                                 Amount::Weight(OrderedFloat(comp.1 * ore_chunk_mass)),
@@ -191,23 +191,23 @@ impl AstroidPlugin {
                         }
 
                         // FIXME: will despawn even if there's no room in inventory to collect.
-                        commands.entity(astroid_entity).despawn_recursive();
+                        commands.entity(asteroid_entity).despawn_recursive();
                     }
-                    AstroidSize::Small => {
+                    AsteroidSize::Small => {
                         player.take_damage(1.0);
-                        astroid_collision = true;
+                        asteroid_collision = true;
                     }
-                    AstroidSize::Medium => {
+                    AsteroidSize::Medium => {
                         player.take_damage(2.5);
-                        astroid_collision = true;
+                        asteroid_collision = true;
                     }
-                    AstroidSize::Large => {
+                    AsteroidSize::Large => {
                         player.take_damage(5.0);
-                        astroid_collision = true;
+                        asteroid_collision = true;
                     }
                 }
 
-                if astroid_collision {
+                if asteroid_collision {
                     damage_particles_t.translation =
                         (collision.manifolds[0].contacts[0].point1 * crate::PIXELS_PER_METER).extend(999.0);
                     commands.entity(damage_particles_ent).insert(Playing);
@@ -245,23 +245,23 @@ impl AstroidPlugin {
         }
     }
 
-    pub fn ablate_astroids(
+    pub fn ablate_asteroids(
         mut commands: Commands,
         asset_server: Res<AssetServer>,
-        mut astroids_query: Query<(Entity, &mut Astroid, &GlobalTransform), With<Astroid>>,
+        mut asteroids_query: Query<(Entity, &mut Asteroid, &GlobalTransform), With<Asteroid>>,
         mut ablate_event_reader: EventReader<AblateEvent>,
     ) {
         let font = asset_server.load("fonts/FiraMono-Regular.ttf");
 
         for ablate_event in ablate_event_reader.read() {
             let mut rng = rand::thread_rng();
-            // let split_angle = rng.gen_range(0.0..PI / 4.0); TODO: Might keep splititng astroids
+            // let split_angle = rng.gen_range(0.0..PI / 4.0); TODO: Might keep splititng asteroids
 
-            if let Ok((ent, mut astroid_to_ablate, _g_trans)) =
-                astroids_query.get_mut(ablate_event.0)
+            if let Ok((ent, mut asteroid_to_ablate, _g_trans)) =
+                asteroids_query.get_mut(ablate_event.0)
             {
-                let damaged_health = astroid_to_ablate.health.current() - LASER_DAMAGE;
-                astroid_to_ablate.health.set_current(damaged_health);
+                let damaged_health = asteroid_to_ablate.health.current() - LASER_DAMAGE;
+                asteroid_to_ablate.health.set_current(damaged_health);
 
                 if damaged_health < 0.0 {
                     commands.entity(ent).despawn_recursive();
@@ -315,16 +315,16 @@ impl AstroidPlugin {
                 ));
 
                 // TODO: The new comp distance shouldn't be constant it should update based on player distance from base
-                let astroid = Astroid::new_with(
-                    AstroidSize::OreChunk,
-                    AstroidComposition::new_with_distance(100.0),
+                let asteroid = Asteroid::new_with(
+                    AsteroidSize::OreChunk,
+                    AsteroidComposition::new_with_distance(100.0),
                 );
 
-                let astroid_ent = commands
+                let asteroid_ent = commands
                     .spawn((
-                        astroid.clone(),
+                        asteroid.clone(),
                         ShapeBundle {
-                            path: GeometryBuilder::build_as(&astroid.polygon()),
+                            path: GeometryBuilder::build_as(&asteroid.polygon()),
                             spatial: Transform::from_xyz(ablate_event.1.x, ablate_event.1.y, 0.0).into(),
                             ..default()
                         },
@@ -333,38 +333,38 @@ impl AstroidPlugin {
                         LinearVelocity(ablate_event.2),
                         // Sleeping::disabled(),
                         // Ccd::enabled(),
-                        Collider::convex_hull(astroid.polygon().points).unwrap(),
+                        Collider::convex_hull(asteroid.polygon().points).unwrap(),
                         // ActiveEvents::COLLISION_EVENTS,
                         // AdditionalMassProperties::default(),
                         // Restitution::coefficient(0.01),
-                        Name::new("Astroid"),
+                        Name::new("Asteroid"),
                     ))
                     .id();
 
-                // If the astroid is an ore chunk, add Collectible Tag
-                if astroid.clone().size == AstroidSize::OreChunk {
-                    commands.entity(astroid_ent).insert(Collectible);
+                // If the asteroid is an ore chunk, add Collectible Tag
+                if asteroid.clone().size == AsteroidSize::OreChunk {
+                    commands.entity(asteroid_ent).insert(Collectible);
                 }
             }
         }
     }
 
-    pub fn split_astroids_over_split_ratio(
+    pub fn split_asteroids_over_split_ratio(
         mut commands: Commands,
-        mut astroid_query: Query<(Entity, &mut Astroid, &GlobalTransform, &Splittable)>,
+        mut asteroid_query: Query<(Entity, &mut Asteroid, &GlobalTransform, &Splittable)>,
             ) {
-        for (ent, astroid, g_t, split) in astroid_query.iter_mut() {
-            if astroid.health.current_percent() < split.0 {
-                Self::split_astroid(&mut commands, ent, &astroid, g_t.translation().truncate());
+        for (ent, asteroid, g_t, split) in asteroid_query.iter_mut() {
+            if asteroid.health.current_percent() < split.0 {
+                Self::split_asteroid(&mut commands, ent, &asteroid, g_t.translation().truncate());
             }
         }
     }
 
-    pub fn split_astroid(
+    pub fn split_asteroid(
         commands: &mut Commands,
-        astroid_ent: Entity,
-        astroid: &Astroid,
-        astroid_translation: Vec2,
+        asteroid_ent: Entity,
+        asteroid: &Asteroid,
+        asteroid_translation: Vec2,
                 // projectile_velocity: &LinearVelocity,
     ) {
         // let mut rng = rand::thread_rng();
@@ -381,60 +381,60 @@ impl AstroidPlugin {
         let right_velocity = Vec2::ZERO;
         let left_velocity = Vec2::ZERO;
 
-        match &astroid.size {
-            AstroidSize::Small => {
-                let left_comp = astroid.composition.jitter();
-                let right_comp = astroid.composition.jitter();
+        match &asteroid.size {
+            AsteroidSize::Small => {
+                let left_comp = asteroid.composition.jitter();
+                let right_comp = asteroid.composition.jitter();
 
-                Astroid::spawn_astroid(
+                Asteroid::spawn_asteroid(
                     commands,
-                    AstroidSize::OreChunk,
+                    AsteroidSize::OreChunk,
                     right_comp,
                     right_velocity,
-                    astroid_translation,
+                    asteroid_translation,
                 );
-                Astroid::spawn_astroid(
+                Asteroid::spawn_asteroid(
                     commands,
-                    AstroidSize::OreChunk,
+                    AsteroidSize::OreChunk,
                     left_comp,
                     left_velocity,
-                    astroid_translation,
+                    asteroid_translation,
                 );
-                commands.entity(astroid_ent).despawn_recursive();
+                commands.entity(asteroid_ent).despawn_recursive();
             }
-            AstroidSize::Medium => {
-                Astroid::spawn_astroid(
+            AsteroidSize::Medium => {
+                Asteroid::spawn_asteroid(
                     commands,
-                    AstroidSize::Small,
-                    astroid.composition.jitter(),
+                    AsteroidSize::Small,
+                    asteroid.composition.jitter(),
                     right_velocity,
-                    astroid_translation,
+                    asteroid_translation,
                 );
-                Astroid::spawn_astroid(
+                Asteroid::spawn_asteroid(
                     commands,
-                    AstroidSize::Small,
-                    astroid.composition.jitter(),
+                    AsteroidSize::Small,
+                    asteroid.composition.jitter(),
                     left_velocity,
-                    astroid_translation,
+                    asteroid_translation,
                 );
-                commands.entity(astroid_ent).despawn_recursive();
+                commands.entity(asteroid_ent).despawn_recursive();
             }
-            AstroidSize::Large => {
-                Astroid::spawn_astroid(
+            AsteroidSize::Large => {
+                Asteroid::spawn_asteroid(
                     commands,
-                    AstroidSize::Medium,
-                    astroid.composition.jitter(),
+                    AsteroidSize::Medium,
+                    asteroid.composition.jitter(),
                     right_velocity,
-                    astroid_translation,
+                    asteroid_translation,
                 );
-                Astroid::spawn_astroid(
+                Asteroid::spawn_asteroid(
                     commands,
-                    AstroidSize::Medium,
-                    astroid.composition.jitter(),
+                    AsteroidSize::Medium,
+                    asteroid.composition.jitter(),
                     left_velocity,
-                    astroid_translation,
+                    asteroid_translation,
                 );
-                commands.entity(astroid_ent).despawn_recursive();
+                commands.entity(asteroid_ent).despawn_recursive();
             }
             _ => {}
         }

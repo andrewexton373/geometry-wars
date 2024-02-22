@@ -4,7 +4,6 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy::{
     input::mouse::MouseWheel,
-    prelude::{EventReader, EventWriter, Plugin},
 };
 
 pub struct PlayerInputPlugin;

@@ -3,7 +3,7 @@ use std::time::Duration;
 use bevy::prelude::*;
 use ordered_float::OrderedFloat;
 
-use crate::astroid_material::AstroidMaterial;
+use crate::asteroid::asteroid_material::AsteroidMaterial;
 use crate::{
     base_station::BaseStation,
     inventory::{Amount, Inventory, InventoryItem},
@@ -36,7 +36,7 @@ impl ItemProducer for Refinery {
 
         let mut items_required = Vec::new();
         items_required.push(InventoryItem::Material(
-            AstroidMaterial::Iron,
+            AsteroidMaterial::Iron,
             Amount::Weight(OrderedFloat(20.0)),
         ));
 
@@ -48,7 +48,7 @@ impl ItemProducer for Refinery {
 
         let mut items_required = Vec::new();
         items_required.push(InventoryItem::Material(
-            AstroidMaterial::Silver,
+            AsteroidMaterial::Silver,
             Amount::Weight(OrderedFloat(50.0)),
         ));
 
@@ -60,7 +60,7 @@ impl ItemProducer for Refinery {
 
         let mut items_required = Vec::new();
         items_required.push(InventoryItem::Material(
-            AstroidMaterial::Gold,
+            AsteroidMaterial::Gold,
             Amount::Weight(OrderedFloat(100.0)),
         ));
 

@@ -1,7 +1,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This is a game where the player controls an astroid mining spaceship. Taking inspiration from the familiar Astroids arcade game, shooting astroids causes them to split. Splitting astroids into smaller ore chunks allows the player to then collect these chunks in order to mine them.
+This is a game where the player controls an asteroid mining spaceship. Taking inspiration from the familiar Asteroids arcade game, shooting asteroids causes them to split. Splitting asteroids into smaller ore chunks allows the player to then collect these chunks in order to mine them.
 
 
 ## Gameplay
@@ -83,10 +83,10 @@ LMB - Fire Laser in direction of ship
 	- [ ] *Base Station Upgrade System*
 		- [ ] Cargo Bay Size
 		- [ ] Refueling Speed
-		- [ ] Astroid Repel Strength?
+		- [ ] Asteroid Repel Strength?
 		
-- [x] **Astroid Ore Rarity**
-	- [x] Astroids further from the base station have a higher chance of spawning rarer ores.
+- [x] **Asteroid Ore Rarity**
+	- [x] Asteroids further from the base station have a higher chance of spawning rarer ores.
    - [ ] Refine values for interpolated system
 	- [ ] ? OR use noise function to generate pockets with higher rarity ores.
 	

@@ -21,16 +21,13 @@ use particles::ParticlePlugin;
 use player::{Player, PlayerPlugin};
 use player_input::PlayerInputPlugin;
 // use projectile::ProjectilePlugin;
-use astroid_plugin::AstroidPlugin;
+use asteroid::plugin::AsteroidPlugin;
 use base_station::BaseStationPlugin;
 use hexbase::HexBasePlugin;
 use refinery::RefineryPlugin;
 
-mod astroid;
-mod astroid_composition;
-mod astroid_material;
-mod astroid_plugin;
-mod astroid_size;
+
+mod asteroid;
 mod base_station;
 mod battery;
 mod crosshair;
@@ -105,7 +102,7 @@ fn main() {
             BaseStationPlugin,
             RefineryPlugin,
             FactoryPlugin,
-            AstroidPlugin,
+            AsteroidPlugin,
             LaserPlugin,
             CrosshairPlugin,
             GameUIPlugin,
