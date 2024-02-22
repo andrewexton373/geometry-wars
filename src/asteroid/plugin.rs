@@ -4,7 +4,7 @@ use bevy_tweening::TweeningPlugin;
 
 use super::resources::{AsteroidSpawner, InventoryFullNotificationTimer};
 use super::systems::*;
-use crate::events::AblateEvent;
+use super::events::AblateEvent;
 
 
 pub struct AsteroidPlugin;

@@ -1,9 +1,9 @@
 use crate::asteroid::components::Collectible;
 use crate::base_station::{BaseStation, CanDeposit};
 use crate::battery::Battery;
-use crate::crosshair::Crosshair;
+use crate::crosshair::components::Crosshair;
 use crate::engine::Engine;
-use crate::events::LaserEvent;
+use crate::laser::events::LaserEvent;
 use crate::game_ui::{ContextClue, ContextClues};
 use crate::health::Health;
 use crate::inventory::{Capacity, Inventory, InventoryPlugin};

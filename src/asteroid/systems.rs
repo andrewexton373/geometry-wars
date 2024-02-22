@@ -6,14 +6,15 @@ use bevy_xpbd_2d::{components::{Collider, LinearVelocity, Mass, RigidBody}, math
 use ordered_float::OrderedFloat;
 use rand::Rng;
 
-use crate::{base_station::BaseStation, events::AblateEvent, game_ui::{ContextClue, ContextClues}, inventory::{Amount, Inventory, InventoryItem}, particles::ShipDamageParticleSystem, player::Player, PIXELS_PER_METER};
+use crate::{base_station::BaseStation, game_ui::{ContextClue, ContextClues}, inventory::{Amount, Inventory, InventoryItem}, particles::ShipDamageParticleSystem, player::Player, PIXELS_PER_METER};
 
 use super::{
     components::{
         Asteroid, AsteroidComposition, AsteroidMaterial, AsteroidSize, Collectible, Splittable
     },
     plugin::LASER_DAMAGE, resources::InventoryFullNotificationTimer,
-    resources::AsteroidSpawner
+    resources::AsteroidSpawner,
+    events::AblateEvent
 };
 
 // System to spawn asteroids at some distance away from the ship in random directions,

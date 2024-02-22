@@ -11,12 +11,10 @@ use bevy_prototype_lyon::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
-use crosshair::CrosshairPlugin;
 use engine::EnginePlugin;
 use factory::FactoryPlugin;
 use game_ui::GameUIPlugin;
 use inventory::InventoryPlugin;
-use laser::LaserPlugin;
 use particles::ParticlePlugin;
 use player::{Player, PlayerPlugin};
 use player_input::PlayerInputPlugin;
@@ -25,7 +23,8 @@ use asteroid::plugin::AsteroidPlugin;
 use base_station::BaseStationPlugin;
 use hexbase::HexBasePlugin;
 use refinery::RefineryPlugin;
-
+use crate::laser::plugin::LaserPlugin;
+use crate::crosshair::plugin::CrosshairPlugin;
 
 mod asteroid;
 mod base_station;
