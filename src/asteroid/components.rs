@@ -14,10 +14,7 @@ pub struct Collectible;
 #[derive(Component)]
 pub struct Splittable(pub f32);
 
-#[derive(Component, Resource)]
-pub struct AsteroidSpawner {
-    pub timer: Timer,
-}
+
 
 #[derive(Component, Clone, Debug)]
 pub struct Asteroid {
