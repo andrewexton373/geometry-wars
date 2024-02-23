@@ -5,7 +5,8 @@ use crate::player::components::Player;
 
 use super::components::{
     LaserImpactParticleSystem,
-    ShipDamageParticleSystem
+    ShipDamageParticleSystem,
+    PlayerShipTrailParticles
 };
 
 
@@ -72,6 +73,7 @@ pub fn setup_player_ship_trail_particle_system(
                         },
                         ..ParticleSystemBundle::default()
                     })
+                    .insert(PlayerShipTrailParticles)
                     .insert(Playing); // TODO: add and remove this component on ship movement.
             });
         }
