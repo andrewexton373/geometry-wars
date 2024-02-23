@@ -5,7 +5,6 @@ pub(crate) mod crosshair;
 pub(crate) mod engine;
 pub(crate) mod events;
 pub(crate) mod factory;
-pub(crate) mod ui;
 pub(crate) mod health;
 pub(crate) mod hexbase;
 pub(crate) mod inventory;
@@ -18,6 +17,7 @@ pub(crate) mod projectile;
 pub(crate) mod recipe;
 pub(crate) mod refinery;
 pub(crate) mod space_station;
+pub(crate) mod ui;
 pub(crate) mod upgrades;
 
 // #![feature(array_methods)]
@@ -35,11 +35,11 @@ use bevy_xpbd_2d::prelude::*;
 
 use engine::EnginePlugin;
 use factory::FactoryPlugin;
-use ui::plugin::GameUIPlugin;
 use inventory::InventoryPlugin;
 use particles::ParticlePlugin;
 use player::{components::Player, plugin::PlayerPlugin};
 use player_input::PlayerInputPlugin;
+use ui::plugin::GameUIPlugin;
 // use projectile::ProjectilePlugin;
 use crate::crosshair::plugin::CrosshairPlugin;
 use crate::laser::plugin::LaserPlugin;
@@ -106,7 +106,7 @@ fn main() {
             CrosshairPlugin,
             GameUIPlugin,
             ParticlePlugin,
-            // HexBasePlugin,
+            HexBasePlugin,
         ))
         .insert_resource(Gravity::ZERO)
         .add_systems(Startup, (setup,))

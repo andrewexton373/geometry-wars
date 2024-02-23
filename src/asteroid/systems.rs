@@ -17,10 +17,10 @@ use rand::Rng;
 
 use crate::{
     collectible::components::Collectible,
-    ui::context_clue::resources::{ContextClue, ContextClues},
     inventory::{Amount, Inventory, InventoryItem},
     particles::ShipDamageParticleSystem,
     space_station::components::SpaceStation,
+    ui::context_clue::resources::{ContextClue, ContextClues},
     PIXELS_PER_METER,
 };
 

@@ -1,5 +1,8 @@
 use bevy::ecs::system::Res;
-use bevy_egui::{egui::{Align2, Window}, EguiContexts};
+use bevy_egui::{
+    egui::{Align2, Window},
+    EguiContexts,
+};
 
 use super::resources::ContextClues;
 

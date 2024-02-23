@@ -8,5 +8,6 @@
   // ],
   "rust-analyzer.checkOnSave": true,
   "rust-analyzer.rust.analyzerTargetDir": true,
-  "rust-analyzer.diagnostics.disabled": ["unresolved-proc-macro"]
+  "rust-analyzer.diagnostics.disabled": ["unresolved-proc-macro"],
+  "rust-analyzer.server.extraEnv": { "RUSTUP_TOOLCHAIN": "nightly" }
 }

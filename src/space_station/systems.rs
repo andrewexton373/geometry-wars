@@ -8,15 +8,15 @@ use ordered_float::OrderedFloat;
 use crate::{
     asteroid::components::Asteroid,
     factory::FactoryPlugin,
-    ui::context_clue::resources::{ContextClue, ContextClues},
     inventory::{Capacity, Inventory, InventoryPlugin},
     player::components::Player,
     refinery::RefineryPlugin,
+    ui::context_clue::resources::{ContextClue, ContextClues},
     PIXELS_PER_METER,
 };
 
 use super::{
-    components::{SpaceStation},
+    components::SpaceStation,
     resources::{CanDeposit, SPACE_STATION_SIZE},
 };
 

@@ -1,5 +1,8 @@
 use bevy::ecs::system::Query;
-use bevy_egui::{egui::{Align2, Window}, EguiContexts};
+use bevy_egui::{
+    egui::{Align2, Window},
+    EguiContexts,
+};
 
 use crate::{inventory::Inventory, player::components::Player, ui::helpers::progress_string};
 

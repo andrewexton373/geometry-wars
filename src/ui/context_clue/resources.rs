@@ -1,6 +1,5 @@
 use bevy::{ecs::system::Resource, utils::HashSet};
 
-
 #[derive(Default, Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum ContextClue {
     #[default]
