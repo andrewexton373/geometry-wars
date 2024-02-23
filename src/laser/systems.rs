@@ -11,7 +11,7 @@ use super::components::Laser;
 use super::events::LaserEvent;
 
 use crate::asteroid::events::AblateEvent;
-use crate::particles::LaserImpactParticleSystem;
+use crate::particles::components::LaserImpactParticleSystem;
 use crate::player::components::Player;
 
 pub fn setup_laser(mut commands: Commands, mut laser_query: Query<&mut Laser>) {

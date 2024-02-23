@@ -36,7 +36,7 @@ use bevy_xpbd_2d::prelude::*;
 use engine::EnginePlugin;
 use factory::FactoryPlugin;
 use inventory::InventoryPlugin;
-use particles::ParticlePlugin;
+use particles::plugin::ParticlePlugin;
 use player::{components::Player, plugin::PlayerPlugin};
 use player_input::PlayerInputPlugin;
 use ui::plugin::GameUIPlugin;

@@ -18,7 +18,7 @@ use rand::Rng;
 use crate::{
     collectible::components::Collectible,
     inventory::{Amount, Inventory, InventoryItem},
-    particles::ShipDamageParticleSystem,
+    particles::components::ShipDamageParticleSystem,
     space_station::components::SpaceStation,
     ui::context_clue::resources::{ContextClue, ContextClues},
     PIXELS_PER_METER,
