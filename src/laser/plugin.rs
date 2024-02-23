@@ -1,9 +1,6 @@
-use bevy::prelude::*;
 use super::events::LaserEvent;
-use super::systems::{
-    setup_laser,
-    fire_laser_raycasting
-};
+use super::systems::{fire_laser_raycasting, setup_laser};
+use bevy::prelude::*;
 
 pub struct LaserPlugin;
 

@@ -1,27 +1,35 @@
+use crate::player::components::Player;
 use bevy::prelude::*;
 use bevy_particle_systems::Playing;
-use bevy_prototype_lyon::{draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, prelude::FillOptions};
-use bevy_tweening::{lens::TextColorLens, Animator, EaseFunction, RepeatCount, Tween, TweenCompleted};
-use bevy_xpbd_2d::{components::{Collider, LinearVelocity, Mass, RigidBody}, math::PI, plugins::{collision::Collisions, spatial_query::SpatialQuery}};
+use bevy_prototype_lyon::{
+    draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, prelude::FillOptions,
+};
+use bevy_tweening::{
+    lens::TextColorLens, Animator, EaseFunction, RepeatCount, Tween, TweenCompleted,
+};
+use bevy_xpbd_2d::{
+    components::{Collider, LinearVelocity, Mass, RigidBody},
+    math::PI,
+    plugins::{collision::Collisions, spatial_query::SpatialQuery},
+};
 use ordered_float::OrderedFloat;
 use rand::Rng;
-use crate::player::components::Player;
 
 use crate::{
-    base_station::BaseStation,
-    game_ui::{ContextClue, ContextClues},
+    collectible::components::Collectible,
+    ui::context_clue::resources::{ContextClue, ContextClues},
     inventory::{Amount, Inventory, InventoryItem},
     particles::ShipDamageParticleSystem,
-    collectible::components::Collectible,
-    PIXELS_PER_METER};
+    space_station::components::SpaceStation,
+    PIXELS_PER_METER,
+};
 
 use super::{
-    components::{
-        Asteroid, AsteroidComposition, AsteroidMaterial, AsteroidSize, Splittable
-    },
-    plugin::LASER_DAMAGE, resources::InventoryFullNotificationTimer,
+    components::{Asteroid, AsteroidComposition, AsteroidMaterial, AsteroidSize, Splittable},
+    events::AblateEvent,
+    plugin::LASER_DAMAGE,
     resources::AsteroidSpawner,
-    events::AblateEvent
+    resources::InventoryFullNotificationTimer,
 };
 
 // System to spawn asteroids at some distance away from the ship in random directions,
@@ -29,11 +37,11 @@ use super::{
 pub fn spawn_asteroids_aimed_at_ship(
     mut commands: Commands,
     player_query: Query<(&Player, &GlobalTransform)>,
-    base_station_query: Query<(&BaseStation, &GlobalTransform)>,
+    base_station_query: Query<(&SpaceStation, &GlobalTransform)>,
     mut asteroid_spawner: ResMut<AsteroidSpawner>,
     time: Res<Time>,
     _spatial: SpatialQuery,
-    _query: Query<(&Collider, &Transform)>
+    _query: Query<(&Collider, &Transform)>,
 ) {
     const SPAWN_DISTANCE: f32 = 350.0;
 
@@ -46,9 +54,8 @@ pub fn spawn_asteroids_aimed_at_ship(
         let (_player, player_g_transform) = player_query.single();
         let (_base_station, base_station_g_transform) = base_station_query.single();
 
-        let distance_to_base_station = (player_g_transform.translation()
-            - base_station_g_transform.translation())
-        .length();
+        let distance_to_base_station =
+            (player_g_transform.translation() - base_station_g_transform.translation()).length();
         let player_position = player_g_transform.translation().truncate();
 
         let rand_x: f32 = rng.gen_range(-PI..PI);
@@ -85,7 +92,6 @@ pub fn despawn_far_asteroids(
         }
     }
 }
-
 
 // TODO: Verify this is working...
 pub fn update_collectible_material_color(
@@ -124,11 +130,7 @@ pub fn handle_asteroid_collision_event(
     mut asteroid_query: Query<(Entity, &Asteroid, &Mass), With<Asteroid>>,
     mut player_query: Query<(Entity, &mut Player, &mut Inventory), With<Player>>,
     mut inventory_full_notification: ResMut<InventoryFullNotificationTimer>,
-    mut player_damage_particle_query: Query<(
-        Entity,
-        &ShipDamageParticleSystem,
-        &mut Transform,
-    )>,
+    mut player_damage_particle_query: Query<(Entity, &ShipDamageParticleSystem, &mut Transform)>,
 ) {
     let (player_ent, mut player, mut inventory) = player_query.single_mut();
 
@@ -137,7 +139,6 @@ pub fn handle_asteroid_collision_event(
     commands.entity(damage_particles_ent).remove::<Playing>();
 
     for (asteroid_entity, asteroid, mass) in asteroid_query.iter_mut() {
-
         if let Some(collision) = collisions.get(player_ent, asteroid_entity) {
             let mut asteroid_collision = false;
 
@@ -173,8 +174,9 @@ pub fn handle_asteroid_collision_event(
             }
 
             if asteroid_collision {
-                damage_particles_t.translation =
-                    (collision.manifolds[0].contacts[0].point1 * crate::PIXELS_PER_METER).extend(999.0);
+                damage_particles_t.translation = (collision.manifolds[0].contacts[0].point1
+                    * crate::PIXELS_PER_METER)
+                    .extend(999.0);
                 commands.entity(damage_particles_ent).insert(Playing);
             }
         }
@@ -222,8 +224,7 @@ pub fn ablate_asteroids(
         let mut rng = rand::thread_rng();
         // let split_angle = rng.gen_range(0.0..PI / 4.0); TODO: Might keep splititng asteroids
 
-        if let Ok((ent, mut asteroid_to_ablate, _g_trans)) =
-            asteroids_query.get_mut(ablate_event.0)
+        if let Ok((ent, mut asteroid_to_ablate, _g_trans)) = asteroids_query.get_mut(ablate_event.0)
         {
             let damaged_health = asteroid_to_ablate.health.current() - LASER_DAMAGE;
             asteroid_to_ablate.health.set_current(damaged_health);
@@ -290,7 +291,8 @@ pub fn ablate_asteroids(
                     asteroid.clone(),
                     ShapeBundle {
                         path: GeometryBuilder::build_as(&asteroid.polygon()),
-                        spatial: Transform::from_xyz(ablate_event.1.x, ablate_event.1.y, 0.0).into(),
+                        spatial: Transform::from_xyz(ablate_event.1.x, ablate_event.1.y, 0.0)
+                            .into(),
                         ..default()
                     },
                     Fill::color(Color::DARK_GRAY),
@@ -312,7 +314,7 @@ pub fn ablate_asteroids(
 pub fn split_asteroids_over_split_ratio(
     mut commands: Commands,
     mut asteroid_query: Query<(Entity, &mut Asteroid, &GlobalTransform, &Splittable)>,
-        ) {
+) {
     for (ent, asteroid, g_t, split) in asteroid_query.iter_mut() {
         if asteroid.health.current_percent() < split.0 {
             split_asteroid(&mut commands, ent, &asteroid, g_t.translation().truncate());
@@ -325,7 +327,7 @@ pub fn split_asteroid(
     asteroid_ent: Entity,
     asteroid: &Asteroid,
     asteroid_translation: Vec2,
-            // projectile_velocity: &LinearVelocity,
+    // projectile_velocity: &LinearVelocity,
 ) {
     // let mut rng = rand::thread_rng();
     // let split_angle = rng.gen_range(0.0..PI / 4.0);

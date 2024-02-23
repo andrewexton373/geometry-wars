@@ -7,29 +7,26 @@ use bevy_prototype_lyon::{
 };
 use bevy_xpbd_2d::plugins::spatial_query::{SpatialQuery, SpatialQueryFilter};
 
-use super::events::LaserEvent;
 use super::components::Laser;
+use super::events::LaserEvent;
 
 use crate::asteroid::events::AblateEvent;
 use crate::particles::LaserImpactParticleSystem;
 use crate::player::components::Player;
-
 
 pub fn setup_laser(mut commands: Commands, mut laser_query: Query<&mut Laser>) {
     let line = shapes::Line(Vec2::ZERO, Vec2::X);
 
     // Create Laser if it Doesn't Exist
     let Ok(_laser) = laser_query.get_single_mut() else {
-
-        commands.spawn(Laser)
-            .insert((
-                ShapeBundle {
-                    path: GeometryBuilder::build_as(&line),
-                    ..default()
-                },
-                Stroke::new(Color::rgba(1.0, 0.0, 0.0, 0.9), 5.0),
-                Name::new("Laser"),
-            ));    
+        commands.spawn(Laser).insert((
+            ShapeBundle {
+                path: GeometryBuilder::build_as(&line),
+                ..default()
+            },
+            Stroke::new(Color::rgba(1.0, 0.0, 0.0, 0.9), 5.0),
+            Name::new("Laser"),
+        ));
         return;
     };
 }
@@ -39,16 +36,13 @@ pub fn fire_laser_raycasting(
     mut laser_event_reader: EventReader<LaserEvent>,
     mut ablate_event_writer: EventWriter<AblateEvent>,
     // rapier_context: Res<RapierContext>,
-    mut laser_query: Query<
-        &mut Path,
-        With<Laser>,
-    >,
+    mut laser_query: Query<&mut Path, With<Laser>>,
     mut laser_impact_particles_query: Query<
         (Entity, &LaserImpactParticleSystem, &mut Transform),
         Without<Laser>,
     >,
     player_q: Query<Entity, &Player>,
-    spatial_query: SpatialQuery
+    spatial_query: SpatialQuery,
 ) {
     // TODO: Change Laser State To Off On Player Left Unclick
     for (ent, _, mut _t) in laser_impact_particles_query.iter_mut() {
@@ -83,26 +77,23 @@ pub fn fire_laser_raycasting(
                 SpatialQueryFilter {
                     excluded_entities: excluded_entities.clone(),
                     ..default()
-                }
+                },
             ) {
+                let hit_point = ray_pos + ray_dir * first_hit.time_of_impact;
+                let hit_normal = first_hit.normal;
+                let hit_ent = first_hit.entity;
 
-                    let hit_point = ray_pos + ray_dir * first_hit.time_of_impact;
-                    let hit_normal = first_hit.normal;
-                    let hit_ent = first_hit.entity;
+                for (ent, _, mut t) in laser_impact_particles_query.iter_mut() {
+                    commands.entity(ent).insert(Playing);
+                    t.translation = hit_point.extend(0.0);
+                }
 
-                    for (ent, _, mut t) in laser_impact_particles_query.iter_mut() {
-                        commands.entity(ent).insert(Playing);
-                        t.translation = hit_point.extend(0.0);
-                    }
+                let line = shapes::Line(ray_pos, hit_point);
 
-                    let line = shapes::Line(ray_pos, hit_point);
-                    
-                    *laser_path = ShapePath::build_as(&line);
+                *laser_path = ShapePath::build_as(&line);
 
-                    ablate_event_writer.send(AblateEvent(hit_ent, hit_point, hit_normal));
-
+                ablate_event_writer.send(AblateEvent(hit_ent, hit_point, hit_normal));
             }
-
         }
     }
 }

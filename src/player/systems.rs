@@ -8,32 +8,38 @@ use super::components::Player;
 use super::resources::EmptyInventoryDepositTimer;
 
 use crate::collectible::components::Collectible;
-use crate::base_station::{BaseStation, CanDeposit};
 use crate::crosshair::components::Crosshair;
-use crate::laser::events::LaserEvent;
-use crate::game_ui::{ContextClue, ContextClues};
+use crate::ui::context_clue::resources::{ContextClue, ContextClues};
 use crate::inventory::{Capacity, Inventory, InventoryPlugin};
+use crate::laser::events::LaserEvent;
 use crate::player_input::MouseWorldPosition;
+use crate::space_station::components::SpaceStation;
+use crate::space_station::resources::CanDeposit;
 use crate::upgrades::{UpgradeEvent, UpgradesComponent};
 use crate::PIXELS_PER_METER;
 
-
 pub fn spawn_player(mut commands: Commands) {
-
     let player_poly = shapes::Polygon {
         points: vec![
-            Vec2 {x: 0.0, y: 2.0 * crate::PIXELS_PER_METER},
-            Vec2 {x: 1.0 * crate::PIXELS_PER_METER, y: -1.0 * crate::PIXELS_PER_METER},
-            Vec2 {x: -1.0 * crate::PIXELS_PER_METER, y: -1.0 * crate::PIXELS_PER_METER}
+            Vec2 {
+                x: 0.0,
+                y: 2.0 * crate::PIXELS_PER_METER,
+            },
+            Vec2 {
+                x: 1.0 * crate::PIXELS_PER_METER,
+                y: -1.0 * crate::PIXELS_PER_METER,
+            },
+            Vec2 {
+                x: -1.0 * crate::PIXELS_PER_METER,
+                y: -1.0 * crate::PIXELS_PER_METER,
+            },
         ],
-        closed: true
-    };        
+        closed: true,
+    };
 
-    let player = commands.spawn(Player::new())
-        .insert((
-            Name::new("Player"),
-            UpgradesComponent::new(),
-        ))
+    let player = commands
+        .spawn(Player::new())
+        .insert((Name::new("Player"), UpgradesComponent::new()))
         .insert((
             RigidBody::Dynamic,
             Mass(1.0),
@@ -51,7 +57,8 @@ pub fn spawn_player(mut commands: Commands) {
                 ..default()
             },
             Fill::color(Color::WHITE),
-        )).id();
+        ))
+        .id();
 
     InventoryPlugin::attach_inventory_to_entity(
         &mut commands,
@@ -130,7 +137,10 @@ pub fn player_movement(
 
 pub fn ship_rotate_towards_mouse(
     mouse_position: Res<MouseWorldPosition>,
-    mut player_query: Query<(&mut Player, &mut Transform, &mut AngularVelocity), Without<Crosshair>>,
+    mut player_query: Query<
+        (&mut Player, &mut Transform, &mut AngularVelocity),
+        Without<Crosshair>,
+    >,
 ) {
     let cursor_pos = mouse_position.0;
     let (_player, player_trans, mut ang_velocity) = player_query.single_mut();
@@ -140,10 +150,8 @@ pub fn ship_rotate_towards_mouse(
     let player_to_mouse = (cursor_pos - player_trans.translation.truncate()).normalize();
     let player_ship_rotation = (player_trans.rotation * Vec3::Y).truncate().normalize();
 
-    let ship_angle_difference_percent = Vec2::angle_between(
-        player_to_mouse,
-        player_ship_rotation,
-    ) / PI;
+    let ship_angle_difference_percent =
+        Vec2::angle_between(player_to_mouse, player_ship_rotation) / PI;
 
     //Rotate towards position mouse is on
     if ship_angle_difference_percent > 0.001 {
@@ -157,12 +165,7 @@ pub fn ship_rotate_towards_mouse(
 
 pub fn player_fire_laser(
     keyboard_input: Res<Input<MouseButton>>,
-    mut player_query: Query<(
-        Entity,
-        &mut Player,
-        &mut Transform,
-        &GlobalTransform,
-    )>,
+    mut player_query: Query<(Entity, &mut Player, &mut Transform, &GlobalTransform)>,
     mut laser_event_writer: EventWriter<LaserEvent>,
 ) {
     let (_ent, mut player, player_transform, player_global_trans) = player_query.single_mut();
@@ -204,16 +207,15 @@ pub fn player_camera_control(
     }
 }
 
-
 // TODO: Idea?
 // Mark InventoryItems with Deposit Component on Event
-// Use this system to deposit marked inventory items in Base Station 
+// Use this system to deposit marked inventory items in Base Station
 pub fn player_deposit_control(
     kb: Res<Input<KeyCode>>,
     can_deposit: Res<CanDeposit>,
     mut empty_deposit_timer: ResMut<EmptyInventoryDepositTimer>,
-    mut player_query: Query<&mut Inventory, (With<Player>, Without<BaseStation>)>,
-    mut base_station_query: Query<&mut Inventory, (With<BaseStation>, Without<Player>)>,
+    mut player_query: Query<&mut Inventory, (With<Player>, Without<SpaceStation>)>,
+    mut base_station_query: Query<&mut Inventory, (With<SpaceStation>, Without<Player>)>,
 ) {
     // If player pressed space and they're in depositing range
     if kb.just_pressed(KeyCode::Space) && can_deposit.0 {
@@ -222,8 +224,7 @@ pub fn player_deposit_control(
 
         if player_inventory.items.is_empty() {
             let timer = empty_deposit_timer.as_mut();
-            *timer =
-                EmptyInventoryDepositTimer(Some(Timer::from_seconds(3.0, TimerMode::Once)));
+            *timer = EmptyInventoryDepositTimer(Some(Timer::from_seconds(3.0, TimerMode::Once)));
         }
 
         for item in player_inventory.clone().items.iter() {
@@ -252,11 +253,8 @@ pub fn display_empty_ship_inventory_context_clue(
 
 // TODO: Refector Collectibles into Module?
 
-
 /// Updates the player mass with the ship's net mass for physics engine.
-pub fn update_player_mass(
-    mut player_query: Query<(&Player, &Inventory, &mut Mass)>,
-) {
+pub fn update_player_mass(mut player_query: Query<(&Player, &Inventory, &mut Mass)>) {
     const PLAYER_MASS: f32 = 1000.0;
 
     for (_player, inventory, mut mass) in player_query.iter_mut() {
@@ -282,8 +280,8 @@ pub fn ship_battery_is_empty_context_clue(
 /// Perfom a smelt action with a recipe provided by the SmeltEvent.
 pub fn on_upgrade_event(
     mut reader: EventReader<UpgradeEvent>,
-    mut base_station_query: Query<(&BaseStation, &mut Inventory), With<BaseStation>>,
-    mut player_query: Query<(&mut Player, &mut UpgradesComponent), Without<BaseStation>>, // mut refinery_timer: ResMut<RefineryTimer>,
+    mut base_station_query: Query<(&SpaceStation, &mut Inventory), With<SpaceStation>>,
+    mut player_query: Query<(&mut Player, &mut UpgradesComponent), Without<SpaceStation>>, // mut refinery_timer: ResMut<RefineryTimer>,
 ) {
     for event in reader.read() {
         println!("Upgrade Event Detected!");

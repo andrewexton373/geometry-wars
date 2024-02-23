@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
-use crate::player_input::MouseWorldPosition;
-use crate::player::components::Player;
 use super::components::Crosshair;
+use crate::player::components::Player;
+use crate::player_input::MouseWorldPosition;
 
 pub fn spawn_crosshair(mut commands: Commands) {
     let line = shapes::Line(Vec2::new(0.0, 0.0), Vec2::new(0.0, 0.0));

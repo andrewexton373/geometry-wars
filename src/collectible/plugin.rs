@@ -8,8 +8,6 @@ pub struct CollectiblesPlugin;
 impl Plugin for CollectiblesPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(TweeningPlugin)
-            .add_systems(Update, (
-                gravitate_collectibles_towards_player_ship
-            ));
+            .add_systems(Update, (gravitate_collectibles_towards_player_ship));
     }
 }

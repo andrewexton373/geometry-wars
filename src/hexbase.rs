@@ -1,18 +1,17 @@
 use bevy::prelude::*;
-use bevy::sprite::MaterialMesh2dBundle;
 use bevy::render::mesh::Indices;
 use bevy::render::render_resource::PrimitiveTopology;
+use bevy::sprite::MaterialMesh2dBundle;
 use hexx::*;
 use std::collections::HashMap;
 use std::f32::consts::PI;
 
+use crate::events::BuildHexBuildingEvent;
 use crate::player::components::Player;
 use crate::player_input::MouseWorldPosition;
-use crate::events::BuildHexBuildingEvent;
-
 
 /// World size of the hexagons (outer radius)
-const HEX_SIZE: Vec2  = Vec2::splat(10.0 * crate::PIXELS_PER_METER);
+const HEX_SIZE: Vec2 = Vec2::splat(10.0 * crate::PIXELS_PER_METER);
 
 #[derive(Debug, Default, Resource)]
 struct HighlightedHexes {
@@ -61,15 +60,16 @@ impl Plugin for HexBasePlugin {
             .add_event::<BuildHexBuildingEvent>()
             .init_resource::<PlayerHoveringBuilding>()
             .init_resource::<HighlightedHexes>()
-            .add_systems(Startup,
-                Self::setup_hex_grid
-            )
-            .add_systems(Update, (
-                Self::color_hexes,
-                Self::handle_mouse_interaction,
-                Self::handle_ship_hovering_context,
-                // Self::handle_build_events,
-            ));
+            .add_systems(Startup, Self::setup_hex_grid)
+            .add_systems(
+                Update,
+                (
+                    Self::color_hexes,
+                    Self::handle_mouse_interaction,
+                    Self::handle_ship_hovering_context,
+                    // Self::handle_build_events,
+                ),
+            );
     }
 }
 
@@ -160,7 +160,9 @@ impl HexBasePlugin {
     ) {
         let pos = mouse_position.0;
 
-        let hex = map.layout.world_pos_to_hex(hexx::Vec2{x: pos.x, y: pos.y});
+        let hex = map
+            .layout
+            .world_pos_to_hex(hexx::Vec2 { x: pos.x, y: pos.y });
         if let Some(entity) = map.entities.get(&hex).copied() {
             if mouse_input.just_released(MouseButton::Left) {
                 if let Ok((_, _, mut building)) = hex_query.get_mut(entity) {
@@ -190,7 +192,10 @@ impl HexBasePlugin {
 
         let player_pos = player_gt.translation().truncate();
 
-        let hex = map.layout.world_pos_to_hex(hexx::Vec2{x: player_pos.x, y: player_pos.y});
+        let hex = map.layout.world_pos_to_hex(hexx::Vec2 {
+            x: player_pos.x,
+            y: player_pos.y,
+        });
         if let Some(entity) = map.entities.get(&hex).copied() {
             highlighted.ship_hover = hex;
             if let Ok((_, _, building)) = hex_query.get(entity) {

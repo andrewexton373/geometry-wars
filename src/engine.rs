@@ -7,8 +7,7 @@ pub struct EnginePlugin;
 
 impl Plugin for EnginePlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_systems(Update, Self::handle_player_input_events);
+        app.add_systems(Update, Self::handle_player_input_events);
     }
 }
 

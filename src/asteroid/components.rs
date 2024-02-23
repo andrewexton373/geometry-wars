@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use bevy_prototype_lyon::{draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, shapes::Polygon};
+use bevy_prototype_lyon::{
+    draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, shapes::Polygon,
+};
 use bevy_xpbd_2d::components::{Collider, LinearVelocity, RigidBody};
 use rand::{distributions::Distribution, seq::SliceRandom, Rng};
 use rand_distr::Normal;
@@ -8,11 +10,8 @@ use std::{cmp::Ordering, fmt};
 
 use crate::{collectible::components::Collectible, health::Health};
 
-
 #[derive(Component)]
 pub struct Splittable(pub f32);
-
-
 
 #[derive(Component, Clone, Debug)]
 pub struct Asteroid {
@@ -21,7 +20,6 @@ pub struct Asteroid {
     pub composition: AsteroidComposition,
     polygon: Polygon,
 }
-
 
 impl Asteroid {
     fn polygon_area(verticies: Vec<Vec2>) -> f32 {
@@ -68,7 +66,7 @@ impl Asteroid {
         position: Vec2,
     ) {
         let asteroid = Asteroid::new_with(size, composition);
-        
+
         let mut rng = rand::thread_rng();
 
         let splittable = Splittable(rng.gen_range(0.4..0.8));
@@ -81,20 +79,23 @@ impl Asteroid {
                 Collider::convex_hull(asteroid.polygon().points).unwrap(),
                 splittable,
                 Name::new("Asteroid"),
-            )).insert((
+            ))
+            .insert((
                 ShapeBundle {
                     path: GeometryBuilder::build_as(&asteroid.polygon()),
-                    spatial: SpatialBundle::from_transform(Transform::from_xyz(position.x, position.y, 0.0)),
+                    spatial: SpatialBundle::from_transform(Transform::from_xyz(
+                        position.x, position.y, 0.0,
+                    )),
                     ..default()
-                },                        
+                },
                 Fill::color(Color::DARK_GRAY),
-            )).id();
+            ))
+            .id();
 
         // If the asteroid is an ore chunk, add Collectible Tag
         if asteroid.clone().size == AsteroidSize::OreChunk {
             commands.entity(asteroid_ent).insert(Collectible);
         }
-        
     }
 
     pub fn primary_composition(&self) -> AsteroidMaterial {
@@ -255,9 +256,7 @@ impl Asteroid {
     }
 }
 
-#[derive(
-    Component, Reflect, Default, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd,
-)]
+#[derive(Component, Reflect, Default, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd)]
 pub enum AsteroidMaterial {
     #[default]
     Rock,
@@ -304,8 +303,6 @@ impl AsteroidSize {
         }
     }
 }
-
-
 
 #[derive(Component, Clone)]
 pub struct AsteroidComposition {

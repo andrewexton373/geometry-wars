@@ -1,10 +1,8 @@
 use crate::events::EnginePowerEvent;
 use crate::GameCamera;
+use bevy::input::mouse::MouseWheel;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-use bevy::{
-    input::mouse::MouseWheel,
-};
 
 pub struct PlayerInputPlugin;
 
@@ -19,11 +17,14 @@ impl Plugin for PlayerInputPlugin {
         app.add_event::<EnginePowerEvent>()
             .insert_resource(MouseWorldPosition(Vec2::ZERO))
             .insert_resource(MouseScreenPosition(Vec2::ZERO))
-            .add_systems(Update, (
-                Self::update_mouse_world_position_resource,
-                Self::update_mouse_screen_position_resource,
-                Self::scroll_events
-            ));
+            .add_systems(
+                Update,
+                (
+                    Self::update_mouse_world_position_resource,
+                    Self::update_mouse_screen_position_resource,
+                    Self::scroll_events,
+                ),
+            );
     }
 }
 
@@ -38,7 +39,8 @@ impl PlayerInputPlugin {
 
         let (camera, camera_transform) = q_camera.single();
 
-        if let Some(world_position) = window.cursor_position()
+        if let Some(world_position) = window
+            .cursor_position()
             .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
             .map(|ray| ray.origin.truncate())
         {

@@ -6,7 +6,6 @@ use crate::factory::UpgradeComponent;
 use crate::inventory::{Amount, Inventory, InventoryItem};
 use crate::player::components::Player;
 
-
 pub trait Upgradeable {
     fn set_upgrade_level(&mut self, upgrade_level: UpgradeLevel);
     fn upgrade_effect(&self) -> f32;

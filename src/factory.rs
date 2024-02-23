@@ -4,12 +4,12 @@ use bevy::prelude::*;
 
 use crate::events::CraftEvent;
 use crate::{
-    base_station::BaseStation,
     inventory::{Amount, Inventory, InventoryItem},
     item_producer::ItemProducer,
     recipe::Recipe,
     refinery::MetalIngot,
     // widgets::factory::CraftEvent,
+    space_station::components::SpaceStation,
 };
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Hash)]
@@ -136,10 +136,10 @@ impl Plugin for FactoryPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<CraftEvent>()
             .insert_resource(FactoryTimer(None))
-            .add_systems(Update, (
-                Self::on_craft_event,
-                Self::update_factory_processing
-            ));
+            .add_systems(
+                Update,
+                (Self::on_craft_event, Self::update_factory_processing),
+            );
     }
 }
 
@@ -197,8 +197,8 @@ impl FactoryPlugin {
     /// perfom actions when timer elapses.
     fn update_factory_processing(
         mut base_station_query: Query<
-            (&BaseStation, &mut Inventory, &mut Factory),
-            With<BaseStation>,
+            (&SpaceStation, &mut Inventory, &mut Factory),
+            With<SpaceStation>,
         >,
         mut timer: ResMut<FactoryTimer>,
         time: Res<Time>,
@@ -232,8 +232,8 @@ impl FactoryPlugin {
     fn on_craft_event(
         mut reader: EventReader<CraftEvent>,
         mut base_station_query: Query<
-            (&BaseStation, &mut Inventory, &mut Factory),
-            With<BaseStation>,
+            (&SpaceStation, &mut Inventory, &mut Factory),
+            With<SpaceStation>,
         >,
         mut factory_timer: ResMut<FactoryTimer>,
     ) {

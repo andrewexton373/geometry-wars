@@ -1,8 +1,8 @@
 use bevy::prelude::Component;
 
-use crate::health::Health;
 use crate::battery::Battery;
 use crate::engine::Engine;
+use crate::health::Health;
 
 #[derive(Component, Default)]
 pub struct Player {

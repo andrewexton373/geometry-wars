@@ -16,12 +16,14 @@ pub struct ShipAsteroidImpactParticles;
 
 impl Plugin for ParticlePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app
-            .add_systems(Startup, (
+        app.add_systems(
+            Startup,
+            (
                 Self::setup_projectile_impact_particle_system,
-                Self::setup_ship_asteroid_impact_particle_system
-            ))
-            .add_systems(Update, Self::setup_player_ship_trail_particle_system);
+                Self::setup_ship_asteroid_impact_particle_system,
+            ),
+        )
+        .add_systems(Update, Self::setup_player_ship_trail_particle_system);
     }
 }
 

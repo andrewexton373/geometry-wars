@@ -1,3 +1,25 @@
+pub(crate) mod asteroid;
+pub(crate) mod battery;
+pub(crate) mod collectible;
+pub(crate) mod crosshair;
+pub(crate) mod engine;
+pub(crate) mod events;
+pub(crate) mod factory;
+pub(crate) mod ui;
+pub(crate) mod health;
+pub(crate) mod hexbase;
+pub(crate) mod inventory;
+pub(crate) mod item_producer;
+pub(crate) mod laser;
+pub(crate) mod particles;
+pub(crate) mod player;
+pub(crate) mod player_input;
+pub(crate) mod projectile;
+pub(crate) mod recipe;
+pub(crate) mod refinery;
+pub(crate) mod space_station;
+pub(crate) mod upgrades;
+
 // #![feature(array_methods)]
 
 use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
@@ -6,50 +28,25 @@ use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::*,
 };
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_particle_systems::ParticleSystemPlugin;
 use bevy_prototype_lyon::prelude::*;
 use bevy_xpbd_2d::prelude::*;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 use engine::EnginePlugin;
 use factory::FactoryPlugin;
-use game_ui::GameUIPlugin;
+use ui::plugin::GameUIPlugin;
 use inventory::InventoryPlugin;
 use particles::ParticlePlugin;
-use player::{
-    components::Player,
-    plugin::PlayerPlugin
-};
+use player::{components::Player, plugin::PlayerPlugin};
 use player_input::PlayerInputPlugin;
 // use projectile::ProjectilePlugin;
+use crate::crosshair::plugin::CrosshairPlugin;
+use crate::laser::plugin::LaserPlugin;
 use asteroid::plugin::AsteroidPlugin;
-use base_station::BaseStationPlugin;
 use hexbase::HexBasePlugin;
 use refinery::RefineryPlugin;
-use crate::laser::plugin::LaserPlugin;
-use crate::crosshair::plugin::CrosshairPlugin;
-
-mod asteroid;
-mod base_station;
-mod battery;
-mod crosshair;
-mod engine;
-mod events;
-mod factory;
-mod game_ui;
-mod health;
-mod hexbase;
-mod inventory;
-mod item_producer;
-mod laser;
-mod particles;
-mod player;
-mod player_input;
-mod projectile;
-mod recipe;
-mod refinery;
-mod upgrades;
-mod collectible;
+use space_station::plugin::SpaceStationPlugin;
 
 // Defines the amount of time that should elapse between each physics step.
 // const TIME_STEP: f32 = 1.0 / 60.0;
@@ -85,7 +82,6 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
             // WorldInspectorPlugin::new(),
-
             OverlayPlugin {
                 font_size: 24.0,
                 ..default()
@@ -102,7 +98,7 @@ fn main() {
             EnginePlugin,
             PlayerInputPlugin,
             InventoryPlugin,
-            BaseStationPlugin,
+            SpaceStationPlugin,
             RefineryPlugin,
             FactoryPlugin,
             AsteroidPlugin,
@@ -113,13 +109,8 @@ fn main() {
             // HexBasePlugin,
         ))
         .insert_resource(Gravity::ZERO)
-        .add_systems(Startup, (
-            setup,
-        ))
-        .add_systems(Update, (
-            camera_follows_player,
-            screen_print_debug_text
-        ))
+        .add_systems(Startup, (setup,))
+        .add_systems(Update, (camera_follows_player, screen_print_debug_text))
         .run();
 }
 
