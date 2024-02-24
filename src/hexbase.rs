@@ -8,7 +8,7 @@ use std::f32::consts::PI;
 
 use crate::events::BuildHexBuildingEvent;
 use crate::player::components::Player;
-use crate::player_input::MouseWorldPosition;
+use crate::player_input::resources::MouseWorldPosition;
 
 /// World size of the hexagons (outer radius)
 const HEX_SIZE: Vec2 = Vec2::splat(10.0 * crate::PIXELS_PER_METER);

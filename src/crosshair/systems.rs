@@ -1,10 +1,13 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
-use super::components::Crosshair;
 use crate::player::components::Player;
-use crate::player_input::MouseWorldPosition;
+use crate::player_input::resources::MouseWorldPosition;
 
+use super::components::Crosshair;
+
+/// Spawns a Bundle for the mouse crosshair.
+/// This provides the user feedback on where their mouse is relative to their ship.
 pub fn spawn_crosshair(mut commands: Commands) {
     let line = shapes::Line(Vec2::new(0.0, 0.0), Vec2::new(0.0, 0.0));
 

@@ -38,7 +38,7 @@ use factory::FactoryPlugin;
 use inventory::InventoryPlugin;
 use particles::plugin::ParticlePlugin;
 use player::{components::Player, plugin::PlayerPlugin};
-use player_input::PlayerInputPlugin;
+use player_input::plugin::PlayerInputPlugin;
 use ui::plugin::GameUIPlugin;
 // use projectile::ProjectilePlugin;
 use crate::crosshair::plugin::CrosshairPlugin;

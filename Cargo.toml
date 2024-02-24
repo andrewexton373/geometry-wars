@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 ordered-float = "3.4.0"
 num = "0.4.0"
-bevy = { version = "0.12", features = ["bevy_sprite", "wayland", "dynamic_linking"] }
+bevy = { version = "0.12", features = ["bevy_sprite", "wayland"] }
 bevy_egui = "0.24"
 egui_dnd = "0.7.0"
 bevy_xpbd_2d = "0.3"

@@ -11,7 +11,7 @@ use crate::collectible::components::Collectible;
 use crate::crosshair::components::Crosshair;
 use crate::inventory::{Capacity, Inventory, InventoryPlugin};
 use crate::laser::events::LaserEvent;
-use crate::player_input::MouseWorldPosition;
+use crate::player_input::resources::MouseWorldPosition;
 use crate::space_station::components::SpaceStation;
 use crate::space_station::resources::CanDeposit;
 use crate::ui::context_clue::resources::{ContextClue, ContextClues};

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::events::EnginePowerEvent;
+use crate::player_input::events::EnginePowerEvent;
 use crate::player::components::Player;
 
 pub struct EnginePlugin;
