@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_egui::{egui::{Align2, Window}, EguiContexts};
 
-use crate::{events::{BuildHexBuildingEvent, CraftEvent}, factory::Factory, hexbase::{BuildingType, PlayerHoveringBuilding}, inventory::Inventory, refinery::{Refinery, SmeltEvent}, space_station::components::SpaceStation, ui::helpers::progress_string};
+use crate::{events::{BuildHexBuildingEvent, CraftEvent}, factory::Factory, hexbase::{BuildingType, PlayerHoveringBuilding}, inventory::components::Inventory, refinery::{Refinery, SmeltEvent}, space_station::components::SpaceStation, ui::helpers::progress_string};
 
 pub fn ui_ship_hover_context(
     // mut egui_ctx: Query<&mut EguiContext, With<PrimaryWindow>>,

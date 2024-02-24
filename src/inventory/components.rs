@@ -1,7 +1,7 @@
 use crate::asteroid::components::AsteroidMaterial;
-use crate::factory::UpgradeComponent;
-use crate::refinery::MetalIngot;
-use bevy::prelude::*;
+use crate::items::{Amount, MetalIngot};
+use crate::upgrades::UpgradeComponent;
+ use bevy::prelude::*;
 use ordered_float::OrderedFloat;
 use std::fmt;
 use std::ops::{AddAssign, SubAssign};
@@ -17,61 +17,7 @@ pub struct Inventory {
     pub capacity: Capacity,
 }
 
-#[derive(Default, Clone, PartialEq, PartialOrd, Hash)]
-pub enum Amount {
-    #[default]
-    None,
-    Weight(OrderedFloat<f32>), // Need ordred float
-    Quantity(u32),
-}
 
-impl fmt::Debug for Amount {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Weight(arg0) => {
-                write!(f, "{} Kgs", arg0)
-            }
-            Self::Quantity(arg0) => {
-                write!(f, "x{}", arg0)
-            }
-            _ => {
-                write!(f, "None")
-            }
-        }
-    }
-}
-
-impl AddAssign for Amount {
-    fn add_assign(&mut self, rhs: Self) {
-        match self {
-            Amount::Weight(weight) => match rhs {
-                Amount::Weight(w) => *weight += w,
-                _ => {}
-            },
-            Amount::Quantity(quantity) => match rhs {
-                Amount::Quantity(q) => *quantity += q,
-                _ => {}
-            },
-            Amount::None => {}
-        }
-    }
-}
-
-impl SubAssign for Amount {
-    fn sub_assign(&mut self, rhs: Self) {
-        match self {
-            Amount::Weight(weight) => match rhs {
-                Amount::Weight(w) => *weight -= w,
-                _ => {}
-            },
-            Amount::Quantity(quantity) => match rhs {
-                Amount::Quantity(q) => *quantity -= q,
-                _ => {}
-            },
-            Amount::None => {}
-        }
-    }
-}
 
 #[derive(Clone, PartialEq, Hash)]
 
@@ -351,34 +297,5 @@ impl Inventory {
         }
 
         false
-    }
-}
-
-pub struct InventoryPlugin;
-
-impl Plugin for InventoryPlugin {
-    fn build(&self, _app: &mut App) {}
-}
-
-impl InventoryPlugin {
-    pub fn attach_inventory_to_entity(
-        commands: &mut Commands,
-        mut inventory: Inventory,
-        entity: Entity,
-    ) {
-        // TODO: REMOVE ONLY FOR TESTING.
-        inventory.add_to_inventory(&InventoryItem::Ingot(
-            MetalIngot::IronIngot,
-            Amount::Quantity(5),
-        ));
-        inventory.add_to_inventory(&InventoryItem::Component(
-            UpgradeComponent::Cog,
-            Amount::Quantity(2),
-        ));
-        inventory.add_to_inventory(&InventoryItem::Component(
-            UpgradeComponent::IronPlate,
-            Amount::Quantity(2),
-        ));
-        commands.entity(entity).insert(inventory);
     }
 }

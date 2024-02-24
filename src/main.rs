@@ -19,6 +19,7 @@ pub(crate) mod refinery;
 pub(crate) mod space_station;
 pub(crate) mod ui;
 pub(crate) mod upgrades;
+pub(crate) mod items;
 
 // #![feature(array_methods)]
 
@@ -35,7 +36,7 @@ use bevy_xpbd_2d::prelude::*;
 
 use engine::EnginePlugin;
 use factory::FactoryPlugin;
-use inventory::InventoryPlugin;
+use inventory::plugin::InventoryPlugin;
 use particles::plugin::ParticlePlugin;
 use player::{components::Player, plugin::PlayerPlugin};
 use player_input::plugin::PlayerInputPlugin;

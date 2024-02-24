@@ -9,7 +9,9 @@ use super::resources::EmptyInventoryDepositTimer;
 
 use crate::collectible::components::Collectible;
 use crate::crosshair::components::Crosshair;
-use crate::inventory::{Capacity, Inventory, InventoryPlugin};
+use crate::inventory::components::{Capacity, Inventory};
+use crate::inventory::plugin::InventoryPlugin;
+use crate::inventory::systems::attach_inventory_to_entity;
 use crate::laser::events::LaserEvent;
 use crate::player_input::resources::MouseWorldPosition;
 use crate::space_station::components::SpaceStation;
@@ -60,7 +62,7 @@ pub fn spawn_player(mut commands: Commands) {
         ))
         .id();
 
-    InventoryPlugin::attach_inventory_to_entity(
+    attach_inventory_to_entity(
         &mut commands,
         Inventory {
             items: Vec::new(),

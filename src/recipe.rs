@@ -1,4 +1,4 @@
-use crate::inventory::InventoryItem;
+use crate::inventory::components::InventoryItem;
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct Recipe {

@@ -2,9 +2,7 @@ use bevy::prelude::*;
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, FromRepr};
 
-use crate::factory::UpgradeComponent;
-use crate::inventory::{Amount, Inventory, InventoryItem};
-use crate::player::components::Player;
+use crate::{inventory::components::{Inventory, InventoryItem}, items::Amount, player::components::Player};
 
 pub trait Upgradeable {
     fn set_upgrade_level(&mut self, upgrade_level: UpgradeLevel);
@@ -14,6 +12,15 @@ pub trait Upgradeable {
 #[derive(Component, Default)]
 pub struct UpgradesComponent {
     pub upgrades: Vec<UpgradeType>,
+}
+
+#[derive(Default, Debug, Clone, Copy, PartialEq, Hash)]
+pub enum UpgradeComponent {
+    #[default]
+    Cog,
+    IronPlate,
+    SilverConduit,
+    GoldLeaf,
 }
 
 impl UpgradesComponent {

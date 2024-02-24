@@ -6,13 +6,7 @@ use bevy_xpbd_2d::prelude::*;
 use ordered_float::OrderedFloat;
 
 use crate::{
-    asteroid::components::Asteroid,
-    factory::FactoryPlugin,
-    inventory::{Capacity, Inventory, InventoryPlugin},
-    player::components::Player,
-    refinery::RefineryPlugin,
-    ui::context_clue::resources::{ContextClue, ContextClues},
-    PIXELS_PER_METER,
+    asteroid::components::Asteroid, factory::FactoryPlugin, inventory::{components::{Capacity, Inventory}, plugin::InventoryPlugin, systems::attach_inventory_to_entity}, player::components::Player, refinery::RefineryPlugin, ui::context_clue::resources::{ContextClue, ContextClues}, PIXELS_PER_METER
 };
 
 use super::{
@@ -45,7 +39,7 @@ pub fn spawn_space_station(mut commands: Commands) {
         ))
         .id();
 
-    InventoryPlugin::attach_inventory_to_entity(
+    attach_inventory_to_entity(
         &mut commands,
         Inventory {
             items: Vec::new(),

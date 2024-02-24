@@ -4,7 +4,7 @@ use bevy_egui::{
     EguiContexts,
 };
 
-use crate::{inventory::Inventory, player::components::Player, ui::helpers::progress_string};
+use crate::{inventory::components::Inventory, player::components::Player, ui::helpers::progress_string};
 
 pub fn ui_ship_inventory(
     // world: &mut World,

@@ -3,23 +3,18 @@ use std::time::Duration;
 use bevy::prelude::*;
 
 use crate::events::CraftEvent;
+use crate::items::{Amount, MetalIngot};
+use crate::upgrades::UpgradeComponent;
 use crate::{
-    inventory::{Amount, Inventory, InventoryItem},
     item_producer::ItemProducer,
     recipe::Recipe,
-    refinery::MetalIngot,
     // widgets::factory::CraftEvent,
     space_station::components::SpaceStation,
 };
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Hash)]
-pub enum UpgradeComponent {
-    #[default]
-    Cog,
-    IronPlate,
-    SilverConduit,
-    GoldLeaf,
-}
+use crate::inventory::components::{Inventory, InventoryItem};
+
+
 
 #[derive(Resource)]
 

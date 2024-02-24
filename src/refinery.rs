@@ -4,20 +4,11 @@ use bevy::prelude::*;
 use ordered_float::OrderedFloat;
 
 use crate::{
-    asteroid::components::AsteroidMaterial,
-    inventory::{Amount, Inventory, InventoryItem},
-    item_producer::ItemProducer,
-    recipe::Recipe,
-    space_station::components::SpaceStation,
+    asteroid::components::AsteroidMaterial, inventory::components::{Inventory, InventoryItem}, item_producer::ItemProducer, items::{Amount, MetalIngot}, recipe::Recipe, space_station::components::SpaceStation
 };
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Hash)]
-pub enum MetalIngot {
-    #[default]
-    IronIngot,
-    SilverIngot,
-    GoldIngot,
-}
+
+
 
 #[derive(Resource)]
 pub struct RefineryTimer(pub Option<Timer>);

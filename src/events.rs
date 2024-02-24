@@ -7,7 +7,4 @@ use bevy::prelude::Event;
 pub struct CraftEvent(pub Recipe);
 
 #[derive(Event)]
-pub struct EnginePowerEvent(pub f32);
-
-#[derive(Event)]
 pub struct BuildHexBuildingEvent(pub Entity, pub BuildingType);

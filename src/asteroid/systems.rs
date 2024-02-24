@@ -1,4 +1,4 @@
-use crate::player::components::Player;
+use crate::{inventory::components::{Inventory, InventoryItem}, items::Amount, player::components::Player};
 use bevy::prelude::*;
 use bevy_particle_systems::Playing;
 use bevy_prototype_lyon::{
@@ -17,7 +17,6 @@ use rand::Rng;
 
 use crate::{
     collectible::components::Collectible,
-    inventory::{Amount, Inventory, InventoryItem},
     particles::components::ShipDamageParticleSystem,
     space_station::components::SpaceStation,
     ui::context_clue::resources::{ContextClue, ContextClues},
