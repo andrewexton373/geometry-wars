@@ -1,13 +1,12 @@
-use bevy::prelude::*;
+use bevy::prelude::Component;
 use strum::IntoEnumIterator;
-use strum_macros::{EnumIter, FromRepr};
+use strum_macros::{FromRepr, EnumIter};
 
-use crate::{inventory::components::{Inventory, InventoryItem}, items::Amount, player::components::Player};
 
-pub trait Upgradeable {
-    fn set_upgrade_level(&mut self, upgrade_level: UpgradeLevel);
-    fn upgrade_effect(&self) -> f32;
-}
+use crate::inventory::components::{InventoryItem, Inventory};
+use crate::items::Amount;
+use crate::player::components::Player;
+
 
 #[derive(Component, Default)]
 pub struct UpgradesComponent {
@@ -52,14 +51,14 @@ impl UpgradesComponent {
                 *to_upgrade = match to_upgrade {
                     UpgradeType::None => UpgradeType::None,
                     UpgradeType::Health(level) => {
-                        let next = level.next().unwrap_or_else(|| UpgradeLevel::MaxLevel);
-                        player.health.set_upgrade_level(next.clone());
+                        let next = level.next().unwrap_or(UpgradeLevel::MaxLevel);
+                        player.health.set_upgrade_level(next);
                         ship_inventory.remove_all_from_inventory(upgrade_requirements.clone());
                         UpgradeType::Health(next)
                     }
                     UpgradeType::ShipCargoBay(level) => {
-                        let next = level.next().unwrap_or_else(|| UpgradeLevel::MaxLevel);
-                        player.battery.set_upgrade_level(next.clone());
+                        let next = level.next().unwrap_or(UpgradeLevel::MaxLevel);
+                        player.battery.set_upgrade_level(next);
                         ship_inventory.remove_all_from_inventory(upgrade_requirements.clone());
                         UpgradeType::ShipCargoBay(next)
                     }
@@ -73,35 +72,7 @@ impl UpgradesComponent {
     }
 }
 
-#[derive(FromRepr, EnumIter, Debug, Clone, Copy, Default, PartialEq)]
-#[repr(u8)]
-pub enum UpgradeLevel {
-    #[default]
-    Level0 = 0,
-    Level1 = 1,
-    Level2 = 2,
-    Level3 = 3,
-    Level4 = 4,
-    MaxLevel = 5,
-}
 
-impl UpgradeLevel {
-    pub fn as_u8(&self) -> u8 {
-        match self {
-            UpgradeLevel::Level0 => 0,
-            UpgradeLevel::Level1 => 1,
-            UpgradeLevel::Level2 => 2,
-            UpgradeLevel::Level3 => 3,
-            UpgradeLevel::Level4 => 4,
-            UpgradeLevel::MaxLevel => 5,
-        }
-    }
-
-    pub fn next(&self) -> Option<UpgradeLevel> {
-        let current_lvl = self.as_u8();
-        UpgradeLevel::from_repr(current_lvl + 1)
-    }
-}
 
 #[derive(Default, EnumIter, Clone, Copy, Debug, PartialEq)]
 pub enum UpgradeType {
@@ -190,30 +161,67 @@ impl UpgradeType {
     pub fn next(&self) -> Self {
         match self {
             UpgradeType::None => {
-                return self.clone();
+                *self
             }
             UpgradeType::Health(level) => {
                 if let Some(next_level) = level.next() {
                     UpgradeType::Health(next_level)
                 } else {
-                    self.clone()
+                    *self
                 }
             }
             UpgradeType::ShipCargoBay(level) => {
                 if let Some(next_level) = level.next() {
                     UpgradeType::ShipCargoBay(next_level)
                 } else {
-                    self.clone()
+                    *self
                 }
             }
         }
     }
 }
 
-#[derive(Event)]
-pub struct UpgradeEvent(pub UpgradeType);
+
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct UpgradeRequirements {
     pub requirements: Vec<InventoryItem>,
+}
+
+
+
+pub trait Upgradeable {
+    fn set_upgrade_level(&mut self, upgrade_level: UpgradeLevel);
+    fn upgrade_effect(&self) -> f32;
+}
+
+
+#[derive(FromRepr, EnumIter, Debug, Clone, Copy, Default, PartialEq)]
+#[repr(u8)]
+pub enum UpgradeLevel {
+    #[default]
+    Level0 = 0,
+    Level1 = 1,
+    Level2 = 2,
+    Level3 = 3,
+    Level4 = 4,
+    MaxLevel = 5,
+}
+
+impl UpgradeLevel {
+    pub fn as_u8(&self) -> u8 {
+        match self {
+            UpgradeLevel::Level0 => 0,
+            UpgradeLevel::Level1 => 1,
+            UpgradeLevel::Level2 => 2,
+            UpgradeLevel::Level3 => 3,
+            UpgradeLevel::Level4 => 4,
+            UpgradeLevel::MaxLevel => 5,
+        }
+    }
+
+    pub fn next(&self) -> Option<UpgradeLevel> {
+        let current_lvl = self.as_u8();
+        UpgradeLevel::from_repr(current_lvl + 1)
+    }
 }

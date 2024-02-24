@@ -1,6 +1,6 @@
 use crate::asteroid::components::AsteroidMaterial;
 use crate::items::{Amount, MetalIngot};
-use crate::upgrades::UpgradeComponent;
+use crate::upgrades::components::UpgradeComponent;
  use bevy::prelude::*;
 use ordered_float::OrderedFloat;
 use std::fmt;

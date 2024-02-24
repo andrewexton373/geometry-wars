@@ -2,9 +2,10 @@ use bevy::input::mouse::MouseWheel;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
+use crate::space_station::resources::CanDeposit;
 use crate::GameCamera;
 
-use super::events::EnginePowerEvent;
+use super::events::{DepositInventoryEvent, EnginePowerEvent};
 use super::resources::{
     MouseScreenPosition,
     MouseWorldPosition
@@ -55,5 +56,41 @@ pub fn scroll_events(
                 engine_events.send(EnginePowerEvent(event.y));
             }
         }
+    }
+}
+
+/// Allow the player to use , and . to zoom the viewport in and out.
+pub fn player_camera_control(
+    kb: Res<Input<KeyCode>>,
+    time: Res<Time>,
+    mut query: Query<&mut OrthographicProjection, With<Camera2d>>,
+) {
+    let dist = 0.75 * time.delta().as_secs_f32();
+
+    for mut projection in query.iter_mut() {
+        let mut log_scale = projection.scale.ln();
+
+        if kb.pressed(KeyCode::Period) {
+            log_scale -= dist;
+        }
+        if kb.pressed(KeyCode::Comma) {
+            log_scale += dist;
+        }
+
+        projection.scale = log_scale.exp();
+    }
+}
+
+// TODO: Idea?
+// Mark InventoryItems with Deposit Component on Event
+// Use this system to deposit marked inventory items in Base Station
+pub fn player_deposit_control(
+    kb: Res<Input<KeyCode>>,
+    can_deposit: Res<CanDeposit>,
+    mut deposit_events: EventWriter<DepositInventoryEvent>,
+) {
+    // If player pressed space and they're in depositing range
+    if kb.just_pressed(KeyCode::Space) && can_deposit.0 {
+       deposit_events.send(DepositInventoryEvent);
     }
 }

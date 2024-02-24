@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_egui::{egui::{Align2, Vec2, Window}, EguiContexts};
 
-use crate::{player::components::Player, upgrades::{UpgradeEvent, UpgradesComponent}};
+use crate::{player::components::Player, upgrades::{events::UpgradeEvent, components::UpgradesComponent}};
 
 pub fn ui_space_station_menu(
     mut ctx: EguiContexts,

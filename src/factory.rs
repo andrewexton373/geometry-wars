@@ -4,7 +4,7 @@ use bevy::prelude::*;
 
 use crate::events::CraftEvent;
 use crate::items::{Amount, MetalIngot};
-use crate::upgrades::UpgradeComponent;
+use crate::upgrades::components::UpgradeComponent;
 use crate::{
     item_producer::ItemProducer,
     recipe::Recipe,

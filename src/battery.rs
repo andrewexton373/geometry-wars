@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::upgrades::{UpgradeLevel, Upgradeable};
+use crate::upgrades::components::{UpgradeLevel, Upgradeable};
 
 // use crate::{widgets::station_menu::UpgradeLevel, upgrades::Upgradeable};
 

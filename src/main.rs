@@ -48,6 +48,7 @@ use asteroid::plugin::AsteroidPlugin;
 use hexbase::HexBasePlugin;
 use refinery::RefineryPlugin;
 use space_station::plugin::SpaceStationPlugin;
+use upgrades::plugin::UpgradesPlugin;
 
 // Defines the amount of time that should elapse between each physics step.
 // const TIME_STEP: f32 = 1.0 / 60.0;
@@ -96,6 +97,7 @@ fn main() {
         ))
         .add_plugins((
             PlayerPlugin,
+            UpgradesPlugin,
             EnginePlugin,
             PlayerInputPlugin,
             InventoryPlugin,

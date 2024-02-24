@@ -51,7 +51,7 @@ impl Asteroid {
             health: Health {
                 current: poly_area,
                 maximum: poly_area,
-                upgrade_level: crate::upgrades::UpgradeLevel::Level0,
+                upgrade_level: crate::upgrades::components::UpgradeLevel::Level0,
             },
             composition: comp,
             polygon: asteroid_polygon,

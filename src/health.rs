@@ -1,7 +1,7 @@
 // use crate::{widgets::station_menu::UpgradeLevel, upgrades::Upgradeable};
 use bevy::prelude::*;
 
-use crate::upgrades::{UpgradeLevel, Upgradeable};
+use crate::upgrades::components::{UpgradeLevel, Upgradeable};
 
 #[derive(Component, Default, Clone, Debug)]
 pub struct Health {

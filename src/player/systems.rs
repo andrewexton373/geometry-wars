@@ -17,7 +17,7 @@ use crate::player_input::resources::MouseWorldPosition;
 use crate::space_station::components::SpaceStation;
 use crate::space_station::resources::CanDeposit;
 use crate::ui::context_clue::resources::{ContextClue, ContextClues};
-use crate::upgrades::{UpgradeEvent, UpgradesComponent};
+use crate::upgrades::{events::UpgradeEvent, components::UpgradesComponent};
 use crate::PIXELS_PER_METER;
 
 pub fn spawn_player(mut commands: Commands) {
@@ -188,53 +188,7 @@ pub fn player_fire_laser(
     }
 }
 
-pub fn player_camera_control(
-    kb: Res<Input<KeyCode>>,
-    time: Res<Time>,
-    mut query: Query<&mut OrthographicProjection, With<Camera2d>>,
-) {
-    let dist = 0.75 * time.delta().as_secs_f32();
 
-    for mut projection in query.iter_mut() {
-        let mut log_scale = projection.scale.ln();
-
-        if kb.pressed(KeyCode::Period) {
-            log_scale -= dist;
-        }
-        if kb.pressed(KeyCode::Comma) {
-            log_scale += dist;
-        }
-
-        projection.scale = log_scale.exp();
-    }
-}
-
-// TODO: Idea?
-// Mark InventoryItems with Deposit Component on Event
-// Use this system to deposit marked inventory items in Base Station
-pub fn player_deposit_control(
-    kb: Res<Input<KeyCode>>,
-    can_deposit: Res<CanDeposit>,
-    mut empty_deposit_timer: ResMut<EmptyInventoryDepositTimer>,
-    mut player_query: Query<&mut Inventory, (With<Player>, Without<SpaceStation>)>,
-    mut base_station_query: Query<&mut Inventory, (With<SpaceStation>, Without<Player>)>,
-) {
-    // If player pressed space and they're in depositing range
-    if kb.just_pressed(KeyCode::Space) && can_deposit.0 {
-        let mut player_inventory = player_query.single_mut();
-        let mut base_station_inventory = base_station_query.single_mut();
-
-        if player_inventory.items.is_empty() {
-            let timer = empty_deposit_timer.as_mut();
-            *timer = EmptyInventoryDepositTimer(Some(Timer::from_seconds(3.0, TimerMode::Once)));
-        }
-
-        for item in player_inventory.clone().items.iter() {
-            base_station_inventory.add_to_inventory(item);
-            player_inventory.remove_from_inventory(item);
-        }
-    }
-}
 
 pub fn display_empty_ship_inventory_context_clue(
     mut context_clues: ResMut<ContextClues>,
@@ -290,7 +244,7 @@ pub fn on_upgrade_event(
         let (_base_station, mut inventory) = base_station_query.single_mut();
         let (mut player, mut upgrades) = player_query.single_mut();
 
-        let upgrade = event.0.clone();
+        let upgrade = event.0;
         println!("{:?}", upgrade);
 
         upgrades.upgrade(upgrade, &mut player, &mut inventory);

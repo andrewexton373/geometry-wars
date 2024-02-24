@@ -2,7 +2,6 @@ use bevy::prelude::*;
 
 use super::resources::EmptyInventoryDepositTimer;
 use super::systems::*;
-use crate::upgrades::UpgradeEvent;
 
 pub struct PlayerPlugin;
 
@@ -11,7 +10,6 @@ impl Plugin for PlayerPlugin {
         // add things to your app here
 
         app.insert_resource(EmptyInventoryDepositTimer(None))
-            .add_event::<UpgradeEvent>()
             .add_systems(Startup, spawn_player)
             .add_systems(
                 Update,
@@ -20,8 +18,6 @@ impl Plugin for PlayerPlugin {
                     player_movement.after(update_player_mass),
                     ship_rotate_towards_mouse.after(player_movement),
                     player_fire_laser.after(ship_rotate_towards_mouse),
-                    player_camera_control,
-                    player_deposit_control,
                     trickle_charge,
                     ship_battery_is_empty_context_clue,
                     display_empty_ship_inventory_context_clue,
