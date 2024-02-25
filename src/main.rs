@@ -20,6 +20,7 @@ pub(crate) mod space_station;
 pub(crate) mod ui;
 pub(crate) mod upgrades;
 pub(crate) mod items;
+pub(crate) mod camera;
 
 // #![feature(array_methods)]
 
@@ -27,13 +28,14 @@ use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
 
 use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
-    prelude::*,
+    prelude::*, render::camera::CameraPlugin,
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_particle_systems::ParticleSystemPlugin;
 use bevy_prototype_lyon::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 
+use camera::plugin::GameCameraPlugin;
 use engine::EnginePlugin;
 use factory::FactoryPlugin;
 use inventory::plugin::InventoryPlugin;
@@ -67,9 +69,6 @@ struct Collider;
 // A unit struct to help identify the FPS UI component, since there may be many Text components
 #[derive(Component)]
 struct FpsText;
-
-#[derive(Component)]
-pub struct GameCamera;
 
 fn main() {
     App::new()
@@ -110,36 +109,12 @@ fn main() {
             GameUIPlugin,
             ParticlePlugin,
             HexBasePlugin,
+            GameCameraPlugin
         ))
         .insert_resource(Gravity::ZERO)
-        .add_systems(Startup, (setup,))
-        .add_systems(Update, (camera_follows_player, screen_print_debug_text))
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-    // mut rapier_config: ResMut<RapierConfiguration>
-) {
-    commands.spawn((
-        GameCamera,
-        Camera2dBundle::default(),
-        Name::new("GameCamera"),
-    ));
-
-    // rapier_config.gravity = Vec2::new(0.0, 0.0);
-}
-
-fn camera_follows_player(
-    mut camera_query: Query<(&Camera, &mut Transform), With<GameCamera>>,
-    player_query: Query<&Transform, (With<Player>, Without<GameCamera>)>,
-) {
-    let (_camera, mut camera_trans) = camera_query.single_mut();
-    let player_trans = player_query.single();
-
-    camera_trans.translation.x = player_trans.translation.x;
-    camera_trans.translation.y = player_trans.translation.y;
-}
 
 fn screen_print_debug_text(diagnostics: Res<DiagnosticsStore>) {
     if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {

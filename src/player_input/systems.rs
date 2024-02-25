@@ -1,9 +1,13 @@
-use bevy::input::mouse::MouseWheel;
+use bevy::input::mouse::{self, MouseWheel};
 use bevy::prelude::*;
+use bevy::render::camera;
 use bevy::window::PrimaryWindow;
 
+use crate::camera::components::{CameraTarget, GameCamera};
+use crate::player::components::Player;
 use crate::space_station::resources::CanDeposit;
-use crate::GameCamera;
+use crate::ui::{mouse_hover_context, ship_hover_context};
+use crate::ui::mouse_hover_context::resources::MouseHoverContext;
 
 use super::events::{DepositInventoryEvent, EnginePowerEvent};
 use super::resources::{
@@ -39,6 +43,55 @@ pub fn update_mouse_screen_position_resource(
     if let Some(pos) = window.cursor_position() {
         *mouse_position = MouseScreenPosition(pos);
     }
+}
+
+pub fn player_targeting(
+    mut commands: Commands,
+    mut camera_target_q: Query<Entity, With<CameraTarget>>,
+    mouse_hover_context: Res<MouseHoverContext>,
+    mouse_events: Res<Input<MouseButton>>,
+) {
+
+    // If mouse right click
+    if mouse_events.just_pressed(MouseButton::Right) {
+
+        // If mouse hover context is valid,
+        if let Some(hover_context_ent) = mouse_hover_context.0 {
+
+            // Remove old CameraTarget Component
+            for camera_target in camera_target_q.iter_mut() {
+                commands.entity(camera_target).remove::<CameraTarget>();
+            }
+
+            // Add CameraTarget to hover context entity
+            commands.entity(hover_context_ent).insert(CameraTarget);
+
+        }
+
+    }
+}
+
+pub fn cancel_player_targeting(
+    mut commands: Commands,
+    mut camera_target_q: Query<Entity, With<CameraTarget>>,
+    mut player_q: Query<Entity, &Player>,
+    keyboard_events: Res<Input<KeyCode>>
+) {
+
+    // If player presses X
+    if keyboard_events.just_pressed(KeyCode::X) {
+
+        // Remove old CameraTarget Component
+        for camera_target in camera_target_q.iter_mut() {
+            commands.entity(camera_target).remove::<CameraTarget>();
+        }
+
+        // Add CameraTarget to Player as default
+        let player_ent = player_q.get_single_mut().unwrap();
+        commands.entity(player_ent).insert(CameraTarget);
+    }
+
+    
 }
 
 pub fn scroll_events(

@@ -10,7 +10,7 @@ use bevy_egui::{
 };
 use bevy_xpbd_2d::plugins::spatial_query::{SpatialQuery, SpatialQueryFilter};
 
-use crate::{asteroid::components::Asteroid, player_input::resources::{MouseScreenPosition, MouseWorldPosition}, ui::{helpers::progress_string, ship_hover_context::plugin::ShipHoverContext}, GameCamera};
+use crate::{asteroid::components::Asteroid, player_input::resources::{MouseScreenPosition, MouseWorldPosition}, ui::{helpers::progress_string, ship_hover_context::plugin::ShipHoverContext}};
 
 use super::resources::MouseHoverContext;
 

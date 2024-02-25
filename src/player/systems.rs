@@ -7,6 +7,7 @@ use std::f32::consts::PI;
 use super::components::Player;
 use super::resources::EmptyInventoryDepositTimer;
 
+use crate::camera::components::CameraTarget;
 use crate::collectible::components::Collectible;
 use crate::crosshair::components::Crosshair;
 use crate::inventory::components::{Capacity, Inventory};
@@ -42,6 +43,7 @@ pub fn spawn_player(mut commands: Commands) {
     let player = commands
         .spawn(Player::new())
         .insert((Name::new("Player"), UpgradesComponent::new()))
+        .insert(CameraTarget)
         .insert((
             RigidBody::Dynamic,
             Mass(1.0),
