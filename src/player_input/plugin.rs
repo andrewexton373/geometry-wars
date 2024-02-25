@@ -1,4 +1,4 @@
-use bevy::app::{Plugin, App, Update};
+use bevy::app::{App, Plugin, PreUpdate, Update};
 use bevy::math::Vec2;
 
 use super::resources::{
@@ -22,7 +22,7 @@ impl Plugin for PlayerInputPlugin {
             .insert_resource(MouseWorldPosition(Vec2::ZERO))
             .insert_resource(MouseScreenPosition(Vec2::ZERO))
             .add_systems(
-                Update,
+                PreUpdate,
                 (
                     update_mouse_world_position_resource,
                     update_mouse_screen_position_resource,

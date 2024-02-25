@@ -1,71 +1,95 @@
 use bevy::{
     core::Name,
-    ecs::{entity::Entity, query::With, system::Query},
+    ecs::{entity::Entity, query::With, system::{Query, Res, ResMut}},
     render::camera::Camera,
     transform::components::GlobalTransform,
 };
 use bevy_egui::{
-    egui::{Align2, Window},
+    egui::{Align2, Pos2, Vec2, Window},
     EguiContexts,
 };
 use bevy_xpbd_2d::plugins::spatial_query::{SpatialQuery, SpatialQueryFilter};
 
-use crate::{asteroid::components::Asteroid, ui::helpers::progress_string, GameCamera};
+use crate::{asteroid::components::Asteroid, player_input::resources::{MouseScreenPosition, MouseWorldPosition}, ui::{helpers::progress_string, ship_hover_context::plugin::ShipHoverContext}, GameCamera};
+
+use super::resources::MouseHoverContext;
+
+pub fn update_mouse_hover_context_resource(
+    mut mouse_hover_context: ResMut<MouseHoverContext>,
+    mouse_world_position: Res<MouseWorldPosition>,
+    ent_query: Query<(Entity, &Name, Option<&Asteroid>)>,
+    spatial_q: SpatialQuery,
+) { 
+    // Raycast Mouse Position Into Viewport
+    if let Some(ray_hit) = spatial_q.cast_ray(
+        mouse_world_position.0,
+        bevy::prelude::Vec2::Y,
+        0.001,
+        true,
+        SpatialQueryFilter::default(),
+    ) {
+        if let Ok((ent, _name, _asteroid)) = ent_query.get(ray_hit.entity) {
+            mouse_hover_context.0 = Some(ent);
+        } else {
+            mouse_hover_context.0 = None;
+        };
+    } else {
+        mouse_hover_context.0 = None;
+    }
+}
 
 pub fn ui_mouse_hover_context(
     mut ctx: EguiContexts,
-    window_query: Query<&bevy::window::Window>,
-    camera_q: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
+    mouse_hover_context: Res<MouseHoverContext>,
+    mouse_screen_position: Res<MouseScreenPosition>,
     ent_query: Query<(Entity, &Name, Option<&Asteroid>)>,
-    spatial_q: SpatialQuery,
 ) {
-    let window = window_query.single();
-    let (camera, camera_transform) = camera_q.single();
+    if let Some(hover_context_ent) = mouse_hover_context.0 {
 
-    if let Some(world_position) = window
-        .cursor_position()
-        .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
-        .map(|ray| ray.origin.truncate())
-    {
+        let screen_pos = Pos2 {
+            x: mouse_screen_position.0.x,
+            y: mouse_screen_position.0.y
+        };
+
         Window::new("Mouse Context")
-            .anchor(
-                Align2::CENTER_TOP,
-                bevy_inspector_egui::egui::Vec2 { x: 0.0, y: 0.0 },
-            )
+            .fixed_pos(screen_pos)
             .show(ctx.ctx_mut(), |ui| {
-                ui.group(|ui| {
-                    ui.label(format!(
-                        "X:{:.2} Y:{:.2}",
-                        world_position.x, world_position.y
-                    ));
-                });
 
-                // Raycast Mouse Position Into Viewport
-                if let Some(ray_hit) = spatial_q.cast_ray(
-                    world_position,
-                    bevy::prelude::Vec2::Y,
-                    0.001,
-                    true,
-                    SpatialQueryFilter::default(),
-                ) {
-                    if let Ok((_ent, name, asteroid)) = ent_query.get(ray_hit.entity) {
-                        ui.group(|ui| {
-                            ui.heading(format!("{}", name));
+                if let Ok((_ent, name, asteroid)) = ent_query.get(hover_context_ent) {
+                    ui.group(|ui| {
+                        ui.heading(format!("{}", name));
 
-                            if let Some(asteroid) = asteroid {
-                                ui.label(format!(
-                                    "Health: {:.2}%",
-                                    asteroid.health.current_percent() * 100.0
-                                ));
-                                let health_percent = asteroid.health.current_percent();
-                                ui.label(progress_string(health_percent));
+                        if let Some(asteroid) = asteroid {
+                            ui.label(format!(
+                                "Health: {:.2}%",
+                                asteroid.health.current_percent() * 100.0
+                            ));
+                            let health_percent = asteroid.health.current_percent();
+                            ui.label(progress_string(health_percent));
 
-                                ui.label("Composition:");
-                                ui.label(format!("{:?}", asteroid.composition));
-                            }
-                        });
-                    };
-                }
+                            ui.label("Composition:");
+                            ui.label(format!("{:?}", asteroid.composition));
+                        }
+                    });
+                };
             });
-    };
+
+    }
+}
+
+pub fn ui_mouse_coordinates(
+    mut ctx: EguiContexts,
+    mouse_screen_position: Res<MouseScreenPosition>,
+) {
+    Window::new("Mouse Coordinates")
+        .anchor(Align2::RIGHT_TOP, Vec2::ZERO)
+        .show(ctx.ctx_mut(), |ui| {
+            ui.group(|ui| {
+                ui.label(format!(
+                    "X:{:.2} Y:{:.2}",
+                    mouse_screen_position.0.x, mouse_screen_position.0.y
+                ));
+            });
+
+        });
 }

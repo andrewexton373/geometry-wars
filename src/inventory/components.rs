@@ -95,10 +95,7 @@ impl Inventory {
 
             match item {
                 InventoryItem::Component(needed_comp, amount) => {
-                    if let Some(inventory_comp) = self.items.iter().find_map(|item| match item {
-                        InventoryItem::Component(c, _) if c == needed_comp => Some(item),
-                        _ => None,
-                    }) {
+                    if let Some(inventory_comp) = self.items.iter().find(|item| matches!(item, InventoryItem::Component(c, _) if c == needed_comp)) {
                         if inventory_comp.amount() < *amount {
                             return false;
                         }
@@ -107,10 +104,7 @@ impl Inventory {
                     }
                 }
                 InventoryItem::Ingot(needed_ingot, amount) => {
-                    if let Some(inventory_ingot) = self.items.iter().find_map(|item| match item {
-                        InventoryItem::Ingot(i, _) if i == needed_ingot => Some(item),
-                        _ => None,
-                    }) {
+                    if let Some(inventory_ingot) = self.items.iter().find(|item| matches!(item, InventoryItem::Ingot(i, _) if i == needed_ingot)) {
                         if inventory_ingot.amount() < *amount {
                             return false;
                         }
@@ -119,10 +113,7 @@ impl Inventory {
                     }
                 }
                 InventoryItem::Material(needed_mat, amount) => {
-                    if let Some(inventory_mat) = self.items.iter().find_map(|item| match item {
-                        InventoryItem::Material(m, _) if m == needed_mat => Some(item),
-                        _ => None,
-                    }) {
+                    if let Some(inventory_mat) = self.items.iter().find(|item| matches!(item, InventoryItem::Material(m, _) if m == needed_mat)) {
                         if inventory_mat.amount() < *amount {
                             return false;
                         }
@@ -139,14 +130,14 @@ impl Inventory {
     pub fn has_capacity_for(&self, item: &InventoryItem) -> bool {
         match item.amount() {
             Amount::Weight(w) => {
-                return self.remaining_capacity() >= w;
+                self.remaining_capacity() >= w
             }
             Amount::Quantity(_) => {
                 // TODO: calculate weight with quantity * item_weight
-                return true;
+                true
             }
             Amount::None => {
-                return true; // Always has room for nothing?
+                true
             }
         }
     }

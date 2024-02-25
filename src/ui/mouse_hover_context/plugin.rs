@@ -1,11 +1,17 @@
-use bevy::app::{App, Plugin, Update};
+use bevy::{app::{App, Plugin, Update}, ecs::schedule::IntoSystemConfigs};
 
-use super::systems::ui_mouse_hover_context;
+use super::{resources::MouseHoverContext, systems::{ui_mouse_coordinates, ui_mouse_hover_context, update_mouse_hover_context_resource}};
 
 pub struct MouseHoverContextPlugin;
 
 impl Plugin for MouseHoverContextPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (ui_mouse_hover_context));
+        app
+            .init_resource::<MouseHoverContext>()
+            .add_systems(Update, (
+                update_mouse_hover_context_resource,
+                ui_mouse_hover_context.after(update_mouse_hover_context_resource),
+                ui_mouse_coordinates
+            ));
     }
 }
