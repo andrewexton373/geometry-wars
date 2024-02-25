@@ -53,6 +53,8 @@ pub fn ui_mouse_hover_context(
 
         Window::new("Mouse Context")
             .fixed_pos(screen_pos)
+            .title_bar(false)
+            .resizable(false)
             .show(ctx.ctx_mut(), |ui| {
 
                 if let Ok((_ent, name, asteroid)) = ent_query.get(hover_context_ent) {
@@ -83,6 +85,8 @@ pub fn ui_mouse_coordinates(
 ) {
     Window::new("Mouse Coordinates")
         .anchor(Align2::RIGHT_TOP, Vec2::ZERO)
+        .title_bar(false)
+        .resizable(false)
         .show(ctx.ctx_mut(), |ui| {
             ui.group(|ui| {
                 ui.label(format!(

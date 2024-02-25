@@ -13,6 +13,8 @@ pub fn ui_ship_inventory(
 ) {
     Window::new("Ship Inventory")
         .auto_sized()
+        .title_bar(false)
+        .resizable(false)
         .anchor(
             Align2::LEFT_BOTTOM,
             bevy_inspector_egui::egui::Vec2 { x: 0.0, y: 0.0 },

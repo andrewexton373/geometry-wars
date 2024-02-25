@@ -11,6 +11,8 @@ pub fn ui_context_clue(mut ctx: EguiContexts, context_clues_res: Res<ContextClue
 
     if !cc.is_empty() {
         Window::new("Context Clue")
+            .title_bar(false)
+            .resizable(false)
             .anchor(
                 Align2::CENTER_BOTTOM,
                 bevy_inspector_egui::egui::Vec2 { x: 0.0, y: 100.0 },
