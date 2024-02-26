@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use bevy::render::mesh::Indices;
 use bevy::render::render_resource::PrimitiveTopology;
 use bevy::sprite::MaterialMesh2dBundle;
+use bevy_prototype_lyon::prelude::tess::geom::point;
+use bevy_xpbd_2d::components::Collider;
 use hexx::*;
 use std::collections::HashMap;
 use std::f32::consts::PI;
@@ -84,6 +86,7 @@ impl HexBasePlugin {
     ) {
         let layout = HexLayout {
             hex_size: HEX_SIZE,
+
             ..default()
         };
         // materials
@@ -110,7 +113,9 @@ impl HexBasePlugin {
         let entities = shapes::hexagon(Hex::default(), 3)
             .map(|hex| {
                 let pos = layout.hex_to_world_pos(hex);
-                //println!("{:?}", pos);
+                let points: Vec<Vec2> = HexLayout::hex_corners(&layout, hex).into();
+                let collider = Collider::convex_hull(points).unwrap();
+
                 let id = commands
                     .spawn(MaterialMesh2dBundle {
                         transform: Transform::from_xyz(pos.x, pos.y, 0.0)
@@ -119,6 +124,7 @@ impl HexBasePlugin {
                         material: default_material.clone(),
                         ..default()
                     })
+                    .insert(collider)
                     .insert(Name::new("HEX"))
                     .insert(BaseHex)
                     .insert(Building(BuildingType::None))
