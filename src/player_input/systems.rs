@@ -1,7 +1,7 @@
 use bevy::input::mouse::{self, MouseWheel};
 use bevy::prelude::*;
 use bevy::render::camera;
-use bevy::window::PrimaryWindow;
+use bevy::window::{CursorGrabMode, PrimaryWindow};
 
 use crate::camera::components::{CameraTarget, GameCamera};
 use crate::player::components::Player;
@@ -145,5 +145,25 @@ pub fn player_deposit_control(
     // If player pressed space and they're in depositing range
     if kb.just_pressed(KeyCode::Space) && can_deposit.0 {
        deposit_events.send(DepositInventoryEvent);
+    }
+}
+
+// This system grabs the mouse when the left mouse button is pressed
+// and releases it when the escape key is pressed
+pub fn grab_mouse(
+    mut windows: Query<&mut Window>,
+    mouse: Res<Input<MouseButton>>,
+    key: Res<Input<KeyCode>>,
+) {
+    let mut window = windows.single_mut();
+
+    if mouse.just_pressed(MouseButton::Left) {
+        window.cursor.visible = false;
+        window.cursor.grab_mode = CursorGrabMode::Locked;
+    }
+
+    if key.just_pressed(KeyCode::Escape) {
+        window.cursor.visible = true;
+        window.cursor.grab_mode = CursorGrabMode::None;
     }
 }

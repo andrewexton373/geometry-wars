@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, transform};
 use bevy_prototype_lyon::prelude::*;
 
 use crate::player::components::Player;
@@ -18,12 +18,14 @@ pub fn spawn_crosshair(mut commands: Commands) {
                 path: GeometryBuilder::build_as(&line),
                 ..default()
             },
-            Fill::color(Color::rgba(1.0, 1.0, 1.0, 0.45)),
-            Stroke::new(Color::rgba(1.0, 1.0, 1.0, 0.1), 1.2),
+            Fill::color(Color::rgba(1.0, 1.0, 1.0, 1.0)),
+            Stroke::new(Color::rgba(1.0, 1.0, 1.0, 0.33), 1.2),
             Name::new("Crosshair"),
         ))
         .id();
 }
+
+
 
 pub fn draw_crosshair(
     mouse_position: Res<MouseWorldPosition>,
@@ -39,4 +41,46 @@ pub fn draw_crosshair(
         let line = shapes::Line(player_trans.translation.truncate(), world_pos);
         *path = ShapePath::build_as(&line);
     }
+}
+
+#[derive(Component)]
+pub struct MousePointer;
+
+const POINTER_SIZE: f32 = 10.0;
+
+pub fn spawn_pointer(mut commands: Commands) {
+    let N = shapes::Line(Vec2::ZERO, Vec2 {x: 0.0, y: POINTER_SIZE});
+    let S = shapes::Line(Vec2::ZERO, Vec2 {x: 0.0, y: -POINTER_SIZE});
+    let E = shapes::Line(Vec2::ZERO, Vec2 {x: POINTER_SIZE, y: 0.0});
+    let W = shapes::Line(Vec2::ZERO, Vec2 {x: -POINTER_SIZE, y: 0.0});
+    
+    let geometry = GeometryBuilder::new()
+        .add(&N)
+        .add(&S)
+        .add(&E)
+        .add(&W);
+
+    let _pointer = commands
+        .spawn((
+            MousePointer {},
+            ShapeBundle {
+                path: geometry.build(),
+                ..default()
+            },
+            Fill::color(Color::rgba(1.0, 1.0, 1.0, 0.45)),
+            Stroke::new(Color::rgba(1.0, 1.0, 1.0, 1.0), 1.5),
+            Name::new("MousePointer"),
+        ))
+        .id();
+}
+
+pub fn update_pointer(
+    mouse_position: Res<MouseWorldPosition>,
+    mut pointer_query: Query<&mut Transform, With<MousePointer>>,
+) {
+    let world_pos = mouse_position.0;
+    let mut transform = pointer_query.single_mut();
+
+    transform.translation.x = world_pos.x;
+    transform.translation.y = world_pos.y;
 }

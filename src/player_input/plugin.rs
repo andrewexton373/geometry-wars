@@ -10,7 +10,7 @@ use super::resources::{
 use super::events::{DepositInventoryEvent, EnginePowerEvent};
 
 use super::systems::{
-    cancel_player_targeting, player_camera_control, player_deposit_control, player_targeting, scroll_events, update_mouse_screen_position_resource, update_mouse_world_position_resource
+    cancel_player_targeting, grab_mouse, player_camera_control, player_deposit_control, player_targeting, scroll_events, update_mouse_screen_position_resource, update_mouse_world_position_resource
 };
 
 pub struct PlayerInputPlugin;
@@ -25,6 +25,7 @@ impl Plugin for PlayerInputPlugin {
             .add_systems(
                 PreUpdate,
                 (
+                    grab_mouse,
                     update_mouse_world_position_resource,
                     update_mouse_screen_position_resource,
                     scroll_events,
