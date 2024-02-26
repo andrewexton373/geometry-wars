@@ -256,6 +256,9 @@ impl Asteroid {
     }
 }
 
+
+
+
 #[derive(Component, Reflect, Default, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd)]
 pub enum AsteroidMaterial {
     #[default]

@@ -25,16 +25,16 @@ use crate::{
 
 use super::{
     components::{Asteroid, AsteroidComposition, AsteroidMaterial, AsteroidSize, Splittable},
-    events::AblateEvent,
+    events::{AblateEvent, SpawnAsteroidEvent, SplitAsteroidEvent},
     plugin::LASER_DAMAGE,
-    resources::AsteroidSpawner,
-    resources::InventoryFullNotificationTimer,
+    resources::{AsteroidSpawner, InventoryFullNotificationTimer},
 };
 
 // System to spawn asteroids at some distance away from the ship in random directions,
 // each asteroid with an initial velocity aimed towards the players ship
 pub fn spawn_asteroids_aimed_at_ship(
     mut commands: Commands,
+    mut spawn_asteroid_events: EventWriter<SpawnAsteroidEvent>,
     player_query: Query<(&Player, &GlobalTransform)>,
     base_station_query: Query<(&SpaceStation, &GlobalTransform)>,
     mut asteroid_spawner: ResMut<AsteroidSpawner>,
@@ -63,15 +63,13 @@ pub fn spawn_asteroids_aimed_at_ship(
 
         let random_spawn_position =
             player_position + (rand_direction * SPAWN_DISTANCE * crate::PIXELS_PER_METER);
-        let direction_to_player = (player_position - random_spawn_position).normalize() * 20.0; // maybe?
+        let direction_to_player = (player_position - random_spawn_position).normalize() * 200.0; // maybe?
 
-        Asteroid::spawn_asteroid(
-            &mut commands,
-            AsteroidSize::Large,
-            AsteroidComposition::new_with_distance(distance_to_base_station),
-            direction_to_player * crate::PIXELS_PER_METER,
-            random_spawn_position,
-        );
+        let asteroid = Asteroid::new_with(AsteroidSize::Large, AsteroidComposition::new_with_distance(distance_to_base_station));
+        let asteroid_transform = Transform::from_translation(random_spawn_position.extend(0.0));
+        let asteroid_linear_velocity = LinearVelocity(direction_to_player);
+
+        spawn_asteroid_events.send(SpawnAsteroidEvent(asteroid, asteroid_transform, asteroid_linear_velocity));
     }
 }
 
@@ -216,6 +214,7 @@ pub fn ablate_asteroids(
     asset_server: Res<AssetServer>,
     mut asteroids_query: Query<(Entity, &mut Asteroid, &GlobalTransform), With<Asteroid>>,
     mut ablate_event_reader: EventReader<AblateEvent>,
+    mut spawn_asteroid_events: EventWriter<SpawnAsteroidEvent>
 ) {
     let font = asset_server.load("fonts/FiraMono-Regular.ttf");
 
@@ -285,27 +284,12 @@ pub fn ablate_asteroids(
                 AsteroidComposition::new_with_distance(100.0),
             );
 
-            let asteroid_ent = commands
-                .spawn((
-                    asteroid.clone(),
-                    ShapeBundle {
-                        path: GeometryBuilder::build_as(&asteroid.polygon()),
-                        spatial: Transform::from_xyz(ablate_event.1.x, ablate_event.1.y, 0.0)
-                            .into(),
-                        ..default()
-                    },
-                    Fill::color(Color::DARK_GRAY),
-                    RigidBody::Dynamic,
-                    LinearVelocity(ablate_event.2),
-                    Collider::convex_hull(asteroid.polygon().points).unwrap(),
-                    Name::new("Asteroid"),
-                ))
-                .id();
+            spawn_asteroid_events.send(SpawnAsteroidEvent(
+                asteroid.clone(),
+                Transform::from_translation(ablate_event.1.extend(0.0)),
+                LinearVelocity(ablate_event.2))
+            );
 
-            // If the asteroid is an ore chunk, add Collectible Tag
-            if asteroid.clone().size == AsteroidSize::OreChunk {
-                commands.entity(asteroid_ent).insert(Collectible);
-            }
         }
     }
 }
@@ -313,90 +297,125 @@ pub fn ablate_asteroids(
 pub fn split_asteroids_over_split_ratio(
     mut commands: Commands,
     mut asteroid_query: Query<(Entity, &mut Asteroid, &GlobalTransform, &Splittable)>,
+    mut split_astroid_events: EventWriter<SplitAsteroidEvent>
 ) {
     for (ent, asteroid, g_t, split) in asteroid_query.iter_mut() {
         if asteroid.health.current_percent() < split.0 {
-            split_asteroid(&mut commands, ent, &asteroid, g_t.translation().truncate());
+            split_astroid_events.send(SplitAsteroidEvent(ent));
+            // split_asteroid(&mut commands, ent, &asteroid, g_t.translation().truncate());
         }
     }
 }
 
-pub fn split_asteroid(
-    commands: &mut Commands,
-    asteroid_ent: Entity,
-    asteroid: &Asteroid,
-    asteroid_translation: Vec2,
+
+
+pub fn split_asteroid_events(
+    mut commands: Commands,
+    mut asteroid_q: Query<(&Asteroid, &Transform, &LinearVelocity)>,
+    mut split_astroid_events: EventReader<SplitAsteroidEvent>,
+    mut spawn_asteroid_events: EventWriter<SpawnAsteroidEvent>,
     // projectile_velocity: &LinearVelocity,
 ) {
-    // let mut rng = rand::thread_rng();
-    // let split_angle = rng.gen_range(0.0..PI / 4.0);
+    for evt in split_astroid_events.read() {
+        let asteroid_ent = evt.0;
+        if let Some((asteroid, transform, linear_velocity)) = asteroid_q.get_mut(asteroid_ent).ok() {
+            let right_velocity = Vec2::ZERO;
+        let left_velocity = Vec2::ZERO;
 
-    // let right_velocity = projectile_velocity
-    //     .linvel
-    //     .rotate(Vec2::from_angle(split_angle))
-    //     * 0.5;
-    // let left_velocity = projectile_velocity
-    //     .linvel
-    //     .rotate(Vec2::from_angle(-split_angle))
-    //     * 0.5;
-    let right_velocity = Vec2::ZERO;
-    let left_velocity = Vec2::ZERO;
+        match &asteroid.size {
+            AsteroidSize::Small => {
 
-    match &asteroid.size {
-        AsteroidSize::Small => {
-            let left_comp = asteroid.composition.jitter();
-            let right_comp = asteroid.composition.jitter();
+                let left_asteroid = Asteroid::new_with(AsteroidSize::OreChunk, asteroid.composition.jitter());
+                let right_asteroid = Asteroid::new_with(AsteroidSize::OreChunk, asteroid.composition.jitter());
 
-            Asteroid::spawn_asteroid(
-                commands,
-                AsteroidSize::OreChunk,
-                right_comp,
-                right_velocity,
-                asteroid_translation,
-            );
-            Asteroid::spawn_asteroid(
-                commands,
-                AsteroidSize::OreChunk,
-                left_comp,
-                left_velocity,
-                asteroid_translation,
-            );
-            commands.entity(asteroid_ent).despawn_recursive();
+                spawn_asteroid_events.send(SpawnAsteroidEvent(
+                    left_asteroid,
+                    *transform,
+                    LinearVelocity::ZERO
+                ));
+
+                spawn_asteroid_events.send(SpawnAsteroidEvent(
+                    right_asteroid,
+                    *transform,
+                    LinearVelocity::ZERO
+                ));
+
+            }
+            AsteroidSize::Medium => {
+                let left_asteroid = Asteroid::new_with(AsteroidSize::Small, asteroid.composition.jitter());
+                let right_asteroid = Asteroid::new_with(AsteroidSize::Small, asteroid.composition.jitter());
+
+                spawn_asteroid_events.send(SpawnAsteroidEvent(
+                    left_asteroid,
+                    *transform,
+                    LinearVelocity::ZERO
+                ));
+
+                spawn_asteroid_events.send(SpawnAsteroidEvent(
+                    right_asteroid,
+                    *transform,
+                    LinearVelocity::ZERO
+                ));
+            }
+            AsteroidSize::Large => {
+                let left_asteroid = Asteroid::new_with(AsteroidSize::Medium, asteroid.composition.jitter());
+                let right_asteroid = Asteroid::new_with(AsteroidSize::Medium, asteroid.composition.jitter());
+
+                spawn_asteroid_events.send(SpawnAsteroidEvent(
+                    left_asteroid,
+                    *transform,
+                    LinearVelocity::ZERO
+                ));
+
+                spawn_asteroid_events.send(SpawnAsteroidEvent(
+                    right_asteroid,
+                    *transform,
+                    LinearVelocity::ZERO
+                ));
+            }
+            _ => {}
         }
-        AsteroidSize::Medium => {
-            Asteroid::spawn_asteroid(
-                commands,
-                AsteroidSize::Small,
-                asteroid.composition.jitter(),
-                right_velocity,
-                asteroid_translation,
-            );
-            Asteroid::spawn_asteroid(
-                commands,
-                AsteroidSize::Small,
-                asteroid.composition.jitter(),
-                left_velocity,
-                asteroid_translation,
-            );
-            commands.entity(asteroid_ent).despawn_recursive();
+        commands.entity(asteroid_ent).despawn_recursive();
         }
-        AsteroidSize::Large => {
-            Asteroid::spawn_asteroid(
-                commands,
-                AsteroidSize::Medium,
-                asteroid.composition.jitter(),
-                right_velocity,
-                asteroid_translation,
-            );
-            Asteroid::spawn_asteroid(
-                commands,
-                AsteroidSize::Medium,
-                asteroid.composition.jitter(),
-                left_velocity,
-                asteroid_translation,
-            );
-            commands.entity(asteroid_ent).despawn_recursive();
+    }
+
+}
+
+
+pub fn spawn_asteroid_events(
+    mut commands: Commands,
+    mut spawn_asteroid_events: EventReader<SpawnAsteroidEvent>
+) {
+    for evt in spawn_asteroid_events.read() {
+
+        let asteroid = evt.0.clone();
+        let transform = evt.1;
+        let linear_velocity = evt.2;
+
+        let mut rng = rand::thread_rng();
+        let splittable = Splittable(rng.gen_range(0.4..0.8));
+
+        let asteroid_ent = commands
+            .spawn(asteroid.clone())
+            .insert((
+                RigidBody::Dynamic,
+                Collider::convex_hull(asteroid.polygon().points).unwrap(),
+                linear_velocity,
+                splittable,
+                Name::new("Asteroid"),
+                ShapeBundle {
+                    path: GeometryBuilder::build_as(&asteroid.polygon()),
+                    spatial: SpatialBundle::from_transform(transform),
+                    ..default()
+                },
+                Fill::color(Color::DARK_GRAY),
+            ))
+            .id();
+
+        // If the asteroid is an ore chunk, add Collectible Tag
+        if asteroid.clone().size == AsteroidSize::OreChunk {
+            commands.entity(asteroid_ent).insert(Collectible);
         }
-        _ => {}
+
     }
 }
