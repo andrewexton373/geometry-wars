@@ -22,6 +22,13 @@ pub fn setup_laser(mut commands: Commands, mut laser_query: Query<&mut Laser>) {
         commands.spawn(Laser).insert((
             ShapeBundle {
                 path: GeometryBuilder::build_as(&line),
+                spatial: SpatialBundle {
+                    transform: Transform {
+                        translation: Vec3 { x: 0.0, y: 0.0, z: 1.0 },
+                        ..default()
+                    },
+                    ..default()
+                },
                 ..default()
             },
             Stroke::new(Color::rgba(1.0, 0.0, 0.0, 0.9), 5.0),

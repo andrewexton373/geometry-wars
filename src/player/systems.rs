@@ -58,6 +58,13 @@ pub fn spawn_player(mut commands: Commands) {
         .insert((
             ShapeBundle {
                 path: GeometryBuilder::build_as(&player_poly),
+                spatial: SpatialBundle {
+                    transform: Transform {
+                        translation: Vec3 { x: 0.0, y: 0.0, z: 2.0 },
+                        ..default()
+                    },
+                    ..default()
+                },
                 ..default()
             },
             Fill::color(Color::WHITE),
