@@ -1,9 +1,8 @@
-use bevy::app::{Plugin, App, Startup, Update};
+use bevy::app::{App, Plugin, Startup, Update};
 
 use super::systems::{
-    setup_projectile_impact_particle_system,
+    setup_player_ship_trail_particle_system, setup_projectile_impact_particle_system,
     setup_ship_asteroid_impact_particle_system,
-    setup_player_ship_trail_particle_system
 };
 
 pub struct ParticlePlugin;

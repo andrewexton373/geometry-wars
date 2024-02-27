@@ -7,9 +7,10 @@ use bevy_egui::{
 use super::resources::ContextClues;
 
 pub fn ui_context_clue(mut ctx: EguiContexts, context_clues_res: Res<ContextClues>) {
-
     let cc = &context_clues_res.0;
-    if cc.is_empty() { return };
+    if cc.is_empty() {
+        return;
+    };
 
     Window::new("Context Clue")
         .title_bar(false)

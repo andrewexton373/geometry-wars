@@ -1,4 +1,7 @@
-use std::{fmt, ops::{AddAssign, SubAssign}};
+use std::{
+    fmt,
+    ops::{AddAssign, SubAssign},
+};
 
 use ordered_float::OrderedFloat;
 

@@ -1,7 +1,7 @@
 use crate::asteroid::components::AsteroidMaterial;
 use crate::items::{Amount, MetalIngot};
 use crate::upgrades::components::UpgradeComponent;
- use bevy::prelude::*;
+use bevy::prelude::*;
 use ordered_float::OrderedFloat;
 use std::fmt;
 use std::ops::{AddAssign, SubAssign};
@@ -16,8 +16,6 @@ pub struct Inventory {
     pub items: Vec<InventoryItem>,
     pub capacity: Capacity,
 }
-
-
 
 #[derive(Clone, PartialEq, Hash)]
 
@@ -95,7 +93,9 @@ impl Inventory {
 
             match item {
                 InventoryItem::Component(needed_comp, amount) => {
-                    if let Some(inventory_comp) = self.items.iter().find(|item| matches!(item, InventoryItem::Component(c, _) if c == needed_comp)) {
+                    if let Some(inventory_comp) = self.items.iter().find(
+                        |item| matches!(item, InventoryItem::Component(c, _) if c == needed_comp),
+                    ) {
                         if inventory_comp.amount() < *amount {
                             return false;
                         }
@@ -104,7 +104,9 @@ impl Inventory {
                     }
                 }
                 InventoryItem::Ingot(needed_ingot, amount) => {
-                    if let Some(inventory_ingot) = self.items.iter().find(|item| matches!(item, InventoryItem::Ingot(i, _) if i == needed_ingot)) {
+                    if let Some(inventory_ingot) = self.items.iter().find(
+                        |item| matches!(item, InventoryItem::Ingot(i, _) if i == needed_ingot),
+                    ) {
                         if inventory_ingot.amount() < *amount {
                             return false;
                         }
@@ -113,7 +115,9 @@ impl Inventory {
                     }
                 }
                 InventoryItem::Material(needed_mat, amount) => {
-                    if let Some(inventory_mat) = self.items.iter().find(|item| matches!(item, InventoryItem::Material(m, _) if m == needed_mat)) {
+                    if let Some(inventory_mat) = self.items.iter().find(
+                        |item| matches!(item, InventoryItem::Material(m, _) if m == needed_mat),
+                    ) {
                         if inventory_mat.amount() < *amount {
                             return false;
                         }
@@ -129,16 +133,12 @@ impl Inventory {
 
     pub fn has_capacity_for(&self, item: &InventoryItem) -> bool {
         match item.amount() {
-            Amount::Weight(w) => {
-                self.remaining_capacity() >= w
-            }
+            Amount::Weight(w) => self.remaining_capacity() >= w,
             Amount::Quantity(_) => {
                 // TODO: calculate weight with quantity * item_weight
                 true
             }
-            Amount::None => {
-                true
-            }
+            Amount::None => true,
         }
     }
 

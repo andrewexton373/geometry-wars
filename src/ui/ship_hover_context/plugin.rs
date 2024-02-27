@@ -6,7 +6,6 @@ pub struct ShipHoverContext;
 
 impl Plugin for ShipHoverContext {
     fn build(&self, app: &mut App) {
-        app
-            .add_systems(Update, ui_ship_hover_context);
+        app.add_systems(Update, ui_ship_hover_context);
     }
 }

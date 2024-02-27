@@ -1,12 +1,19 @@
-use bevy::{core::Name, core_pipeline::core_2d::Camera2dBundle, ecs::{query::{With, Without}, system::{Commands, Query}}, render::camera::Camera, transform::components::Transform};
+use bevy::{
+    core::Name,
+    core_pipeline::core_2d::Camera2dBundle,
+    ecs::{
+        query::{With, Without},
+        system::{Commands, Query},
+    },
+    render::camera::Camera,
+    transform::components::Transform,
+};
 
 use crate::player::components::Player;
 
 use super::components::{CameraTarget, GameCamera};
 
-pub fn setup_camera(
-    mut commands: Commands,
-) {
+pub fn setup_camera(mut commands: Commands) {
     commands.spawn((
         GameCamera,
         Camera2dBundle::default(),

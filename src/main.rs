@@ -1,5 +1,6 @@
 pub(crate) mod asteroid;
 pub(crate) mod battery;
+pub(crate) mod camera;
 pub(crate) mod collectible;
 pub(crate) mod crosshair;
 pub(crate) mod engine;
@@ -9,6 +10,7 @@ pub(crate) mod health;
 pub(crate) mod hexbase;
 pub(crate) mod inventory;
 pub(crate) mod item_producer;
+pub(crate) mod items;
 pub(crate) mod laser;
 pub(crate) mod particles;
 pub(crate) mod player;
@@ -19,8 +21,6 @@ pub(crate) mod refinery;
 pub(crate) mod space_station;
 pub(crate) mod ui;
 pub(crate) mod upgrades;
-pub(crate) mod items;
-pub(crate) mod camera;
 
 // #![feature(array_methods)]
 
@@ -28,7 +28,8 @@ use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
 
 use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
-    prelude::*, render::camera::CameraPlugin,
+    prelude::*,
+    render::camera::CameraPlugin,
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_particle_systems::ParticleSystemPlugin;
@@ -109,12 +110,11 @@ fn main() {
             GameUIPlugin,
             ParticlePlugin,
             HexBasePlugin,
-            GameCameraPlugin
+            GameCameraPlugin,
         ))
         .insert_resource(Gravity::ZERO)
         .run();
 }
-
 
 fn screen_print_debug_text(diagnostics: Res<DiagnosticsStore>) {
     if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {

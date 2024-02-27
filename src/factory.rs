@@ -14,8 +14,6 @@ use crate::{
 
 use crate::inventory::components::{Inventory, InventoryItem};
 
-
-
 #[derive(Resource)]
 
 pub struct FactoryTimer(pub Option<Timer>);

@@ -4,11 +4,8 @@ use bevy_particle_systems::*;
 use crate::player::components::Player;
 
 use super::components::{
-    LaserImpactParticleSystem,
-    ShipDamageParticleSystem,
-    PlayerShipTrailParticles
+    LaserImpactParticleSystem, PlayerShipTrailParticles, ShipDamageParticleSystem,
 };
-
 
 pub fn setup_projectile_impact_particle_system(
     mut commands: Commands,

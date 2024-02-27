@@ -4,11 +4,13 @@ use bevy::prelude::*;
 use ordered_float::OrderedFloat;
 
 use crate::{
-    asteroid::components::AsteroidMaterial, inventory::components::{Inventory, InventoryItem}, item_producer::ItemProducer, items::{Amount, MetalIngot}, recipe::Recipe, space_station::components::SpaceStation
+    asteroid::components::AsteroidMaterial,
+    inventory::components::{Inventory, InventoryItem},
+    item_producer::ItemProducer,
+    items::{Amount, MetalIngot},
+    recipe::Recipe,
+    space_station::components::SpaceStation,
 };
-
-
-
 
 #[derive(Resource)]
 pub struct RefineryTimer(pub Option<Timer>);

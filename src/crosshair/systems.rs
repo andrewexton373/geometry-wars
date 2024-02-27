@@ -18,7 +18,11 @@ pub fn spawn_crosshair(mut commands: Commands) {
                 path: GeometryBuilder::build_as(&line),
                 spatial: SpatialBundle {
                     transform: Transform {
-                        translation: Vec3 { x: 0.0, y: 0.0, z: 1.0 },
+                        translation: Vec3 {
+                            x: 0.0,
+                            y: 0.0,
+                            z: 1.0,
+                        },
                         ..default()
                     },
                     ..default()
@@ -31,8 +35,6 @@ pub fn spawn_crosshair(mut commands: Commands) {
         ))
         .id();
 }
-
-
 
 pub fn draw_crosshair(
     mouse_position: Res<MouseWorldPosition>,
@@ -56,16 +58,36 @@ pub struct MousePointer;
 const POINTER_SIZE: f32 = 10.0;
 
 pub fn spawn_pointer(mut commands: Commands) {
-    let N = shapes::Line(Vec2::ZERO, Vec2 {x: 0.0, y: POINTER_SIZE});
-    let S = shapes::Line(Vec2::ZERO, Vec2 {x: 0.0, y: -POINTER_SIZE});
-    let E = shapes::Line(Vec2::ZERO, Vec2 {x: POINTER_SIZE, y: 0.0});
-    let W = shapes::Line(Vec2::ZERO, Vec2 {x: -POINTER_SIZE, y: 0.0});
-    
-    let geometry = GeometryBuilder::new()
-        .add(&N)
-        .add(&S)
-        .add(&E)
-        .add(&W);
+    let N = shapes::Line(
+        Vec2::ZERO,
+        Vec2 {
+            x: 0.0,
+            y: POINTER_SIZE,
+        },
+    );
+    let S = shapes::Line(
+        Vec2::ZERO,
+        Vec2 {
+            x: 0.0,
+            y: -POINTER_SIZE,
+        },
+    );
+    let E = shapes::Line(
+        Vec2::ZERO,
+        Vec2 {
+            x: POINTER_SIZE,
+            y: 0.0,
+        },
+    );
+    let W = shapes::Line(
+        Vec2::ZERO,
+        Vec2 {
+            x: -POINTER_SIZE,
+            y: 0.0,
+        },
+    );
+
+    let geometry = GeometryBuilder::new().add(&N).add(&S).add(&E).add(&W);
 
     let _pointer = commands
         .spawn((
@@ -74,7 +96,11 @@ pub fn spawn_pointer(mut commands: Commands) {
                 path: geometry.build(),
                 spatial: SpatialBundle {
                     transform: Transform {
-                        translation: Vec3 { x: 0.0, y: 0.0, z: 1.0 },
+                        translation: Vec3 {
+                            x: 0.0,
+                            y: 0.0,
+                            z: 1.0,
+                        },
                         ..default()
                     },
                     ..default()

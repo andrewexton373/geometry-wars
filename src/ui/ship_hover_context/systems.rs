@@ -1,7 +1,18 @@
 use bevy::prelude::*;
-use bevy_egui::{egui::{Align2, Window}, EguiContexts};
+use bevy_egui::{
+    egui::{Align2, Window},
+    EguiContexts,
+};
 
-use crate::{events::{BuildHexBuildingEvent, CraftEvent}, factory::Factory, hexbase::{BuildingType, PlayerHoveringBuilding}, inventory::components::Inventory, refinery::{Refinery, SmeltEvent}, space_station::components::SpaceStation, ui::helpers::progress_string};
+use crate::{
+    events::{BuildHexBuildingEvent, CraftEvent},
+    factory::Factory,
+    hexbase::{BuildingType, PlayerHoveringBuilding},
+    inventory::components::Inventory,
+    refinery::{Refinery, SmeltEvent},
+    space_station::components::SpaceStation,
+    ui::helpers::progress_string,
+};
 
 pub fn ui_ship_hover_context(
     // mut egui_ctx: Query<&mut EguiContext, With<PrimaryWindow>>,
@@ -16,7 +27,6 @@ pub fn ui_ship_hover_context(
     // mut upgrade_events: EventWriter<UpgradeEvent>,
     mut build_event: EventWriter<BuildHexBuildingEvent>,
 ) {
-
     //If player is not hovering over a building
     if !player_hovering_building.0.is_some() {
         return;
@@ -24,7 +34,8 @@ pub fn ui_ship_hover_context(
 
     let building = &player_hovering_building.0.as_ref().unwrap().1;
 
-    Window::new("Ship Hovering Context").anchor(
+    Window::new("Ship Hovering Context")
+        .anchor(
             Align2::RIGHT_BOTTOM,
             bevy_inspector_egui::egui::Vec2 { x: 0.0, y: 0.0 },
         )
@@ -90,9 +101,7 @@ pub fn ui_ship_hover_context(
                                                 "Requires: {:?}",
                                                 recipe.items_required
                                             ));
-                                            if inventory
-                                                .has_items(recipe.items_required.clone())
-                                            {
+                                            if inventory.has_items(recipe.items_required.clone()) {
                                                 ui.label("👍");
                                             }
                                         });
@@ -147,9 +156,7 @@ pub fn ui_ship_hover_context(
                                                 "Requires: {:?}",
                                                 recipe.items_required
                                             ));
-                                            if inventory
-                                                .has_items(recipe.items_required.clone())
-                                            {
+                                            if inventory.has_items(recipe.items_required.clone()) {
                                                 ui.label("👍");
                                             }
                                         });

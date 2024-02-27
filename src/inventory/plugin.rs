@@ -6,7 +6,6 @@ pub struct InventoryPlugin;
 
 impl Plugin for InventoryPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_systems(Update, (deposit_inventory));
+        app.add_systems(Update, (deposit_inventory));
     }
 }

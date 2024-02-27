@@ -6,7 +6,6 @@ pub struct SpaceStationMenu;
 
 impl Plugin for SpaceStationMenu {
     fn build(&self, app: &mut App) {
-        app
-            .add_systems(Update, ui_space_station_menu);
+        app.add_systems(Update, ui_space_station_menu);
     }
 }

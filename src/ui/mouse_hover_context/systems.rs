@@ -1,6 +1,10 @@
 use bevy::{
     core::Name,
-    ecs::{entity::Entity, query::With, system::{Query, Res, ResMut}},
+    ecs::{
+        entity::Entity,
+        query::With,
+        system::{Query, Res, ResMut},
+    },
     render::camera::Camera,
     transform::components::GlobalTransform,
 };
@@ -10,7 +14,11 @@ use bevy_egui::{
 };
 use bevy_xpbd_2d::plugins::spatial_query::{SpatialQuery, SpatialQueryFilter};
 
-use crate::{asteroid::components::Asteroid, player_input::resources::{MouseScreenPosition, MouseWorldPosition}, ui::{helpers::progress_string, ship_hover_context::plugin::ShipHoverContext}};
+use crate::{
+    asteroid::components::Asteroid,
+    player_input::resources::{MouseScreenPosition, MouseWorldPosition},
+    ui::{helpers::progress_string, ship_hover_context::plugin::ShipHoverContext},
+};
 
 use super::resources::MouseHoverContext;
 
@@ -19,7 +27,7 @@ pub fn update_mouse_hover_context_resource(
     mouse_world_position: Res<MouseWorldPosition>,
     ent_query: Query<(Entity, &Name, Option<&Asteroid>)>,
     spatial_q: SpatialQuery,
-) { 
+) {
     // Raycast Mouse Position Into Viewport
     if let Some(ray_hit) = spatial_q.cast_ray(
         mouse_world_position.0,
@@ -45,10 +53,9 @@ pub fn ui_mouse_hover_context(
     ent_query: Query<(Entity, &Name, Option<&Asteroid>)>,
 ) {
     if let Some(hover_context_ent) = mouse_hover_context.0 {
-
         let screen_pos = Pos2 {
             x: mouse_screen_position.0.x,
-            y: mouse_screen_position.0.y
+            y: mouse_screen_position.0.y,
         };
 
         Window::new("Mouse Context")
@@ -56,7 +63,6 @@ pub fn ui_mouse_hover_context(
             .title_bar(false)
             .resizable(false)
             .show(ctx.ctx_mut(), |ui| {
-
                 if let Ok((_ent, name, asteroid)) = ent_query.get(hover_context_ent) {
                     ui.group(|ui| {
                         ui.heading(format!("{}", name));
@@ -75,6 +81,5 @@ pub fn ui_mouse_hover_context(
                     });
                 };
             });
-
     }
 }

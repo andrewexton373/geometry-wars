@@ -1,11 +1,13 @@
-use crate::{inventory::components::{Inventory, InventoryItem}, items::Amount, player::components::Player, ui::damage_indicator::events::DamageIndicatorEvent};
+use crate::{
+    inventory::components::{Inventory, InventoryItem},
+    items::Amount,
+    player::components::Player,
+    ui::damage_indicator::events::DamageIndicatorEvent,
+};
 use bevy::prelude::*;
 use bevy_particle_systems::Playing;
 use bevy_prototype_lyon::{
     draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, prelude::FillOptions,
-};
-use bevy_tweening::{
-    lens::TextColorLens, Animator, EaseFunction, RepeatCount, Tween, TweenCompleted,
 };
 use bevy_xpbd_2d::{
     components::{Collider, LinearVelocity, Mass, RigidBody},
@@ -65,11 +67,18 @@ pub fn spawn_asteroids_aimed_at_ship(
             player_position + (rand_direction * SPAWN_DISTANCE * crate::PIXELS_PER_METER);
         let direction_to_player = (player_position - random_spawn_position).normalize() * 200.0; // maybe?
 
-        let asteroid = Asteroid::new_with(AsteroidSize::Large, AsteroidComposition::new_with_distance(distance_to_base_station));
+        let asteroid = Asteroid::new_with(
+            AsteroidSize::Large,
+            AsteroidComposition::new_with_distance(distance_to_base_station),
+        );
         let asteroid_transform = Transform::from_translation(random_spawn_position.extend(0.0));
         let asteroid_linear_velocity = LinearVelocity(direction_to_player);
 
-        spawn_asteroid_events.send(SpawnAsteroidEvent(asteroid, asteroid_transform, asteroid_linear_velocity));
+        spawn_asteroid_events.send(SpawnAsteroidEvent(
+            asteroid,
+            asteroid_transform,
+            asteroid_linear_velocity,
+        ));
     }
 }
 
@@ -198,27 +207,13 @@ pub fn display_inventory_full_context_clue(
     }
 }
 
-pub fn remove_post_animation_text(
-    mut commands: Commands,
-    mut tween_completed: EventReader<TweenCompleted>,
-) {
-    for evt in tween_completed.read() {
-        if evt.user_data == 111 {
-            commands.entity(evt.entity).despawn_recursive();
-        }
-    }
-}
-
-
-
 pub fn ablate_asteroids(
     mut commands: Commands,
     mut asteroids_query: Query<(Entity, &mut Asteroid, &GlobalTransform), With<Asteroid>>,
     mut ablate_event_reader: EventReader<AblateEvent>,
     mut spawn_asteroid_events: EventWriter<SpawnAsteroidEvent>,
-    mut damage_indicator_events: EventWriter<DamageIndicatorEvent>
+    mut damage_indicator_events: EventWriter<DamageIndicatorEvent>,
 ) {
-
     for ablate_event in ablate_event_reader.read() {
         let mut rng = rand::thread_rng();
         // let split_angle = rng.gen_range(0.0..PI / 4.0); TODO: Might keep splititng asteroids
@@ -239,14 +234,13 @@ pub fn ablate_asteroids(
 
             // Send Damage Indicator Event
             let translation = Transform {
-                translation: (ablate_event.1 + ablate_event.2.normalize() * 100.0)
-                    .extend(999.0),
+                translation: (ablate_event.1 + ablate_event.2.normalize() * 100.0).extend(999.0),
                 ..default()
             };
 
             damage_indicator_events.send(DamageIndicatorEvent {
                 damage: 1.0,
-                traslation: translation
+                traslation: translation,
             });
 
             // TODO: The new comp distance shouldn't be constant it should update based on player distance from base
@@ -258,107 +252,103 @@ pub fn ablate_asteroids(
             spawn_asteroid_events.send(SpawnAsteroidEvent(
                 asteroid.clone(),
                 Transform::from_translation(ablate_event.1.extend(0.0)),
-                LinearVelocity(ablate_event.2))
-            );
-
+                LinearVelocity(ablate_event.2),
+            ));
         }
     }
 }
 
 pub fn split_asteroids_over_split_ratio(
-    mut commands: Commands,
-    mut asteroid_query: Query<(Entity, &mut Asteroid, &GlobalTransform, &Splittable)>,
-    mut split_astroid_events: EventWriter<SplitAsteroidEvent>
+    mut asteroid_query: Query<(Entity, &mut Asteroid, &Splittable)>,
+    mut split_astroid_events: EventWriter<SplitAsteroidEvent>,
 ) {
-    for (ent, asteroid, g_t, split) in asteroid_query.iter_mut() {
+    for (ent, asteroid, split) in asteroid_query.iter_mut() {
         if asteroid.health.current_percent() < split.0 {
             split_astroid_events.send(SplitAsteroidEvent(ent));
-            // split_asteroid(&mut commands, ent, &asteroid, g_t.translation().truncate());
         }
     }
 }
-
-
 
 pub fn split_asteroid_events(
     mut commands: Commands,
     mut asteroid_q: Query<(&Asteroid, &Transform, &LinearVelocity)>,
     mut split_astroid_events: EventReader<SplitAsteroidEvent>,
     mut spawn_asteroid_events: EventWriter<SpawnAsteroidEvent>,
-    // projectile_velocity: &LinearVelocity,
 ) {
     for evt in split_astroid_events.read() {
         let asteroid_ent = evt.0;
-        if let Some((asteroid, transform, linear_velocity)) = asteroid_q.get_mut(asteroid_ent).ok() {
+        if let Some((asteroid, transform, linear_velocity)) = asteroid_q.get_mut(asteroid_ent).ok()
+        {
             let right_velocity = Vec2::ZERO;
-        let left_velocity = Vec2::ZERO;
+            let left_velocity = Vec2::ZERO;
 
-        match &asteroid.size {
-            AsteroidSize::Small => {
+            match &asteroid.size {
+                AsteroidSize::Small => {
+                    let left_asteroid =
+                        Asteroid::new_with(AsteroidSize::OreChunk, asteroid.composition.jitter());
+                    let right_asteroid =
+                        Asteroid::new_with(AsteroidSize::OreChunk, asteroid.composition.jitter());
 
-                let left_asteroid = Asteroid::new_with(AsteroidSize::OreChunk, asteroid.composition.jitter());
-                let right_asteroid = Asteroid::new_with(AsteroidSize::OreChunk, asteroid.composition.jitter());
+                    spawn_asteroid_events.send(SpawnAsteroidEvent(
+                        left_asteroid,
+                        *transform,
+                        LinearVelocity::ZERO,
+                    ));
 
-                spawn_asteroid_events.send(SpawnAsteroidEvent(
-                    left_asteroid,
-                    *transform,
-                    LinearVelocity::ZERO
-                ));
+                    spawn_asteroid_events.send(SpawnAsteroidEvent(
+                        right_asteroid,
+                        *transform,
+                        LinearVelocity::ZERO,
+                    ));
+                }
+                AsteroidSize::Medium => {
+                    let left_asteroid =
+                        Asteroid::new_with(AsteroidSize::Small, asteroid.composition.jitter());
+                    let right_asteroid =
+                        Asteroid::new_with(AsteroidSize::Small, asteroid.composition.jitter());
 
-                spawn_asteroid_events.send(SpawnAsteroidEvent(
-                    right_asteroid,
-                    *transform,
-                    LinearVelocity::ZERO
-                ));
+                    spawn_asteroid_events.send(SpawnAsteroidEvent(
+                        left_asteroid,
+                        *transform,
+                        LinearVelocity::ZERO,
+                    ));
 
+                    spawn_asteroid_events.send(SpawnAsteroidEvent(
+                        right_asteroid,
+                        *transform,
+                        LinearVelocity::ZERO,
+                    ));
+                }
+                AsteroidSize::Large => {
+                    let left_asteroid =
+                        Asteroid::new_with(AsteroidSize::Medium, asteroid.composition.jitter());
+                    let right_asteroid =
+                        Asteroid::new_with(AsteroidSize::Medium, asteroid.composition.jitter());
+
+                    spawn_asteroid_events.send(SpawnAsteroidEvent(
+                        left_asteroid,
+                        *transform,
+                        LinearVelocity::ZERO,
+                    ));
+
+                    spawn_asteroid_events.send(SpawnAsteroidEvent(
+                        right_asteroid,
+                        *transform,
+                        LinearVelocity::ZERO,
+                    ));
+                }
+                _ => {}
             }
-            AsteroidSize::Medium => {
-                let left_asteroid = Asteroid::new_with(AsteroidSize::Small, asteroid.composition.jitter());
-                let right_asteroid = Asteroid::new_with(AsteroidSize::Small, asteroid.composition.jitter());
-
-                spawn_asteroid_events.send(SpawnAsteroidEvent(
-                    left_asteroid,
-                    *transform,
-                    LinearVelocity::ZERO
-                ));
-
-                spawn_asteroid_events.send(SpawnAsteroidEvent(
-                    right_asteroid,
-                    *transform,
-                    LinearVelocity::ZERO
-                ));
-            }
-            AsteroidSize::Large => {
-                let left_asteroid = Asteroid::new_with(AsteroidSize::Medium, asteroid.composition.jitter());
-                let right_asteroid = Asteroid::new_with(AsteroidSize::Medium, asteroid.composition.jitter());
-
-                spawn_asteroid_events.send(SpawnAsteroidEvent(
-                    left_asteroid,
-                    *transform,
-                    LinearVelocity::ZERO
-                ));
-
-                spawn_asteroid_events.send(SpawnAsteroidEvent(
-                    right_asteroid,
-                    *transform,
-                    LinearVelocity::ZERO
-                ));
-            }
-            _ => {}
-        }
-        commands.entity(asteroid_ent).despawn_recursive();
+            commands.entity(asteroid_ent).despawn_recursive();
         }
     }
-
 }
-
 
 pub fn spawn_asteroid_events(
     mut commands: Commands,
-    mut spawn_asteroid_events: EventReader<SpawnAsteroidEvent>
+    mut spawn_asteroid_events: EventReader<SpawnAsteroidEvent>,
 ) {
     for evt in spawn_asteroid_events.read() {
-
         let asteroid = evt.0.clone();
         let transform = evt.1;
         let linear_velocity = evt.2;
@@ -387,6 +377,5 @@ pub fn spawn_asteroid_events(
         if asteroid.clone().size == AsteroidSize::OreChunk {
             commands.entity(asteroid_ent).insert(Collectible);
         }
-
     }
 }

@@ -1,15 +1,27 @@
-use bevy::{asset::AssetServer, ecs::{event::EventReader, system::{Commands, Res}}, render::color::Color, text::{Text, Text2dBundle, TextStyle}, transform, utils::default};
-use bevy_tweening::{lens::TextColorLens, Animator, EaseFunction, RepeatCount, Tween};
+use bevy::{
+    asset::AssetServer,
+    ecs::{
+        event::EventReader,
+        system::{Commands, Res},
+    },
+    hierarchy::DespawnRecursiveExt,
+    render::color::Color,
+    text::{Text, Text2dBundle, TextStyle},
+    transform,
+    utils::default,
+};
+use bevy_tweening::{
+    lens::TextColorLens, Animator, EaseFunction, RepeatCount, Tween, TweenCompleted,
+};
 
 use super::events::DamageIndicatorEvent;
 
 pub fn damage_indicator_events(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut events: EventReader<DamageIndicatorEvent>
+    mut events: EventReader<DamageIndicatorEvent>,
 ) {
     for evt in events.read() {
-
         let font = asset_server.load("fonts/FiraMono-Regular.ttf");
 
         let damage_amount = evt.damage;
@@ -53,5 +65,16 @@ pub fn damage_indicator_events(
             },
             Animator::new(tween),
         ));
+    }
+}
+
+pub fn remove_post_animation_text(
+    mut commands: Commands,
+    mut tween_completed: EventReader<TweenCompleted>,
+) {
+    for evt in tween_completed.read() {
+        if evt.user_data == 111 {
+            commands.entity(evt.entity).despawn_recursive();
+        }
     }
 }

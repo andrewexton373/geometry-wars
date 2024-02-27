@@ -1,12 +1,10 @@
 use bevy::prelude::Component;
 use strum::IntoEnumIterator;
-use strum_macros::{FromRepr, EnumIter};
+use strum_macros::{EnumIter, FromRepr};
 
-
-use crate::inventory::components::{InventoryItem, Inventory};
+use crate::inventory::components::{Inventory, InventoryItem};
 use crate::items::Amount;
 use crate::player::components::Player;
-
 
 #[derive(Component, Default)]
 pub struct UpgradesComponent {
@@ -71,8 +69,6 @@ impl UpgradesComponent {
         println!("{:?}", self.upgrades);
     }
 }
-
-
 
 #[derive(Default, EnumIter, Clone, Copy, Debug, PartialEq)]
 pub enum UpgradeType {
@@ -160,9 +156,7 @@ impl UpgradeType {
 
     pub fn next(&self) -> Self {
         match self {
-            UpgradeType::None => {
-                *self
-            }
+            UpgradeType::None => *self,
             UpgradeType::Health(level) => {
                 if let Some(next_level) = level.next() {
                     UpgradeType::Health(next_level)
@@ -181,20 +175,15 @@ impl UpgradeType {
     }
 }
 
-
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct UpgradeRequirements {
     pub requirements: Vec<InventoryItem>,
 }
 
-
-
 pub trait Upgradeable {
     fn set_upgrade_level(&mut self, upgrade_level: UpgradeLevel);
     fn upgrade_effect(&self) -> f32;
 }
-
 
 #[derive(FromRepr, EnumIter, Debug, Clone, Copy, Default, PartialEq)]
 #[repr(u8)]

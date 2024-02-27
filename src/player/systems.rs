@@ -18,7 +18,7 @@ use crate::player_input::resources::MouseWorldPosition;
 use crate::space_station::components::SpaceStation;
 use crate::space_station::resources::CanDeposit;
 use crate::ui::context_clue::resources::{ContextClue, ContextClues};
-use crate::upgrades::{events::UpgradeEvent, components::UpgradesComponent};
+use crate::upgrades::{components::UpgradesComponent, events::UpgradeEvent};
 use crate::PIXELS_PER_METER;
 
 pub fn spawn_player(mut commands: Commands) {
@@ -60,7 +60,11 @@ pub fn spawn_player(mut commands: Commands) {
                 path: GeometryBuilder::build_as(&player_poly),
                 spatial: SpatialBundle {
                     transform: Transform {
-                        translation: Vec3 { x: 0.0, y: 0.0, z: 2.0 },
+                        translation: Vec3 {
+                            x: 0.0,
+                            y: 0.0,
+                            z: 2.0,
+                        },
                         ..default()
                     },
                     ..default()
@@ -196,8 +200,6 @@ pub fn player_fire_laser(
         player.drain_battery(1.0);
     }
 }
-
-
 
 pub fn display_empty_ship_inventory_context_clue(
     mut context_clues: ResMut<ContextClues>,

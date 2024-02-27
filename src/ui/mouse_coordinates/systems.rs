@@ -1,5 +1,8 @@
 use bevy::prelude::Res;
-use bevy_egui::{egui::{Align2, Vec2, Window}, EguiContexts};
+use bevy_egui::{
+    egui::{Align2, Vec2, Window},
+    EguiContexts,
+};
 
 use crate::player_input::resources::MouseScreenPosition;
 
@@ -18,6 +21,5 @@ pub fn ui_mouse_coordinates(
                     mouse_screen_position.0.x, mouse_screen_position.0.y
                 ));
             });
-
         });
 }

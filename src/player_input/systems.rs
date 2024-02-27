@@ -6,14 +6,11 @@ use bevy::window::{CursorGrabMode, PrimaryWindow};
 use crate::camera::components::{CameraTarget, GameCamera};
 use crate::player::components::Player;
 use crate::space_station::resources::CanDeposit;
-use crate::ui::{mouse_hover_context, ship_hover_context};
 use crate::ui::mouse_hover_context::resources::MouseHoverContext;
+use crate::ui::{mouse_hover_context, ship_hover_context};
 
 use super::events::{DepositInventoryEvent, EnginePowerEvent};
-use super::resources::{
-    MouseScreenPosition,
-    MouseWorldPosition
-};
+use super::resources::{MouseScreenPosition, MouseWorldPosition};
 
 pub fn update_mouse_world_position_resource(
     mut mouse_position: ResMut<MouseWorldPosition>,
@@ -51,13 +48,10 @@ pub fn player_targeting(
     mouse_hover_context: Res<MouseHoverContext>,
     mouse_events: Res<Input<MouseButton>>,
 ) {
-
     // If mouse right click
     if mouse_events.just_pressed(MouseButton::Right) {
-
         // If mouse hover context is valid,
         if let Some(hover_context_ent) = mouse_hover_context.0 {
-
             // Remove old CameraTarget Component
             for camera_target in camera_target_q.iter_mut() {
                 commands.entity(camera_target).remove::<CameraTarget>();
@@ -65,9 +59,7 @@ pub fn player_targeting(
 
             // Add CameraTarget to hover context entity
             commands.entity(hover_context_ent).insert(CameraTarget);
-
         }
-
     }
 }
 
@@ -75,12 +67,10 @@ pub fn cancel_player_targeting(
     mut commands: Commands,
     mut camera_target_q: Query<Entity, With<CameraTarget>>,
     mut player_q: Query<Entity, &Player>,
-    keyboard_events: Res<Input<KeyCode>>
+    keyboard_events: Res<Input<KeyCode>>,
 ) {
-
     // If player presses X
     if keyboard_events.just_pressed(KeyCode::X) {
-
         // Remove old CameraTarget Component
         for camera_target in camera_target_q.iter_mut() {
             commands.entity(camera_target).remove::<CameraTarget>();
@@ -90,8 +80,6 @@ pub fn cancel_player_targeting(
         let player_ent = player_q.get_single_mut().unwrap();
         commands.entity(player_ent).insert(CameraTarget);
     }
-
-    
 }
 
 pub fn scroll_events(
@@ -144,7 +132,7 @@ pub fn player_deposit_control(
 ) {
     // If player pressed space and they're in depositing range
     if kb.just_pressed(KeyCode::Space) && can_deposit.0 {
-       deposit_events.send(DepositInventoryEvent);
+        deposit_events.send(DepositInventoryEvent);
     }
 }
 
