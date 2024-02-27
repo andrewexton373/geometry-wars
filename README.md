@@ -19,6 +19,9 @@ D - Move Right
 
 Use the mouse pointer to aim projectiles
 LMB - Fire Laser in direction of ship
+RMB - Lock camera to Selected Target
+
+X - Lock camera to Player's Ship
 
 < - Zoom Out
 > - Zoom In
