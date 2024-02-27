@@ -7,6 +7,10 @@ use std::f32::consts::PI;
 use super::components::Player;
 use super::resources::EmptyInventoryDepositTimer;
 
+use crate::battery::{
+    components::Battery,
+    events::{ChargeBatteryEvent, DrainBatteryEvent},
+};
 use crate::camera::components::CameraTarget;
 use crate::collectible::components::Collectible;
 use crate::crosshair::components::Crosshair;
@@ -56,6 +60,7 @@ pub fn spawn_player(mut commands: Commands) {
             Friction::new(10.0),
             Collider::convex_hull(player_poly.points.clone()).unwrap(),
             Health::new(),
+            Battery::new(),
         ))
         .insert((
             ShapeBundle {
@@ -89,26 +94,32 @@ pub fn spawn_player(mut commands: Commands) {
     );
 }
 
-pub fn trickle_charge(mut player_query: Query<&mut Player>) {
-    let mut player = player_query.single_mut();
-    player.charge_battery(0.00001);
+pub fn trickle_charge(
+    mut battery_q: Query<(Entity, &Battery), With<Player>>,
+    mut battery_events: EventWriter<ChargeBatteryEvent>,
+) {
+    if let Ok((entity, battery)) = battery_q.get_single() {
+        battery_events.send(ChargeBatteryEvent {
+            entity,
+            charge: 0.01,
+        });
+    }
 }
 
 pub fn player_movement(
     keyboard_input: Res<Input<KeyCode>>,
-    mut player_query: Query<
-        (
-            &mut Player,
-            &mut Transform,
-            &mut LinearVelocity,
-            &mut ExternalForce,
-        ),
-        (With<Player>, Without<Crosshair>),
-    >,
+    mut player_query: Query<(
+        Entity,
+        &Player,
+        &Battery,
+        &mut Transform,
+        &mut ExternalForce,
+    )>,
+    mut battery_events: EventWriter<DrainBatteryEvent>,
 ) {
     const ACCELERATION: f32 = 120000.0 * PIXELS_PER_METER;
 
-    let (mut player, mut transform, mut velocity, mut ext_force) = player_query.single_mut();
+    let (entity, player, battery, mut transform, mut ext_force) = player_query.single_mut();
 
     let mut thrust = Vec2::ZERO;
 
@@ -131,19 +142,16 @@ pub fn player_movement(
     thrust *= player.engine.power_level;
 
     // If player has battery capacity remaining, apply controlled thrust.
-    if player.battery.current() > 0.0 {
+    if battery.current() > 0.0 {
         let force = thrust.normalize_or_zero() * ACCELERATION;
-        let energy_spent = force.length() / 500000.0; // TODO: magic number
+        let energy_spent = force.length() / 5000000.0; // TODO: magic number
 
-        player.drain_battery(energy_spent);
+        battery_events.send(DrainBatteryEvent {
+            entity,
+            drain: energy_spent,
+        });
 
         ext_force.set_force(force);
-
-        // TODO: Remove Playing Component from Respective Particle System
-
-        if force.length() > 0.0 {
-            // TODO: Add Playing Component to Respective Particle System
-        }
     }
 
     // velocity.angvel = 0.0; // Prevents spin on astrid impact
@@ -182,16 +190,24 @@ pub fn ship_rotate_towards_mouse(
 
 pub fn player_fire_laser(
     keyboard_input: Res<Input<MouseButton>>,
-    mut player_query: Query<(Entity, &mut Player, &mut Transform, &GlobalTransform)>,
+    mut player_query: Query<(
+        Entity,
+        &mut Player,
+        &Battery,
+        &mut Transform,
+        &GlobalTransform,
+    )>,
     mut laser_event_writer: EventWriter<LaserEvent>,
+    mut battery_events: EventWriter<DrainBatteryEvent>,
 ) {
-    let (_ent, mut player, player_transform, player_global_trans) = player_query.single_mut();
+    let (entity, mut player, battery, player_transform, player_global_trans) =
+        player_query.single_mut();
     let player_direction = (player_transform.rotation * Vec3::Y).truncate().normalize();
 
     // Update Line and Opacity When Fired
 
     if keyboard_input.pressed(MouseButton::Left) {
-        if player.battery.is_empty() {
+        if battery.is_empty() {
             return;
         }
 
@@ -199,7 +215,7 @@ pub fn player_fire_laser(
         let ray_dir = player_direction;
 
         laser_event_writer.send(LaserEvent(true, ray_pos, ray_dir));
-        player.drain_battery(1.0);
+        battery_events.send(DrainBatteryEvent { entity, drain: 1.0 });
     }
 }
 
@@ -234,10 +250,10 @@ pub fn update_player_mass(mut player_query: Query<(&Player, &Inventory, &mut Mas
 
 pub fn ship_battery_is_empty_context_clue(
     mut context_clues_res: ResMut<ContextClues>,
-    player_query: Query<&Player>,
+    mut battery_q: Query<&Battery, With<Player>>,
 ) {
-    for player in player_query.into_iter() {
-        if player.battery.is_empty() {
+    if let Ok(battery) = battery_q.get_single_mut() {
+        if battery.is_empty() {
             context_clues_res.0.insert(ContextClue::ShipFuelEmpty);
         } else {
             context_clues_res.0.remove(&ContextClue::ShipFuelEmpty);

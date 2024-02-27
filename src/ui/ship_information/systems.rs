@@ -5,13 +5,16 @@ use bevy_egui::{
 };
 use bevy_xpbd_2d::components::LinearVelocity;
 
-use crate::{health::components::Health, player::components::Player, ui::helpers::progress_string};
+use crate::{
+    battery::components::Battery, health::components::Health, player::components::Player,
+    ui::helpers::progress_string,
+};
 
 pub fn ui_ship_information(
-    player_query: Query<(&Player, &Health, &LinearVelocity), With<Player>>,
+    player_query: Query<(&Player, &Health, &Battery, &LinearVelocity), With<Player>>,
     mut ctx: EguiContexts,
 ) {
-    let (player, health, velocity) = player_query.single();
+    let (player, health, battery, velocity) = player_query.single();
 
     Window::new("Ship Information")
         .anchor(Align2::LEFT_TOP, Vec2 { x: 0.0, y: 0.0 })
@@ -28,8 +31,8 @@ pub fn ui_ship_information(
                     });
 
                     ui.group(|ui| {
-                        ui.label(format!("Battery: {:.2}KWh", player.battery.current()));
-                        let battery_percent = player.battery.current() / 1000.0;
+                        ui.label(format!("Battery: {:.2}KWh", battery.current()));
+                        let battery_percent = battery.current() / 1000.0;
                         ui.label(progress_string(battery_percent));
                     });
                 });

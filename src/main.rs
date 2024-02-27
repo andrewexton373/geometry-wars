@@ -48,6 +48,7 @@ use ui::plugin::GameUIPlugin;
 use crate::crosshair::plugin::CrosshairPlugin;
 use crate::laser::plugin::LaserPlugin;
 use asteroid::plugin::AsteroidPlugin;
+use battery::plugin::BatteryPlugin;
 use health::plugin::HealthPlugin;
 use hexbase::HexBasePlugin;
 use refinery::RefineryPlugin;
@@ -113,7 +114,7 @@ fn main() {
             HexBasePlugin,
             GameCameraPlugin,
         ))
-        .add_plugins((HealthPlugin))
+        .add_plugins((HealthPlugin, BatteryPlugin))
         .insert_resource(Gravity::ZERO)
         .run();
 }

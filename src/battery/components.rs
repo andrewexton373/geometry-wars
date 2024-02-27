@@ -20,6 +20,14 @@ impl Battery {
         }
     }
 
+    pub fn drain_battery(&mut self, amount: f32) {
+        self.set_current(self.current() - amount);
+    }
+
+    pub fn charge_battery(&mut self, amount: f32) {
+        self.set_current(self.current() + amount);
+    }
+
     pub fn current(&self) -> f32 {
         self._current_capacity
     }

@@ -7,6 +7,7 @@ use ordered_float::OrderedFloat;
 
 use crate::{
     asteroid::components::Asteroid,
+    battery::events::ChargeBatteryEvent,
     factory::FactoryPlugin,
     health::events::RepairEvent,
     inventory::{
@@ -94,6 +95,7 @@ pub fn handle_space_station_collision_event(
     mut can_deposit_res: ResMut<CanDeposit>,
     mut context_clues_res: ResMut<ContextClues>,
     mut repair_events: EventWriter<RepairEvent>,
+    mut charge_events: EventWriter<ChargeBatteryEvent>,
     time: Res<Time>,
 ) {
     let (player_ent, mut player) = player_query.single_mut();
@@ -103,7 +105,10 @@ pub fn handle_space_station_collision_event(
         *can_deposit_res = CanDeposit(true);
         context_clues_res.0.insert(ContextClue::NearBaseStation);
 
-        player.charge_battery(100.0 * time.delta_seconds());
+        charge_events.send(ChargeBatteryEvent {
+            entity: player_ent,
+            charge: 100.0 * time.delta_seconds(),
+        });
 
         repair_events.send(RepairEvent {
             entity: player_ent,
