@@ -12,7 +12,7 @@ use bevy_egui::{
     egui::{Align2, Pos2, Vec2, Window},
     EguiContexts,
 };
-use bevy_xpbd_2d::plugins::spatial_query::{SpatialQuery, SpatialQueryFilter};
+use bevy_xpbd_2d::{components::Mass, plugins::spatial_query::{SpatialQuery, SpatialQueryFilter}};
 
 use crate::{
     asteroid::components::Asteroid,
@@ -50,7 +50,7 @@ pub fn ui_mouse_hover_context(
     mut ctx: EguiContexts,
     mouse_hover_context: Res<MouseHoverContext>,
     mouse_screen_position: Res<MouseScreenPosition>,
-    ent_query: Query<(Entity, &Name, Option<&Asteroid>)>,
+    ent_query: Query<(Entity, &Name, Option<&Asteroid>, Option<&Mass>)>,
 ) {
     if let Some(hover_context_ent) = mouse_hover_context.0 {
         let screen_pos = Pos2 {
@@ -63,7 +63,7 @@ pub fn ui_mouse_hover_context(
             .title_bar(false)
             .resizable(false)
             .show(ctx.ctx_mut(), |ui| {
-                if let Ok((_ent, name, asteroid)) = ent_query.get(hover_context_ent) {
+                if let Ok((_ent, name, asteroid, mass)) = ent_query.get(hover_context_ent) {
                     ui.group(|ui| {
                         ui.heading(format!("{}", name));
 
@@ -72,6 +72,11 @@ pub fn ui_mouse_hover_context(
                                 "Health: {:.2}%",
                                 asteroid.health.current_percent() * 100.0
                             ));
+
+                            if let Some(m) = mass {
+                                ui.label(format!("Mass: {}Kgs", m.0));
+                            }
+
                             let health_percent = asteroid.health.current_percent();
                             ui.label(progress_string(health_percent));
 

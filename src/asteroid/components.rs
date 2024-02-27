@@ -12,10 +12,11 @@ pub struct Splittable(pub f32);
 
 #[derive(Component, Clone, Debug)]
 pub struct Asteroid {
-    pub size: AsteroidSize,
+    // pub size: AsteroidSize,
     pub health: Health,
     pub composition: AsteroidComposition,
-    polygon: Polygon,
+    pub polygon: Polygon,
+    pub radius: f32,
 }
 
 impl Asteroid {
@@ -36,22 +37,24 @@ impl Asteroid {
         poly.signed_area()
     }
 
-    pub fn new_with(size: AsteroidSize, comp: AsteroidComposition) -> Self {
-        let asteroid_polygon = Self::generate_shape_from_size(size);
-
+    pub fn new_with(radius: f32, comp: AsteroidComposition) -> Self {
+        let asteroid_polygon = Self::generate_shape_from_size(radius);
         let poly_area = Self::polygon_area(asteroid_polygon.points.clone());
+
 
         // Compute Health from Generated Shape Mass?
 
         Self {
-            size,
+            // size,
             health: Health {
+            
                 current: poly_area,
                 maximum: poly_area,
                 upgrade_level: crate::upgrades::components::UpgradeLevel::Level0,
             },
             composition: comp,
             polygon: asteroid_polygon,
+            radius
         }
     }
 
@@ -63,37 +66,14 @@ impl Asteroid {
         self.polygon.clone()
     }
 
-    fn generate_shape_from_size(size: AsteroidSize) -> Polygon {
-        match size {
-            AsteroidSize::OreChunk => Polygon {
-                points: Self::make_valtr_convex_polygon_coords(
-                    AsteroidSize::OreChunk.num_sides(),
-                    AsteroidSize::OreChunk.radius(),
-                ),
-                closed: true,
-            },
-            AsteroidSize::Small => Polygon {
-                points: Self::make_valtr_convex_polygon_coords(
-                    AsteroidSize::Small.num_sides(),
-                    AsteroidSize::Small.radius(),
-                ),
-                closed: true,
-            },
-            AsteroidSize::Medium => Polygon {
-                points: Self::make_valtr_convex_polygon_coords(
-                    AsteroidSize::Medium.num_sides(),
-                    AsteroidSize::Medium.radius(),
-                ),
-                closed: true,
-            },
-            AsteroidSize::Large => Polygon {
-                points: Self::make_valtr_convex_polygon_coords(
-                    AsteroidSize::Large.num_sides(),
-                    AsteroidSize::Large.radius(),
-                ),
-                closed: true,
-            },
-        }
+    fn generate_shape_from_size(radius: f32) -> Polygon {
+        return Polygon {
+            points: Self::make_valtr_convex_polygon_coords(
+                6,
+                radius,
+            ),
+            closed: true,
+        };
     }
 
     // TODO: comment this well...

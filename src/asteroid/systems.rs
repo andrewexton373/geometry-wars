@@ -65,7 +65,7 @@ pub fn spawn_asteroids_aimed_at_ship(
         let direction_to_player = (player_position - random_spawn_position).normalize() * 200.0; // maybe?
 
         let asteroid = Asteroid::new_with(
-            AsteroidSize::Large,
+            AsteroidSize::Large.radius(),
             AsteroidComposition::new_with_distance(distance_to_base_station),
         );
         let asteroid_transform = Transform::from_translation(random_spawn_position.extend(0.0));
@@ -76,6 +76,51 @@ pub fn spawn_asteroids_aimed_at_ship(
             asteroid_transform,
             asteroid_linear_velocity,
         ));
+    }
+}
+
+const THRESHOLD_COLLECTIBLE_MASS: f32 = 2500.0;
+
+pub fn tag_small_asteroids_as_collectible(
+    mut commands: Commands,
+    mut asteroid_query: Query<(Entity, &Mass), With<Asteroid>>,
+) {
+    for (ent, mass) in asteroid_query.iter_mut() {
+        if mass.0 <= THRESHOLD_COLLECTIBLE_MASS {
+            if let Some(mut ent_commands) = commands.get_entity(ent) {
+                ent_commands.insert(Collectible);
+            }
+        }
+    }
+
+}
+
+// TODO: Verify this is working...
+pub fn update_collectible_material_color(
+    mut asteroid_query: Query<(&Asteroid, &mut Fill), With<Collectible>>,
+) {
+    for (asteroid, mut fill) in asteroid_query.iter_mut() {
+        match asteroid.primary_composition() {
+            AsteroidMaterial::Iron => {
+                *fill = Fill {
+                    color: Color::GRAY,
+                    options: FillOptions::default(),
+                };
+            }
+            AsteroidMaterial::Silver => {
+                *fill = Fill {
+                    color: Color::SILVER,
+                    options: FillOptions::default(),
+                };
+            }
+            AsteroidMaterial::Gold => {
+                *fill = Fill {
+                    color: Color::GOLD,
+                    options: FillOptions::default(),
+                };
+            }
+            _ => {}
+        }
     }
 }
 
@@ -96,46 +141,47 @@ pub fn despawn_far_asteroids(
     }
 }
 
-// TODO: Verify this is working...
-pub fn update_collectible_material_color(
-    mut asteroid_query: Query<(&Asteroid, &mut Fill), With<Asteroid>>,
+
+
+pub fn handle_collectible_collision_event(
+    mut commands: Commands,
+    collisions: Res<Collisions>,
+    asteroid_query: Query<(Entity, &Asteroid, &Mass), With<Collectible>>,
+    mut player_query: Query<(Entity, &mut Inventory), With<Player>>,
+    mut inventory_full_notification: ResMut<InventoryFullNotificationTimer>,
 ) {
-    for (asteroid, mut fill) in asteroid_query.iter_mut() {
-        if asteroid.size == AsteroidSize::OreChunk {
-            match asteroid.primary_composition() {
-                AsteroidMaterial::Iron => {
-                    *fill = Fill {
-                        color: Color::GRAY,
-                        options: FillOptions::default(),
-                    };
+    let (player_ent, mut inventory) = player_query.single_mut();
+
+    for (asteroid_ent, asteroid, mass) in asteroid_query.iter() {
+        for _ in collisions.get(player_ent, asteroid_ent).iter() {
+
+            for comp in asteroid.composition.percent_composition().iter() {
+                if !inventory.add_to_inventory(&InventoryItem::Material(
+                    *comp.0,
+                    Amount::Weight(OrderedFloat(comp.1 * mass.0)),
+                )) {
+                    inventory_full_notification.0 =
+                        Some(Timer::from_seconds(3.0, TimerMode::Once));
                 }
-                AsteroidMaterial::Silver => {
-                    *fill = Fill {
-                        color: Color::SILVER,
-                        options: FillOptions::default(),
-                    };
-                }
-                AsteroidMaterial::Gold => {
-                    *fill = Fill {
-                        color: Color::GOLD,
-                        options: FillOptions::default(),
-                    };
-                }
-                _ => {}
             }
+
+            // FIXME: will despawn even if there's no room in inventory to collect.
+            commands.entity(asteroid_ent).despawn_recursive();
+
         }
+
     }
+
 }
 
 pub fn handle_asteroid_collision_event(
     mut commands: Commands,
     collisions: Res<Collisions>,
-    mut asteroid_query: Query<(Entity, &Asteroid, &Mass), With<Asteroid>>,
-    mut player_query: Query<(Entity, &mut Player, &mut Inventory), With<Player>>,
-    mut inventory_full_notification: ResMut<InventoryFullNotificationTimer>,
+    mut asteroid_query: Query<(Entity, &Asteroid, &Mass), Without<Collectible>>,
+    mut player_query: Query<(Entity, &mut Player), With<Player>>,
     mut player_damage_particle_query: Query<(Entity, &ShipDamageParticleSystem, &mut Transform)>,
 ) {
-    let (player_ent, mut player, mut inventory) = player_query.single_mut();
+    let (player_ent, mut player) = player_query.single_mut();
 
     let (damage_particles_ent, _, mut damage_particles_t) =
         player_damage_particle_query.single_mut();
@@ -143,45 +189,13 @@ pub fn handle_asteroid_collision_event(
 
     for (asteroid_entity, asteroid, mass) in asteroid_query.iter_mut() {
         if let Some(collision) = collisions.get(player_ent, asteroid_entity) {
-            let mut asteroid_collision = false;
 
-            match asteroid.size {
-                AsteroidSize::OreChunk => {
-                    let ore_chunk_mass = mass.0;
-
-                    for comp in asteroid.composition.percent_composition().iter() {
-                        if !inventory.add_to_inventory(&InventoryItem::Material(
-                            *comp.0,
-                            Amount::Weight(OrderedFloat(comp.1 * ore_chunk_mass)),
-                        )) {
-                            inventory_full_notification.0 =
-                                Some(Timer::from_seconds(3.0, TimerMode::Once));
-                        }
-                    }
-
-                    // FIXME: will despawn even if there's no room in inventory to collect.
-                    commands.entity(asteroid_entity).despawn_recursive();
-                }
-                AsteroidSize::Small => {
-                    player.take_damage(1.0);
-                    asteroid_collision = true;
-                }
-                AsteroidSize::Medium => {
-                    player.take_damage(2.5);
-                    asteroid_collision = true;
-                }
-                AsteroidSize::Large => {
-                    player.take_damage(5.0);
-                    asteroid_collision = true;
-                }
-            }
-
-            if asteroid_collision {
-                damage_particles_t.translation = (collision.manifolds[0].contacts[0].point1
-                    * crate::PIXELS_PER_METER)
-                    .extend(999.0);
-                commands.entity(damage_particles_ent).insert(Playing);
-            }
+            let damage = collision.manifolds[0].contacts[0].penetration;
+            player.take_damage(damage);
+            damage_particles_t.translation = (collision.manifolds[0].contacts[0].point1
+                * crate::PIXELS_PER_METER)
+                .extend(999.0);
+            commands.entity(damage_particles_ent).insert(Playing);
         }
     }
 }
@@ -204,7 +218,7 @@ pub fn display_inventory_full_context_clue(
     }
 }
 
-pub fn ablate_asteroids(
+pub fn ablate_asteroids_events(
     mut commands: Commands,
     mut asteroids_query: Query<(Entity, &mut Asteroid, &GlobalTransform), With<Asteroid>>,
     mut ablate_event_reader: EventReader<AblateEvent>,
@@ -242,7 +256,7 @@ pub fn ablate_asteroids(
 
             // TODO: The new comp distance shouldn't be constant it should update based on player distance from base
             let asteroid = Asteroid::new_with(
-                AsteroidSize::OreChunk,
+                AsteroidSize::OreChunk.radius(),
                 AsteroidComposition::new_with_distance(100.0),
             );
 
@@ -279,63 +293,25 @@ pub fn split_asteroid_events(
             let right_velocity = Vec2::ZERO;
             let left_velocity = Vec2::ZERO;
 
-            match &asteroid.size {
-                AsteroidSize::Small => {
-                    let left_asteroid =
-                        Asteroid::new_with(AsteroidSize::OreChunk, asteroid.composition.jitter());
-                    let right_asteroid =
-                        Asteroid::new_with(AsteroidSize::OreChunk, asteroid.composition.jitter());
+            let half_radius = asteroid.radius / 2.0;
 
-                    spawn_asteroid_events.send(SpawnAsteroidEvent(
-                        left_asteroid,
-                        *transform,
-                        LinearVelocity::ZERO,
-                    ));
+            let left_asteroid =
+                Asteroid::new_with(half_radius, asteroid.composition.jitter());
+            let right_asteroid =
+                Asteroid::new_with(half_radius, asteroid.composition.jitter());
 
-                    spawn_asteroid_events.send(SpawnAsteroidEvent(
-                        right_asteroid,
-                        *transform,
-                        LinearVelocity::ZERO,
-                    ));
-                }
-                AsteroidSize::Medium => {
-                    let left_asteroid =
-                        Asteroid::new_with(AsteroidSize::Small, asteroid.composition.jitter());
-                    let right_asteroid =
-                        Asteroid::new_with(AsteroidSize::Small, asteroid.composition.jitter());
+            spawn_asteroid_events.send(SpawnAsteroidEvent(
+                left_asteroid,
+                *transform,
+                LinearVelocity::ZERO,
+            ));
 
-                    spawn_asteroid_events.send(SpawnAsteroidEvent(
-                        left_asteroid,
-                        *transform,
-                        LinearVelocity::ZERO,
-                    ));
+            spawn_asteroid_events.send(SpawnAsteroidEvent(
+                right_asteroid,
+                *transform,
+                LinearVelocity::ZERO,
+            ));
 
-                    spawn_asteroid_events.send(SpawnAsteroidEvent(
-                        right_asteroid,
-                        *transform,
-                        LinearVelocity::ZERO,
-                    ));
-                }
-                AsteroidSize::Large => {
-                    let left_asteroid =
-                        Asteroid::new_with(AsteroidSize::Medium, asteroid.composition.jitter());
-                    let right_asteroid =
-                        Asteroid::new_with(AsteroidSize::Medium, asteroid.composition.jitter());
-
-                    spawn_asteroid_events.send(SpawnAsteroidEvent(
-                        left_asteroid,
-                        *transform,
-                        LinearVelocity::ZERO,
-                    ));
-
-                    spawn_asteroid_events.send(SpawnAsteroidEvent(
-                        right_asteroid,
-                        *transform,
-                        LinearVelocity::ZERO,
-                    ));
-                }
-                _ => {}
-            }
             commands.entity(asteroid_ent).despawn_recursive();
         }
     }
@@ -361,7 +337,7 @@ pub fn spawn_asteroid_events(
             &query,
             target_transform,
             &collider,
-            1.0,
+            0.1,
             10,
         ) {
             let asteroid_ent = commands
@@ -380,11 +356,6 @@ pub fn spawn_asteroid_events(
                 Fill::color(Color::DARK_GRAY),
             ))
             .id();
-
-            // If the asteroid is an ore chunk, add Collectible Tag
-            if asteroid.clone().size == AsteroidSize::OreChunk {
-                commands.entity(asteroid_ent).insert(Collectible);
-            }
         }
         
     }

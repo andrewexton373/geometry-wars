@@ -17,6 +17,9 @@ impl Plugin for AsteroidPlugin {
         .add_event::<AblateEvent>()
         .add_event::<SpawnAsteroidEvent>()
         .add_event::<SplitAsteroidEvent>()
+        .add_systems(PreUpdate, (
+            tag_small_asteroids_as_collectible,
+        ))
         .add_systems(
             Update,
             (
@@ -24,11 +27,12 @@ impl Plugin for AsteroidPlugin {
                 spawn_asteroid_events,
                 despawn_far_asteroids,
                 handle_asteroid_collision_event,
-                ablate_asteroids,
+                ablate_asteroids_events,
                 split_asteroids_over_split_ratio,
                 split_asteroid_events,
                 display_inventory_full_context_clue,
                 update_collectible_material_color,
+                handle_collectible_collision_event
             ),
         );
     }

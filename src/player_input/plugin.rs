@@ -23,7 +23,7 @@ impl Plugin for PlayerInputPlugin {
             .add_systems(
                 PreUpdate,
                 (
-                    grab_mouse,
+                    // grab_mouse,
                     update_mouse_world_position_resource,
                     update_mouse_screen_position_resource,
                     scroll_events,
