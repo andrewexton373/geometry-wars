@@ -12,7 +12,10 @@ use bevy_prototype_lyon::{
 use bevy_xpbd_2d::{
     components::{Collider, LinearVelocity, Mass, RigidBody, Rotation},
     math::{Scalar, Vector, PI},
-    plugins::{collision::{contact_query, Collisions}, spatial_query::{SpatialQuery, SpatialQueryFilter}},
+    plugins::{
+        collision::{contact_query, Collisions},
+        spatial_query::{SpatialQuery, SpatialQueryFilter},
+    },
 };
 use ordered_float::OrderedFloat;
 use rand::Rng;
@@ -39,7 +42,7 @@ pub fn spawn_asteroids_aimed_at_ship(
     player_query: Query<(&Player, &GlobalTransform)>,
     base_station_query: Query<(&SpaceStation, &GlobalTransform)>,
     mut asteroid_spawner: ResMut<AsteroidSpawner>,
-    time: Res<Time>
+    time: Res<Time>,
 ) {
     const SPAWN_DISTANCE: f32 = 350.0;
 
@@ -92,7 +95,6 @@ pub fn tag_small_asteroids_as_collectible(
             }
         }
     }
-
 }
 
 // TODO: Verify this is working...
@@ -141,8 +143,6 @@ pub fn despawn_far_asteroids(
     }
 }
 
-
-
 pub fn handle_collectible_collision_event(
     mut commands: Commands,
     collisions: Res<Collisions>,
@@ -154,24 +154,19 @@ pub fn handle_collectible_collision_event(
 
     for (asteroid_ent, asteroid, mass) in asteroid_query.iter() {
         for _ in collisions.get(player_ent, asteroid_ent).iter() {
-
             for comp in asteroid.composition.percent_composition().iter() {
                 if !inventory.add_to_inventory(&InventoryItem::Material(
                     *comp.0,
                     Amount::Weight(OrderedFloat(comp.1 * mass.0)),
                 )) {
-                    inventory_full_notification.0 =
-                        Some(Timer::from_seconds(3.0, TimerMode::Once));
+                    inventory_full_notification.0 = Some(Timer::from_seconds(3.0, TimerMode::Once));
                 }
             }
 
             // FIXME: will despawn even if there's no room in inventory to collect.
             commands.entity(asteroid_ent).despawn_recursive();
-
         }
-
     }
-
 }
 
 pub fn handle_asteroid_collision_event(
@@ -189,12 +184,10 @@ pub fn handle_asteroid_collision_event(
 
     for (asteroid_entity, asteroid, mass) in asteroid_query.iter_mut() {
         if let Some(collision) = collisions.get(player_ent, asteroid_entity) {
-
             let damage = collision.manifolds[0].contacts[0].penetration;
             player.take_damage(damage);
-            damage_particles_t.translation = (collision.manifolds[0].contacts[0].point1
-                * crate::PIXELS_PER_METER)
-                .extend(999.0);
+            damage_particles_t.translation =
+                (collision.manifolds[0].contacts[0].point1 * crate::PIXELS_PER_METER).extend(999.0);
             commands.entity(damage_particles_ent).insert(Playing);
         }
     }
@@ -295,10 +288,8 @@ pub fn split_asteroid_events(
 
             let half_radius = asteroid.radius / 2.0;
 
-            let left_asteroid =
-                Asteroid::new_with(half_radius, asteroid.composition.jitter());
-            let right_asteroid =
-                Asteroid::new_with(half_radius, asteroid.composition.jitter());
+            let left_asteroid = Asteroid::new_with(half_radius, asteroid.composition.jitter());
+            let right_asteroid = Asteroid::new_with(half_radius, asteroid.composition.jitter());
 
             spawn_asteroid_events.send(SpawnAsteroidEvent(
                 left_asteroid,
@@ -332,32 +323,26 @@ pub fn spawn_asteroid_events(
         let mut rng = rand::thread_rng();
         let splittable = Splittable(rng.gen_range(0.4..0.8));
 
-        if let Some(transform) = find_free_space(
-            &spatial,
-            &query,
-            target_transform,
-            &collider,
-            0.1,
-            10,
-        ) {
+        if let Some(transform) =
+            find_free_space(&spatial, &query, target_transform, &collider, 0.1, 10)
+        {
             let asteroid_ent = commands
-            .spawn(asteroid.clone())
-            .insert((
-                RigidBody::Dynamic,
-                collider,
-                linear_velocity,
-                splittable,
-                Name::new("Asteroid"),
-                ShapeBundle {
-                    path: GeometryBuilder::build_as(&asteroid.polygon()),
-                    spatial: SpatialBundle::from_transform(transform),
-                    ..default()
-                },
-                Fill::color(Color::DARK_GRAY),
-            ))
-            .id();
+                .spawn(asteroid.clone())
+                .insert((
+                    RigidBody::Dynamic,
+                    collider,
+                    linear_velocity,
+                    splittable,
+                    Name::new("Asteroid"),
+                    ShapeBundle {
+                        path: GeometryBuilder::build_as(&asteroid.polygon()),
+                        spatial: SpatialBundle::from_transform(transform),
+                        ..default()
+                    },
+                    Fill::color(Color::DARK_GRAY),
+                ))
+                .id();
         }
-        
     }
 }
 

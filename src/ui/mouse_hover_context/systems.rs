@@ -12,7 +12,10 @@ use bevy_egui::{
     egui::{Align2, Pos2, Vec2, Window},
     EguiContexts,
 };
-use bevy_xpbd_2d::{components::Mass, plugins::spatial_query::{SpatialQuery, SpatialQueryFilter}};
+use bevy_xpbd_2d::{
+    components::Mass,
+    plugins::spatial_query::{SpatialQuery, SpatialQueryFilter},
+};
 
 use crate::{
     asteroid::components::Asteroid,

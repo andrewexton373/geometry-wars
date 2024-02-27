@@ -41,20 +41,18 @@ impl Asteroid {
         let asteroid_polygon = Self::generate_shape_from_size(radius);
         let poly_area = Self::polygon_area(asteroid_polygon.points.clone());
 
-
         // Compute Health from Generated Shape Mass?
 
         Self {
             // size,
             health: Health {
-            
                 current: poly_area,
                 maximum: poly_area,
                 upgrade_level: crate::upgrades::components::UpgradeLevel::Level0,
             },
             composition: comp,
             polygon: asteroid_polygon,
-            radius
+            radius,
         }
     }
 
@@ -68,10 +66,7 @@ impl Asteroid {
 
     fn generate_shape_from_size(radius: f32) -> Polygon {
         return Polygon {
-            points: Self::make_valtr_convex_polygon_coords(
-                6,
-                radius,
-            ),
+            points: Self::make_valtr_convex_polygon_coords(6, radius),
             closed: true,
         };
     }
