@@ -10,9 +10,9 @@ use bevy_prototype_lyon::{
     draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, prelude::FillOptions,
 };
 use bevy_xpbd_2d::{
-    components::{Collider, LinearVelocity, Mass, RigidBody},
-    math::PI,
-    plugins::{collision::Collisions, spatial_query::SpatialQuery},
+    components::{Collider, LinearVelocity, Mass, RigidBody, Rotation},
+    math::{Scalar, Vector, PI},
+    plugins::{collision::{contact_query, Collisions}, spatial_query::{SpatialQuery, SpatialQueryFilter}},
 };
 use ordered_float::OrderedFloat;
 use rand::Rng;
@@ -35,14 +35,11 @@ use super::{
 // System to spawn asteroids at some distance away from the ship in random directions,
 // each asteroid with an initial velocity aimed towards the players ship
 pub fn spawn_asteroids_aimed_at_ship(
-    mut commands: Commands,
     mut spawn_asteroid_events: EventWriter<SpawnAsteroidEvent>,
     player_query: Query<(&Player, &GlobalTransform)>,
     base_station_query: Query<(&SpaceStation, &GlobalTransform)>,
     mut asteroid_spawner: ResMut<AsteroidSpawner>,
-    time: Res<Time>,
-    _spatial: SpatialQuery,
-    _query: Query<(&Collider, &Transform)>,
+    time: Res<Time>
 ) {
     const SPAWN_DISTANCE: f32 = 350.0;
 
@@ -228,7 +225,7 @@ pub fn ablate_asteroids(
             }
 
             let n: u8 = rng.gen();
-            if n > 10 {
+            if n > 25 {
                 return;
             }
 
@@ -347,20 +344,31 @@ pub fn split_asteroid_events(
 pub fn spawn_asteroid_events(
     mut commands: Commands,
     mut spawn_asteroid_events: EventReader<SpawnAsteroidEvent>,
+    spatial: SpatialQuery,
+    query: Query<(&Collider, &Transform)>,
 ) {
     for evt in spawn_asteroid_events.read() {
         let asteroid = evt.0.clone();
-        let transform = evt.1;
+        let target_transform = evt.1;
         let linear_velocity = evt.2;
+        let collider = Collider::convex_hull(asteroid.polygon().points).unwrap();
 
         let mut rng = rand::thread_rng();
         let splittable = Splittable(rng.gen_range(0.4..0.8));
 
-        let asteroid_ent = commands
+        if let Some(transform) = find_free_space(
+            &spatial,
+            &query,
+            target_transform,
+            &collider,
+            1.0,
+            10,
+        ) {
+            let asteroid_ent = commands
             .spawn(asteroid.clone())
             .insert((
                 RigidBody::Dynamic,
-                Collider::convex_hull(asteroid.polygon().points).unwrap(),
+                collider,
                 linear_velocity,
                 splittable,
                 Name::new("Asteroid"),
@@ -373,9 +381,78 @@ pub fn spawn_asteroid_events(
             ))
             .id();
 
-        // If the asteroid is an ore chunk, add Collectible Tag
-        if asteroid.clone().size == AsteroidSize::OreChunk {
-            commands.entity(asteroid_ent).insert(Collectible);
+            // If the asteroid is an ore chunk, add Collectible Tag
+            if asteroid.clone().size == AsteroidSize::OreChunk {
+                commands.entity(asteroid_ent).insert(Collectible);
+            }
+        }
+        
+    }
+}
+
+fn find_free_space(
+    spatial: &SpatialQuery,
+    query: &Query<(&Collider, &Transform)>,
+    target_transform: Transform,
+    collider: &Collider,
+    margin: Scalar,
+    max_iterations: usize,
+) -> Option<Transform> {
+    let mut target_position = target_transform.translation.truncate();
+    let rotation = Rotation::from(target_transform.rotation);
+
+    // Scale collider by margin
+    let mut collider = collider.clone();
+    collider.set_scale(Vector::ONE + margin, 8);
+
+    let filter = SpatialQueryFilter::default();
+
+    // Iteratively update the position by computing contacts against intersecting colliders
+    // and moving the target position based on the data.
+    // The algorithm stops once there are no intersections or `max_iterations` is reached.
+    for _ in 0..max_iterations {
+        // Get entities intersecting the space
+        let intersections = spatial.shape_intersections(
+            &collider,
+            target_position,
+            rotation.as_radians(),
+            filter.clone(),
+        );
+
+        if intersections.is_empty() {
+            // No intersections, free space found
+            return Some(target_transform.with_translation(target_position.extend(0.0)));
+        } else {
+            // Iterate over intersections and move the target position
+            // based on computed contact data.
+            for entity in intersections {
+                // Get collider of intersecting entity
+                let Ok((hit_collider, hit_transform)) = query.get(entity) else {
+                    continue;
+                };
+                let hit_translation = hit_transform.translation.truncate();
+
+                // Compute contact between the entity to spawn and the intersecting entity
+                if let Ok(Some(contact)) = contact_query::contact(
+                    &collider,
+                    target_position,
+                    rotation,
+                    hit_collider,
+                    hit_translation,
+                    hit_transform.rotation,
+                    0.0,
+                ) {
+                    let normal = contact.global_normal2(&hit_transform.rotation.into());
+
+                    // Epsilon to avoid floating point precision issues
+                    let delta = normal * (contact.penetration + 0.00001);
+
+                    // Move target position to solve overlap
+                    target_position += delta;
+                }
+            }
         }
     }
+
+    None
 }

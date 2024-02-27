@@ -1,14 +1,11 @@
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use bevy_prototype_lyon::{
-    draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, shapes::Polygon,
-};
-use bevy_xpbd_2d::components::{Collider, LinearVelocity, RigidBody};
-use rand::{distributions::Distribution, seq::SliceRandom, Rng};
+use bevy_prototype_lyon::shapes::Polygon;
+use rand::{distributions::Distribution, seq::SliceRandom};
 use rand_distr::Normal;
 use std::{cmp::Ordering, fmt};
 
-use crate::{collectible::components::Collectible, health::Health};
+use crate::health::Health;
 
 #[derive(Component)]
 pub struct Splittable(pub f32);
@@ -55,46 +52,6 @@ impl Asteroid {
             },
             composition: comp,
             polygon: asteroid_polygon,
-        }
-    }
-
-    pub fn spawn_asteroid(
-        commands: &mut Commands,
-        size: AsteroidSize,
-        composition: AsteroidComposition,
-        velocity: Vec2,
-        position: Vec2,
-    ) {
-        let asteroid = Asteroid::new_with(size, composition);
-
-        let mut rng = rand::thread_rng();
-
-        let splittable = Splittable(rng.gen_range(0.4..0.8));
-
-        let asteroid_ent = commands
-            .spawn(asteroid.clone())
-            .insert((
-                RigidBody::Dynamic,
-                LinearVelocity(velocity),
-                Collider::convex_hull(asteroid.polygon().points).unwrap(),
-                splittable,
-                Name::new("Asteroid"),
-            ))
-            .insert((
-                ShapeBundle {
-                    path: GeometryBuilder::build_as(&asteroid.polygon()),
-                    spatial: SpatialBundle::from_transform(Transform::from_xyz(
-                        position.x, position.y, 0.0,
-                    )),
-                    ..default()
-                },
-                Fill::color(Color::DARK_GRAY),
-            ))
-            .id();
-
-        // If the asteroid is an ore chunk, add Collectible Tag
-        if asteroid.clone().size == AsteroidSize::OreChunk {
-            commands.entity(asteroid_ent).insert(Collectible);
         }
     }
 

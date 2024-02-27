@@ -47,6 +47,8 @@ impl ItemProducer for Factory {
     }
 
     fn remaining_processing_time(&self) -> Option<f32> {
+
+
         if self.currently_processing.is_none() {
             return None;
         };
@@ -56,11 +58,12 @@ impl ItemProducer for Factory {
     fn new() -> Self {
         let mut recipes = Vec::new();
 
-        let mut items_required = Vec::new();
-        items_required.push(InventoryItem::Ingot(
-            MetalIngot::IronIngot,
-            Amount::Quantity(2),
-        ));
+        let items_required = vec![
+            InventoryItem::Ingot(
+                MetalIngot::IronIngot,
+                Amount::Quantity(2),
+            )
+        ];
 
         let cog_recipe = Recipe {
             items_required,
@@ -68,11 +71,12 @@ impl ItemProducer for Factory {
             time_required: 4.0,
         };
 
-        let mut items_required = Vec::new();
-        items_required.push(InventoryItem::Ingot(
-            MetalIngot::IronIngot,
-            Amount::Quantity(5),
-        ));
+        let items_required = vec![
+            InventoryItem::Ingot(
+                MetalIngot::IronIngot,
+                Amount::Quantity(5),
+            )
+        ];
 
         let iron_plate_recipe = Recipe {
             items_required,
@@ -83,11 +87,12 @@ impl ItemProducer for Factory {
             time_required: 10.0,
         };
 
-        let mut items_required = Vec::new();
-        items_required.push(InventoryItem::Ingot(
-            MetalIngot::SilverIngot,
-            Amount::Quantity(1),
-        ));
+        let items_required = vec![
+            InventoryItem::Ingot(
+                MetalIngot::SilverIngot,
+                Amount::Quantity(1),
+            )
+        ];
 
         let silver_conduit_recipe = Recipe {
             items_required,
@@ -98,11 +103,12 @@ impl ItemProducer for Factory {
             time_required: 8.0,
         };
 
-        let mut items_required = Vec::new();
-        items_required.push(InventoryItem::Ingot(
-            MetalIngot::GoldIngot,
-            Amount::Quantity(1),
-        ));
+        let items_required = vec![
+            InventoryItem::Ingot(
+                MetalIngot::GoldIngot,
+                Amount::Quantity(1),
+            )
+        ];
 
         let gold_leaf_recipe = Recipe {
             items_required,
@@ -144,6 +150,7 @@ impl FactoryPlugin {
             match material_needed {
                 InventoryItem::Ingot(material_needed, quantity_needed) => {
                     if let Some(inventory_material) =
+
                         inventory.items.iter().find_map(|item| match item {
                             InventoryItem::Ingot(m, _) if *m == *material_needed => Some(item),
                             _ => None,
@@ -172,7 +179,7 @@ impl FactoryPlugin {
         mut factory: Mut<Factory>,
         timer: &mut ResMut<FactoryTimer>,
     ) {
-        if Self::have_materials_to_craft(inventory.as_ref(), &recipe) {
+        if Self::have_materials_to_craft(inventory.as_ref(), recipe) {
             println!("We have the materials!");
 
             // Set currently processing to the recipe, finish processing after the timer.
