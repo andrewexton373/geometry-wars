@@ -1,4 +1,5 @@
 use crate::{
+    health::{components::Health, events::DamageEvent},
     inventory::components::{Inventory, InventoryItem},
     items::Amount,
     player::components::Player,
@@ -10,7 +11,7 @@ use bevy_prototype_lyon::{
     draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, prelude::FillOptions,
 };
 use bevy_xpbd_2d::{
-    components::{Collider, LinearVelocity, Mass, RigidBody, Rotation},
+    components::{Collider, Inertia, LinearVelocity, Mass, RigidBody, Rotation},
     math::{Scalar, Vector, PI},
     plugins::{
         collision::{contact_query, Collisions},
@@ -175,6 +176,7 @@ pub fn handle_asteroid_collision_event(
     mut asteroid_query: Query<(Entity, &Asteroid, &Mass), Without<Collectible>>,
     mut player_query: Query<(Entity, &mut Player), With<Player>>,
     mut player_damage_particle_query: Query<(Entity, &ShipDamageParticleSystem, &mut Transform)>,
+    mut damage_events: EventWriter<DamageEvent>,
 ) {
     let (player_ent, mut player) = player_query.single_mut();
 
@@ -184,8 +186,13 @@ pub fn handle_asteroid_collision_event(
 
     for (asteroid_entity, asteroid, mass) in asteroid_query.iter_mut() {
         if let Some(collision) = collisions.get(player_ent, asteroid_entity) {
-            let damage = collision.manifolds[0].contacts[0].penetration;
-            player.take_damage(damage);
+            let damage = -collision.manifolds[0].contacts[0].penetration;
+
+            damage_events.send(DamageEvent {
+                entity: player_ent,
+                damage,
+            });
+
             damage_particles_t.translation =
                 (collision.manifolds[0].contacts[0].point1 * crate::PIXELS_PER_METER).extend(999.0);
             commands.entity(damage_particles_ent).insert(Playing);
@@ -213,7 +220,10 @@ pub fn display_inventory_full_context_clue(
 
 pub fn ablate_asteroids_events(
     mut commands: Commands,
-    mut asteroids_query: Query<(Entity, &mut Asteroid, &GlobalTransform), With<Asteroid>>,
+    mut asteroids_query: Query<
+        (Entity, &mut Asteroid, &mut Health, &GlobalTransform),
+        With<Asteroid>,
+    >,
     mut ablate_event_reader: EventReader<AblateEvent>,
     mut spawn_asteroid_events: EventWriter<SpawnAsteroidEvent>,
     mut damage_indicator_events: EventWriter<DamageIndicatorEvent>,
@@ -222,10 +232,11 @@ pub fn ablate_asteroids_events(
         let mut rng = rand::thread_rng();
         // let split_angle = rng.gen_range(0.0..PI / 4.0); TODO: Might keep splititng asteroids
 
-        if let Ok((ent, mut asteroid_to_ablate, _g_trans)) = asteroids_query.get_mut(ablate_event.0)
+        if let Ok((ent, mut asteroid_to_ablate, mut asteroid_health, _g_trans)) =
+            asteroids_query.get_mut(ablate_event.0)
         {
-            let damaged_health = asteroid_to_ablate.health.current() - LASER_DAMAGE;
-            asteroid_to_ablate.health.set_current(damaged_health);
+            let damaged_health = asteroid_health.current() - LASER_DAMAGE;
+            asteroid_health.set_current(damaged_health);
 
             if damaged_health < 0.0 {
                 commands.entity(ent).despawn_recursive();
@@ -263,11 +274,11 @@ pub fn ablate_asteroids_events(
 }
 
 pub fn split_asteroids_over_split_ratio(
-    mut asteroid_query: Query<(Entity, &mut Asteroid, &Splittable)>,
+    mut asteroid_query: Query<(Entity, &mut Asteroid, &Health, &Splittable)>,
     mut split_astroid_events: EventWriter<SplitAsteroidEvent>,
 ) {
-    for (ent, asteroid, split) in asteroid_query.iter_mut() {
-        if asteroid.health.current_percent() < split.0 {
+    for (ent, asteroid, asteroid_health, split) in asteroid_query.iter_mut() {
+        if asteroid_health.current_percent() < split.0 {
             split_astroid_events.send(SplitAsteroidEvent(ent));
         }
     }
@@ -319,6 +330,7 @@ pub fn spawn_asteroid_events(
         let target_transform = evt.1;
         let linear_velocity = evt.2;
         let collider = Collider::convex_hull(asteroid.polygon().points).unwrap();
+        let health_pool = collider.mass_properties(1.0).mass(); // Set Healthpool to mass?
 
         let mut rng = rand::thread_rng();
         let splittable = Splittable(rng.gen_range(0.4..0.8));
@@ -332,6 +344,7 @@ pub fn spawn_asteroid_events(
                     RigidBody::Dynamic,
                     collider,
                     linear_velocity,
+                    Inertia(1.0),
                     splittable,
                     Name::new("Asteroid"),
                     ShapeBundle {
@@ -339,6 +352,7 @@ pub fn spawn_asteroid_events(
                         spatial: SpatialBundle::from_transform(transform),
                         ..default()
                     },
+                    Health::with_maximum(Asteroid::polygon_area(asteroid.polygon().points)),
                     Fill::color(Color::DARK_GRAY),
                 ))
                 .id();

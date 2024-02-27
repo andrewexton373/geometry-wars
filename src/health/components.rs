@@ -1,4 +1,3 @@
-// use crate::{widgets::station_menu::UpgradeLevel, upgrades::Upgradeable};
 use bevy::prelude::*;
 
 use crate::upgrades::components::{UpgradeLevel, Upgradeable};
@@ -17,6 +16,22 @@ impl Health {
             maximum: 100.0,
             upgrade_level: UpgradeLevel::Level0,
         }
+    }
+
+    pub fn with_maximum(max_health: f32) -> Self {
+        Self {
+            current: max_health,
+            maximum: max_health,
+            upgrade_level: UpgradeLevel::Level0,
+        }
+    }
+
+    pub fn take_damage(&mut self, damage: f32) {
+        self.set_current(self.current - damage);
+    }
+
+    pub fn repair_damage(&mut self, repair: f32) {
+        self.set_current(self.current + repair);
     }
 
     pub fn current(&self) -> f32 {

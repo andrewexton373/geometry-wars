@@ -5,7 +5,7 @@ use rand::{distributions::Distribution, seq::SliceRandom};
 use rand_distr::Normal;
 use std::{cmp::Ordering, fmt};
 
-use crate::health::Health;
+use crate::health::components::Health;
 
 #[derive(Component)]
 pub struct Splittable(pub f32);
@@ -13,14 +13,14 @@ pub struct Splittable(pub f32);
 #[derive(Component, Clone, Debug)]
 pub struct Asteroid {
     // pub size: AsteroidSize,
-    pub health: Health,
+    // pub health: Health,
     pub composition: AsteroidComposition,
     pub polygon: Polygon,
     pub radius: f32,
 }
 
 impl Asteroid {
-    fn polygon_area(verticies: Vec<Vec2>) -> f32 {
+    pub fn polygon_area(verticies: Vec<Vec2>) -> f32 {
         use geo::{Area, Coord, LineString, Point, Polygon};
 
         let asteroid_polygon_tuple = verticies
@@ -45,11 +45,6 @@ impl Asteroid {
 
         Self {
             // size,
-            health: Health {
-                current: poly_area,
-                maximum: poly_area,
-                upgrade_level: crate::upgrades::components::UpgradeLevel::Level0,
-            },
             composition: comp,
             polygon: asteroid_polygon,
             radius,

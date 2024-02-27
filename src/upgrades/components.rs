@@ -50,7 +50,8 @@ impl UpgradesComponent {
                     UpgradeType::None => UpgradeType::None,
                     UpgradeType::Health(level) => {
                         let next = level.next().unwrap_or(UpgradeLevel::MaxLevel);
-                        player.health.set_upgrade_level(next);
+                        // TODO: Fix this after health refactor. Upgrades should be handled with events.
+                        // player.health.set_upgrade_level(next);
                         ship_inventory.remove_all_from_inventory(upgrade_requirements.clone());
                         UpgradeType::Health(next)
                     }

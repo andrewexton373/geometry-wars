@@ -10,6 +10,7 @@ use super::resources::EmptyInventoryDepositTimer;
 use crate::camera::components::CameraTarget;
 use crate::collectible::components::Collectible;
 use crate::crosshair::components::Crosshair;
+use crate::health::components::Health;
 use crate::inventory::components::{Capacity, Inventory};
 use crate::inventory::plugin::InventoryPlugin;
 use crate::inventory::systems::attach_inventory_to_entity;
@@ -54,6 +55,7 @@ pub fn spawn_player(mut commands: Commands) {
             LinearVelocity::ZERO,
             Friction::new(10.0),
             Collider::convex_hull(player_poly.points.clone()).unwrap(),
+            Health::new(),
         ))
         .insert((
             ShapeBundle {

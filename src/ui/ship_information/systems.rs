@@ -1,17 +1,17 @@
-use bevy::ecs::system::Query;
+use bevy::ecs::{query::With, system::Query};
 use bevy_egui::{
     egui::{Align2, Slider, Vec2, Window},
     EguiContexts,
 };
 use bevy_xpbd_2d::components::LinearVelocity;
 
-use crate::{player::components::Player, ui::helpers::progress_string};
+use crate::{health::components::Health, player::components::Player, ui::helpers::progress_string};
 
 pub fn ui_ship_information(
-    player_query: Query<(&mut Player, &mut LinearVelocity)>,
+    player_query: Query<(&Player, &Health, &LinearVelocity), With<Player>>,
     mut ctx: EguiContexts,
 ) {
-    let (player, velocity) = player_query.single();
+    let (player, health, velocity) = player_query.single();
 
     Window::new("Ship Information")
         .anchor(Align2::LEFT_TOP, Vec2 { x: 0.0, y: 0.0 })
@@ -21,11 +21,9 @@ pub fn ui_ship_information(
             ui.vertical_centered_justified(|ui| {
                 ui.horizontal(|ui| {
                     ui.group(|ui| {
-                        ui.label(format!(
-                            "Health: {:.2}%",
-                            player.health.current_percent() * 100.0
-                        ));
-                        let health_percent = player.health.current_percent();
+                        ui.label(format!("Health: {:.2}%", health.current_percent() * 100.0));
+
+                        let health_percent = health.current_percent();
                         ui.label(progress_string(health_percent));
                     });
 
