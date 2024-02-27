@@ -1,4 +1,4 @@
-use crate::{inventory::components::{Inventory, InventoryItem}, items::Amount, player::components::Player};
+use crate::{inventory::components::{Inventory, InventoryItem}, items::Amount, player::components::Player, ui::damage_indicator::events::DamageIndicatorEvent};
 use bevy::prelude::*;
 use bevy_particle_systems::Playing;
 use bevy_prototype_lyon::{
@@ -209,14 +209,15 @@ pub fn remove_post_animation_text(
     }
 }
 
+
+
 pub fn ablate_asteroids(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
     mut asteroids_query: Query<(Entity, &mut Asteroid, &GlobalTransform), With<Asteroid>>,
     mut ablate_event_reader: EventReader<AblateEvent>,
-    mut spawn_asteroid_events: EventWriter<SpawnAsteroidEvent>
+    mut spawn_asteroid_events: EventWriter<SpawnAsteroidEvent>,
+    mut damage_indicator_events: EventWriter<DamageIndicatorEvent>
 ) {
-    let font = asset_server.load("fonts/FiraMono-Regular.ttf");
 
     for ablate_event in ablate_event_reader.read() {
         let mut rng = rand::thread_rng();
@@ -236,47 +237,17 @@ pub fn ablate_asteroids(
                 return;
             }
 
-            let tween = Tween::new(
-                EaseFunction::ExponentialInOut,
-                std::time::Duration::from_millis(3000),
-                TextColorLens {
-                    start: Color::Rgba {
-                        red: 255.0,
-                        green: 0.0,
-                        blue: 0.0,
-                        alpha: 1.0,
-                    },
-                    end: Color::Rgba {
-                        red: 255.0,
-                        green: 0.0,
-                        blue: 0.0,
-                        alpha: 0.0,
-                    },
-                    section: 0,
-                },
-            )
-            .with_repeat_count(RepeatCount::Finite(1))
-            .with_completed_event(111);
+            // Send Damage Indicator Event
+            let translation = Transform {
+                translation: (ablate_event.1 + ablate_event.2.normalize() * 100.0)
+                    .extend(999.0),
+                ..default()
+            };
 
-            commands.spawn((
-                Text2dBundle {
-                    text: Text::from_section(
-                        "-1HP",
-                        TextStyle {
-                            font: font.clone(),
-                            font_size: 32.0,
-                            color: Color::RED,
-                        },
-                    ),
-                    transform: Transform {
-                        translation: (ablate_event.1 + ablate_event.2.normalize() * 100.0)
-                            .extend(999.0),
-                        ..default()
-                    },
-                    ..default()
-                },
-                Animator::new(tween),
-            ));
+            damage_indicator_events.send(DamageIndicatorEvent {
+                damage: 1.0,
+                traslation: translation
+            });
 
             // TODO: The new comp distance shouldn't be constant it should update based on player distance from base
             let asteroid = Asteroid::new_with(

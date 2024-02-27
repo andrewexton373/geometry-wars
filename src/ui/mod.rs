@@ -9,3 +9,4 @@ pub mod ship_hover_context;
 pub mod ship_information;
 pub mod ship_inventory;
 pub mod space_station_menu;
+pub mod damage_indicator;

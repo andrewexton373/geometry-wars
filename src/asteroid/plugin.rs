@@ -12,7 +12,7 @@ pub const LASER_DAMAGE: f32 = 250.0;
 
 impl Plugin for AsteroidPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(TweeningPlugin)
+        app
             .insert_resource(AsteroidSpawner {
                 timer: Timer::from_seconds(1.0, TimerMode::Once),
             })
