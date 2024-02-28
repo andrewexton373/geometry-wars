@@ -66,12 +66,17 @@ pub const RESOLUTION: f32 = 16.0 / 9.0;
 pub const HEIGHT: f32 = 800.0;
 pub const WIDTH: f32 = HEIGHT * RESOLUTION;
 
-#[derive(Component)]
-struct Collider;
 
-// A unit struct to help identify the FPS UI component, since there may be many Text components
-#[derive(Component)]
-struct FpsText;
+#[derive(States, PartialEq, Eq, Debug, Clone, Hash, Default)]
+pub enum AppState {
+    #[default]
+    InGame,
+    Paused,
+    BuildMode
+}
+
+
+
 
 fn main() {
     App::new()
@@ -116,6 +121,7 @@ fn main() {
         ))
         .add_plugins((HealthPlugin, BatteryPlugin))
         .insert_resource(Gravity::ZERO)
+        .add_state::<AppState>()
         .run();
 }
 

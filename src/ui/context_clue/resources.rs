@@ -7,6 +7,7 @@ pub enum ContextClue {
     CargoBayFull,
     ShipFuelEmpty,
     ShipInventoryEmpty,
+    BuildModeEnabled
 }
 
 impl ContextClue {
@@ -18,6 +19,7 @@ impl ContextClue {
             }
             ContextClue::ShipFuelEmpty => "The Player's Ship Fuel Tank is Empty!",
             ContextClue::ShipInventoryEmpty => "The Player's Ship Inventory is Empty!",
+            ContextClue::BuildModeEnabled => "BUILD MODE ENABLED"
             // _ => "Missing Context Clue Note.",
         }
         .to_string()

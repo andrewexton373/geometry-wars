@@ -11,6 +11,7 @@ use std::f32::consts::PI;
 use crate::events::BuildHexBuildingEvent;
 use crate::player::components::Player;
 use crate::player_input::resources::MouseWorldPosition;
+use crate::AppState;
 
 /// World size of the hexagons (outer radius)
 const HEX_SIZE: Vec2 = Vec2::splat(10.0 * crate::PIXELS_PER_METER);
@@ -66,7 +67,7 @@ impl Plugin for HexBasePlugin {
             .add_systems(
                 Update,
                 (
-                    Self::color_hexes,
+                    Self::color_hexes.run_if(in_state(AppState::BuildMode)),
                     Self::handle_mouse_interaction,
                     Self::handle_ship_hovering_context,
                     // Self::handle_build_events,

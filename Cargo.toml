@@ -21,6 +21,7 @@ bevy-debug-text-overlay = "7.0.0"
 geo = "0.25.0"
 bevy_ecs_tilemap = "0.11"
 bevy-inspector-egui = "0.22"
+bevy-trait-query = "0.4"
 hexx = "0.14"
 
 # Enable a small amount of optimization in debug mode

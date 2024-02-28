@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+use super::build_mode::plugin::BuildModePlugin;
 use super::guide_arrow::plugin::GuideArrowPlugin;
 use super::resources::CanDeposit;
 
@@ -11,7 +12,10 @@ pub struct SpaceStationPlugin;
 
 impl Plugin for SpaceStationPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(GuideArrowPlugin)
+        app.add_plugins((
+            GuideArrowPlugin,
+            BuildModePlugin
+        ))
             .insert_resource(CanDeposit(true))
             .add_systems(Startup, (spawn_space_station))
             .add_systems(
