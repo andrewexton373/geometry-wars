@@ -39,7 +39,7 @@ pub fn ui_ship_information(
 
                 ui.horizontal(|ui| {
                     ui.add(
-                        Slider::new(&mut player.engine.power_level.clone(), 0.0..=100.0)
+                        Slider::new(&mut player.rcs_booster.power_level.clone(), 0.0..=100.0)
                             .text("Engine Power"),
                     );
                     ui.label(format!("Speed: {:.2}", velocity.0.length()));

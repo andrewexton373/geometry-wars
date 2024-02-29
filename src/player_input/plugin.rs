@@ -2,9 +2,11 @@ use bevy::app::{App, Plugin, PreUpdate, Update};
 use bevy::ecs::system::System;
 use bevy::math::Vec2;
 
+use crate::rcs::events::RCSThrustPowerEvent;
+
 use super::resources::{MouseScreenPosition, MouseWorldPosition};
 
-use super::events::{DepositInventoryEvent, EnginePowerEvent};
+use super::events::{DepositInventoryEvent};
 
 use super::systems::{
     cancel_player_targeting, grab_mouse, player_camera_control, player_deposit_control,
@@ -16,7 +18,7 @@ pub struct PlayerInputPlugin;
 
 impl Plugin for PlayerInputPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<EnginePowerEvent>()
+        app
             .add_event::<DepositInventoryEvent>()
             .insert_resource(MouseWorldPosition(Vec2::ZERO))
             .insert_resource(MouseScreenPosition(Vec2::ZERO))

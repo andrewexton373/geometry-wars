@@ -4,6 +4,6 @@ use crate::space_station::modules::components::SpaceStationModuleType;
 
 #[derive(Event)]
 pub struct BuildSpaceStationModuleEvent {
-    entity: Entity,
-    module_type: SpaceStationModuleType,
+    pub entity: Entity,
+    pub module_type: SpaceStationModuleType,
 }

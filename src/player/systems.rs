@@ -7,10 +7,10 @@ use std::f32::consts::PI;
 use super::components::Player;
 use super::resources::EmptyInventoryDepositTimer;
 
-use crate::battery::{
+use crate::{battery::{
     components::Battery,
     events::{ChargeBatteryEvent, DrainBatteryEvent},
-};
+}, rcs::{components::RCSBooster, events::RCSThrustVectorEvent}};
 use crate::camera::components::CameraTarget;
 use crate::collectible::components::Collectible;
 use crate::crosshair::components::Crosshair;
@@ -31,15 +31,15 @@ pub fn spawn_player(mut commands: Commands) {
         points: vec![
             Vec2 {
                 x: 0.0,
-                y: 2.0 * crate::PIXELS_PER_METER,
+                y: 4.0 * crate::PIXELS_PER_METER,
             },
             Vec2 {
-                x: 1.0 * crate::PIXELS_PER_METER,
-                y: -1.0 * crate::PIXELS_PER_METER,
+                x: 2.0 * crate::PIXELS_PER_METER,
+                y: -2.0 * crate::PIXELS_PER_METER,
             },
             Vec2 {
-                x: -1.0 * crate::PIXELS_PER_METER,
-                y: -1.0 * crate::PIXELS_PER_METER,
+                x: -2.0 * crate::PIXELS_PER_METER,
+                y: -2.0 * crate::PIXELS_PER_METER,
             },
         ],
         closed: true,
@@ -61,6 +61,7 @@ pub fn spawn_player(mut commands: Commands) {
             Collider::convex_hull(player_poly.points.clone()).unwrap(),
             Health::new(),
             Battery::new(),
+            RCSBooster::new()
         ))
         .insert((
             ShapeBundle {
@@ -116,12 +117,11 @@ pub fn player_movement(
         &mut ExternalForce,
     )>,
     mut battery_events: EventWriter<DrainBatteryEvent>,
+    mut thrust_vector_events: EventWriter<RCSThrustVectorEvent>,
 ) {
-    const ACCELERATION: f32 = 120000.0 * PIXELS_PER_METER;
-
     let (entity, player, battery, mut transform, mut ext_force) = player_query.single_mut();
 
-    let mut thrust = Vec2::ZERO;
+    let mut thrust: Vec2 = Vec2::ZERO;
 
     if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
         thrust += -Vec2::X;
@@ -139,25 +139,24 @@ pub fn player_movement(
         thrust += -Vec2::Y;
     }
 
-    thrust *= player.engine.power_level;
+    // If the players ship has no remaining battery capacity, end early.
+    if battery.current() <= 0.0 { return };
 
-    // If player has battery capacity remaining, apply controlled thrust.
-    if battery.current() > 0.0 {
-        let force = thrust.normalize_or_zero() * ACCELERATION;
-        let energy_spent = force.length() / 5000000.0; // TODO: magic number
+    const ACCELERATION: f32 = 1000.0 * PIXELS_PER_METER;
 
-        battery_events.send(DrainBatteryEvent {
-            entity,
-            drain: energy_spent,
-        });
+    let force = thrust.normalize_or_zero() * ACCELERATION;
+    let energy_spent = force.length() / 5000000.0; // TODO: magic number
 
-        ext_force.set_force(force);
-    }
+    battery_events.send(DrainBatteryEvent {
+        entity,
+        drain: energy_spent,
+    });
 
-    // velocity.angvel = 0.0; // Prevents spin on astrid impact
+    thrust_vector_events.send(RCSThrustVectorEvent {
+        entity,
+        thrust_vector: force
+    });
 
-    // TODO: is there a better place to do this?
-    transform.scale = Vec3::new(2.0, 2.0, 1.0);
 }
 
 pub fn ship_rotate_towards_mouse(

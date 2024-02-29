@@ -27,7 +27,7 @@ impl Plugin for HexBasePlugin {
             .init_resource::<HexGridMap>()
             .add_systems(Startup, setup_hex_grid)
             .add_systems(
-                Update,
+                PreUpdate,
                 (
                     // handle_mouse_interaction,
                     handle_ship_hovering_context,

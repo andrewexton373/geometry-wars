@@ -5,11 +5,12 @@ use bevy::window::{CursorGrabMode, PrimaryWindow};
 
 use crate::camera::components::{CameraTarget, GameCamera};
 use crate::player::components::Player;
+use crate::rcs::events::RCSThrustPowerEvent;
 use crate::space_station::resources::CanDeposit;
 use crate::ui::mouse_hover_context::resources::MouseHoverContext;
 use crate::ui::{mouse_hover_context, ship_hover_context};
 
-use super::events::{DepositInventoryEvent, EnginePowerEvent};
+use super::events::{DepositInventoryEvent};
 use super::resources::{MouseScreenPosition, MouseWorldPosition};
 
 pub fn update_mouse_world_position_resource(
@@ -84,17 +85,17 @@ pub fn cancel_player_targeting(
 
 pub fn scroll_events(
     mut scroll_events: EventReader<MouseWheel>,
-    mut engine_events: EventWriter<EnginePowerEvent>,
+    mut engine_events: EventWriter<RCSThrustPowerEvent>,
 ) {
     use bevy::input::mouse::MouseScrollUnit;
 
     for event in scroll_events.read() {
         match event.unit {
             MouseScrollUnit::Line => {
-                engine_events.send(EnginePowerEvent(event.y));
+                engine_events.send(RCSThrustPowerEvent(event.y));
             }
             MouseScrollUnit::Pixel => {
-                engine_events.send(EnginePowerEvent(event.y));
+                engine_events.send(RCSThrustPowerEvent(event.y));
             }
         }
     }

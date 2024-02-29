@@ -3,11 +3,9 @@ pub(crate) mod battery;
 pub(crate) mod camera;
 pub(crate) mod collectible;
 pub(crate) mod crosshair;
-pub(crate) mod engine;
 pub(crate) mod events;
 pub(crate) mod factory;
 pub(crate) mod health;
-// pub(crate) mod hexbase;
 pub(crate) mod hexgrid;
 pub(crate) mod inventory;
 pub(crate) mod item_producer;
@@ -22,6 +20,7 @@ pub(crate) mod refinery;
 pub(crate) mod space_station;
 pub(crate) mod ui;
 pub(crate) mod upgrades;
+pub(crate) mod rcs;
 
 // #![feature(array_methods)]
 
@@ -38,7 +37,7 @@ use bevy_prototype_lyon::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 
 use camera::plugin::GameCameraPlugin;
-use engine::EnginePlugin;
+use rcs::plugin::RCSPlugin;
 use factory::FactoryPlugin;
 use inventory::plugin::InventoryPlugin;
 use particles::plugin::ParticlePlugin;
@@ -103,7 +102,7 @@ fn main() {
             HexBasePlugin,
             PlayerPlugin,
             UpgradesPlugin,
-            EnginePlugin,
+            RCSPlugin,
             PlayerInputPlugin,
             InventoryPlugin,
             SpaceStationPlugin,

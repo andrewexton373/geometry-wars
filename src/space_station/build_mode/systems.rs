@@ -1,7 +1,7 @@
 use bevy::{
     asset::{Assets, Handle},
     ecs::{
-        entity::Entity,
+        entity::{self, Entity},
         event::EventReader,
         query::Without,
         schedule::NextState,
@@ -30,7 +30,9 @@ use crate::{
     AppState,
 };
 
-use super::{components::BuildableHex, resources::BuildModeMaterials};
+use super::{
+    components::BuildableHex, events::BuildSpaceStationModuleEvent, resources::BuildModeMaterials,
+};
 
 pub fn init_materials(
     mut materials: ResMut<BuildModeMaterials>,
@@ -77,6 +79,18 @@ pub fn highlight_build_locations(
         commands
             .entity(build_location_ent)
             .insert((materials.buildable_hex_material.clone(), BuildableHex));
+    }
+}
+
+pub fn handle_build_events(
+    mut commands: Commands,
+    mut build_events: EventReader<BuildSpaceStationModuleEvent>,
+) {
+    for build_event in build_events.read() {
+        // dbg!("{:?}", build_event.module_type);
+        commands
+            .entity(build_event.entity)
+            .insert(build_event.module_type);
     }
 }
 
