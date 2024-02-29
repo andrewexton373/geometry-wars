@@ -1,8 +1,11 @@
 pub const SPACE_STATION_SIZE: f32 = 20.0;
 
-use bevy::{ecs::{component::Component, entity::Entity}, prelude::Resource};
+use bevy::{
+    ecs::{component::Component, entity::Entity},
+    prelude::Resource,
+};
 
-use crate::hexbase::BuildingType;
+use crate::hexgrid::components::BuildingType;
 
 #[derive(Resource)]
 pub struct CanDeposit(pub bool);

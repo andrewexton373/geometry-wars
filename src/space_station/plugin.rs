@@ -12,10 +12,7 @@ pub struct SpaceStationPlugin;
 
 impl Plugin for SpaceStationPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((
-            GuideArrowPlugin,
-            BuildModePlugin
-        ))
+        app.add_plugins((GuideArrowPlugin, BuildModePlugin))
             .insert_resource(CanDeposit(true))
             .add_systems(Startup, (spawn_space_station))
             .add_systems(

@@ -7,7 +7,8 @@ pub(crate) mod engine;
 pub(crate) mod events;
 pub(crate) mod factory;
 pub(crate) mod health;
-pub(crate) mod hexbase;
+// pub(crate) mod hexbase;
+pub(crate) mod hexgrid;
 pub(crate) mod inventory;
 pub(crate) mod item_producer;
 pub(crate) mod items;
@@ -50,7 +51,7 @@ use crate::laser::plugin::LaserPlugin;
 use asteroid::plugin::AsteroidPlugin;
 use battery::plugin::BatteryPlugin;
 use health::plugin::HealthPlugin;
-use hexbase::HexBasePlugin;
+use hexgrid::plugin::HexBasePlugin;
 use refinery::RefineryPlugin;
 use space_station::plugin::SpaceStationPlugin;
 use upgrades::plugin::UpgradesPlugin;
@@ -66,17 +67,13 @@ pub const RESOLUTION: f32 = 16.0 / 9.0;
 pub const HEIGHT: f32 = 800.0;
 pub const WIDTH: f32 = HEIGHT * RESOLUTION;
 
-
 #[derive(States, PartialEq, Eq, Debug, Clone, Hash, Default)]
 pub enum AppState {
     #[default]
     InGame,
     Paused,
-    BuildMode
+    BuildMode,
 }
-
-
-
 
 fn main() {
     App::new()

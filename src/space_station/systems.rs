@@ -6,15 +6,26 @@ use bevy_xpbd_2d::prelude::*;
 use ordered_float::OrderedFloat;
 
 use crate::{
-    asteroid::components::Asteroid, battery::events::ChargeBatteryEvent, factory::FactoryPlugin, health::events::RepairEvent, hexbase::BuildingType, inventory::{
+    asteroid::components::Asteroid,
+    battery::events::ChargeBatteryEvent,
+    factory::FactoryPlugin,
+    health::events::RepairEvent,
+    hexgrid::components::BuildingType,
+    inventory::{
         components::{Capacity, Inventory},
         plugin::InventoryPlugin,
         systems::attach_inventory_to_entity,
-    }, player::components::Player, refinery::RefineryPlugin, ui::context_clue::resources::{ContextClue, ContextClues}, PIXELS_PER_METER
+    },
+    player::components::Player,
+    refinery::RefineryPlugin,
+    ui::context_clue::resources::{ContextClue, ContextClues},
+    PIXELS_PER_METER,
 };
 
 use super::{
-    components::SpaceStation, modules::components::SpaceStationModule, resources::{CanDeposit, PlayerHoveringSpaceStationModule, SPACE_STATION_SIZE}
+    components::SpaceStation,
+    modules::components::SpaceStationModule,
+    resources::{CanDeposit, PlayerHoveringSpaceStationModule, SPACE_STATION_SIZE},
 };
 
 pub fn spawn_space_station(mut commands: Commands) {
@@ -115,10 +126,10 @@ pub fn update_space_station_module_context(
     mut space_station_module_context: ResMut<PlayerHoveringSpaceStationModule>,
     player_ship_q: Query<Entity, With<Player>>,
     space_station_module_q: Query<(Entity, &BuildingType), With<SpaceStationModule>>,
-    collisions: Res<Collisions>
+    collisions: Res<Collisions>,
 ) {
     let player_ent = player_ship_q.single();
-    
+
     for (module_ent, module_type) in space_station_module_q.iter() {
         if let Some(_) = collisions.get(player_ent, module_ent) {
             space_station_module_context.0 = Some((module_ent, *module_type));

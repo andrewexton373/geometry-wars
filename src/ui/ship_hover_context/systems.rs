@@ -5,9 +5,11 @@ use bevy_egui::{
 };
 
 use crate::{
-    events::{BuildHexBuildingEvent, CraftEvent},
+    events::CraftEvent,
     factory::Factory,
-    hexbase::{BuildingType, PlayerHoveringBuilding},
+    hexgrid::components::BuildingType,
+    hexgrid::events::BuildHexBuildingEvent,
+    hexgrid::resources::PlayerHoveringBuilding,
     inventory::components::Inventory,
     refinery::{Refinery, SmeltEvent},
     space_station::components::SpaceStation,
