@@ -5,7 +5,7 @@ pub struct SpaceStationModule;
 
 #[derive(Component, Debug, Clone, Copy)]
 pub enum SpaceStationModuleType {
-    None,
+    Core,
     Factory,
     Refinery,
     Storage,

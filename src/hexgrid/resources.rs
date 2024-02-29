@@ -8,18 +8,10 @@ use hexx::{Hex, HexLayout};
 
 use super::components::BuildingType;
 
-#[derive(Debug, Resource)]
+#[derive(Debug, Resource, Default)]
 pub struct HexGridMap {
     pub layout: HexLayout,
     pub entities: HashMap<Hex, Entity>,
-    pub selected_material: Handle<ColorMaterial>,
-    pub mouse_hover_material: Handle<ColorMaterial>,
-    pub ship_hover_material: Handle<ColorMaterial>,
-    pub ring_material: Handle<ColorMaterial>,
-    pub default_material: Handle<ColorMaterial>,
-    pub factory_material: Handle<ColorMaterial>,
-    pub refinery_material: Handle<ColorMaterial>,
-    pub storage_material: Handle<ColorMaterial>,
 }
 
 #[derive(Debug, Default, Resource)]

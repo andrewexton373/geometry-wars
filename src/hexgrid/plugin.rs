@@ -3,12 +3,12 @@ use bevy::prelude::*;
 use crate::AppState;
 
 use super::events::BuildHexBuildingEvent;
-use super::resources::{MouseHoverHex, SelectedHex};
+use super::resources::{HexGridMap, MouseHoverHex, SelectedHex};
 use super::systems::{update_mouse_hover_hex, update_selected_hex};
 use super::{
     resources::{HighlightedHexes, PlayerHoveringBuilding},
     systems::{
-        color_hexes, handle_mouse_interaction, handle_ship_hovering_context, setup_hex_grid,
+        handle_mouse_interaction, handle_ship_hovering_context, setup_hex_grid,
     },
 };
 
@@ -26,12 +26,12 @@ impl Plugin for HexBasePlugin {
             .init_resource::<HighlightedHexes>()
             .init_resource::<SelectedHex>()
             .init_resource::<MouseHoverHex>()
+            .init_resource::<HexGridMap>()
             .add_systems(Startup, setup_hex_grid)
             .add_systems(
                 Update,
                 (
-                    color_hexes.run_if(in_state(AppState::BuildMode)),
-                    handle_mouse_interaction,
+                    // handle_mouse_interaction,
                     handle_ship_hovering_context,
                     update_mouse_hover_hex,
                     update_selected_hex.after(update_mouse_hover_hex)

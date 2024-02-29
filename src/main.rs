@@ -100,6 +100,8 @@ fn main() {
             FrameTimeDiagnosticsPlugin::default(),
         ))
         .add_plugins((
+            HexBasePlugin,
+
             PlayerPlugin,
             UpgradesPlugin,
             EnginePlugin,
@@ -113,7 +115,6 @@ fn main() {
             CrosshairPlugin,
             GameUIPlugin,
             ParticlePlugin,
-            HexBasePlugin,
             GameCameraPlugin,
         ))
         .add_plugins((HealthPlugin, BatteryPlugin))
