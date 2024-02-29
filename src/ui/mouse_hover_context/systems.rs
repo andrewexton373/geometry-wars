@@ -18,7 +18,11 @@ use bevy_xpbd_2d::{
 };
 
 use crate::{
-    asteroid::components::Asteroid, health::components::Health, player_input::resources::{MouseScreenPosition, MouseWorldPosition}, space_station::modules::components::SpaceStationModuleType, ui::{helpers::progress_string, ship_hover_context::plugin::ShipHoverContext}
+    asteroid::components::Asteroid,
+    health::components::Health,
+    player_input::resources::{MouseScreenPosition, MouseWorldPosition},
+    space_station::modules::components::SpaceStationModuleType,
+    ui::{helpers::progress_string, ship_hover_context::plugin::ShipHoverContext},
 };
 
 use super::resources::MouseHoverContext;
@@ -57,7 +61,7 @@ pub fn ui_mouse_hover_context(
         Option<&Asteroid>,
         Option<&Health>,
         Option<&Mass>,
-        Option<&SpaceStationModuleType>
+        Option<&SpaceStationModuleType>,
     )>,
 ) {
     if let Some(hover_context_ent) = mouse_hover_context.0 {
@@ -71,7 +75,9 @@ pub fn ui_mouse_hover_context(
             .title_bar(false)
             .resizable(false)
             .show(ctx.ctx_mut(), |ui| {
-                if let Ok((_ent, name, asteroid, health, mass, module_type)) = ent_query.get(hover_context_ent) {
+                if let Ok((_ent, name, asteroid, health, mass, module_type)) =
+                    ent_query.get(hover_context_ent)
+                {
                     ui.group(|ui| {
                         ui.heading(format!("{}", name));
 

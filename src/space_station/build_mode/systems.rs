@@ -1,23 +1,40 @@
 use bevy::{
-    asset::{Assets, Handle}, ecs::{
-        entity::Entity, event::EventReader, query::Without, schedule::NextState, system::{Commands, Query, Res, ResMut}
-    }, input::{
+    asset::{Assets, Handle},
+    ecs::{
+        entity::Entity,
+        event::EventReader,
+        query::Without,
+        schedule::NextState,
+        system::{Commands, Query, Res, ResMut},
+    },
+    input::{
         keyboard::{KeyCode, KeyboardInput},
         Input,
-    }, render::color::Color, sprite::ColorMaterial
+    },
+    render::color::Color,
+    sprite::ColorMaterial,
 };
 use bevy_tweening::lens::ColorMaterialColorLens;
 use hexx::Hex;
 
 use crate::{
-    hexgrid::{components::HexTile, resources::{HexGridMap, HighlightedHexes, MouseHoverHex, SelectedHex}}, player_input::resources::MouseWorldPosition, space_station::{modules::components::SpaceStationModuleType, resources::SpaceStationModuleMaterialMap}, ui::context_clue::resources::{ContextClue, ContextClues}, AppState
+    hexgrid::{
+        components::HexTile,
+        resources::{HexGridMap, HighlightedHexes, MouseHoverHex, SelectedHex},
+    },
+    player_input::resources::MouseWorldPosition,
+    space_station::{
+        modules::components::SpaceStationModuleType, resources::SpaceStationModuleMaterialMap,
+    },
+    ui::context_clue::resources::{ContextClue, ContextClues},
+    AppState,
 };
 
 use super::{components::BuildableHex, resources::BuildModeMaterials};
 
 pub fn init_materials(
     mut materials: ResMut<BuildModeMaterials>,
-    mut assets: ResMut<Assets<ColorMaterial>>
+    mut assets: ResMut<Assets<ColorMaterial>>,
 ) {
     *materials = BuildModeMaterials {
         buildable_hex_material: assets.add(Color::rgba(1.0, 1.0, 1.0, 0.5).into()),
@@ -34,31 +51,33 @@ pub fn color_hexes(
     mut hex_query: Query<(Entity, &HexTile, Option<&SpaceStationModuleType>)>,
     mouse_hover_hex: Res<MouseHoverHex>,
     selected_hex: Res<SelectedHex>,
-    materials: Res<BuildModeMaterials>
+    materials: Res<BuildModeMaterials>,
 ) {
     // 2: Color Mouse Hover
     if let Some(entity) = mouse_hover_hex.entity {
-        commands.entity(entity).insert(materials.mouse_hover_hex_material.clone());
+        commands
+            .entity(entity)
+            .insert(materials.mouse_hover_hex_material.clone());
     }
 
     // 3: Color Selected Hover
     if let Some(entity) = selected_hex.entity {
-        commands.entity(entity).insert(materials.selected_hex_material.clone());
+        commands
+            .entity(entity)
+            .insert(materials.selected_hex_material.clone());
     }
 }
 
 pub fn highlight_build_locations(
     mut commands: Commands,
     build_locations_q: Query<(Entity, &HexTile), Without<SpaceStationModuleType>>,
-    materials: Res<BuildModeMaterials>
+    materials: Res<BuildModeMaterials>,
 ) {
     for (build_location_ent, _) in build_locations_q.iter() {
-        commands.entity(build_location_ent).insert((
-            materials.buildable_hex_material.clone(),
-            BuildableHex
-        ));
+        commands
+            .entity(build_location_ent)
+            .insert((materials.buildable_hex_material.clone(), BuildableHex));
     }
-
 }
 
 pub fn handle_build_mode_enter(
@@ -77,7 +96,7 @@ pub fn handle_build_mode_exit(
     keys: Res<Input<KeyCode>>,
     mut game_state: ResMut<NextState<AppState>>,
     mut context_clues: ResMut<ContextClues>,
-    mut hex_tile_q: Query<(Entity, &HexTile)>
+    mut hex_tile_q: Query<(Entity, &HexTile)>,
 ) {
     if keys.just_pressed(KeyCode::B) {
         game_state.set(AppState::InGame);
@@ -88,10 +107,6 @@ pub fn handle_build_mode_exit(
             commands.entity(ent).log_components();
             commands.entity(ent).remove::<Handle<ColorMaterial>>();
             commands.entity(ent).log_components();
-
-
         }
-
     }
-
 }

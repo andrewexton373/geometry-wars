@@ -7,9 +7,7 @@ use super::resources::{HexGridMap, MouseHoverHex, SelectedHex};
 use super::systems::{update_mouse_hover_hex, update_selected_hex};
 use super::{
     resources::{HighlightedHexes, PlayerHoveringBuilding},
-    systems::{
-        handle_mouse_interaction, handle_ship_hovering_context, setup_hex_grid,
-    },
+    systems::{handle_mouse_interaction, handle_ship_hovering_context, setup_hex_grid},
 };
 
 /// World size of the hexagons (outer radius)
@@ -34,8 +32,7 @@ impl Plugin for HexBasePlugin {
                     // handle_mouse_interaction,
                     handle_ship_hovering_context,
                     update_mouse_hover_hex,
-                    update_selected_hex.after(update_mouse_hover_hex)
-                    // Self::handle_build_events,
+                    update_selected_hex.after(update_mouse_hover_hex), // Self::handle_build_events,
                 ),
             );
     }

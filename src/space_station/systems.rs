@@ -28,12 +28,15 @@ use crate::{
 use super::{
     components::SpaceStation,
     modules::components::{SpaceStationModule, SpaceStationModuleType},
-    resources::{CanDeposit, PlayerHoveringSpaceStationModule, SpaceStationModuleMaterialMap, SPACE_STATION_SIZE},
+    resources::{
+        CanDeposit, PlayerHoveringSpaceStationModule, SpaceStationModuleMaterialMap,
+        SPACE_STATION_SIZE,
+    },
 };
 
 pub fn init_space_station_module_material_map(
     mut commands: Commands,
-    mut materials: ResMut<Assets<ColorMaterial>>
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.insert_resource(SpaceStationModuleMaterialMap {
         core_material: materials.add(Color::DARK_GRAY.into()),
@@ -43,27 +46,31 @@ pub fn init_space_station_module_material_map(
     });
 }
 
-pub fn init_space_station_core(
-    mut commands: Commands,
-    hex_grid_map: Res<HexGridMap>
-) {
+pub fn init_space_station_core(mut commands: Commands, hex_grid_map: Res<HexGridMap>) {
     if let Some(origin_hex_ent) = hex_grid_map.entities.get(&Hex::ORIGIN).copied() {
-        commands.entity(origin_hex_ent).insert((
-            SpaceStationModuleType::Core,
-            Health::with_maximum(1000.0)
-        ));
+        commands
+            .entity(origin_hex_ent)
+            .insert((SpaceStationModuleType::Core, Health::with_maximum(1000.0)));
 
-        attach_inventory_to_entity(&mut commands, Inventory { items: vec![], capacity: Capacity {maximum: 2000.0.into()} }, origin_hex_ent)
+        attach_inventory_to_entity(
+            &mut commands,
+            Inventory {
+                items: vec![],
+                capacity: Capacity {
+                    maximum: 2000.0.into(),
+                },
+            },
+            origin_hex_ent,
+        )
     }
 }
 
 pub fn color_space_station_modules(
     mut commands: Commands,
     module_query: Query<(Entity, &SpaceStationModuleType)>,
-    module_material_map: Res<SpaceStationModuleMaterialMap>
+    module_material_map: Res<SpaceStationModuleMaterialMap>,
 ) {
     for (ent, module_type) in module_query.iter() {
-
         let material = match *module_type {
             SpaceStationModuleType::Core => &module_material_map.core_material,
             SpaceStationModuleType::Factory => &module_material_map.fabrication_material,

@@ -101,7 +101,6 @@ fn main() {
         ))
         .add_plugins((
             HexBasePlugin,
-
             PlayerPlugin,
             UpgradesPlugin,
             EnginePlugin,

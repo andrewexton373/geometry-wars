@@ -25,15 +25,14 @@ pub struct HighlightedHexes {
 #[derive(Resource, Default)]
 pub struct PlayerHoveringBuilding(pub(crate) Option<(Entity, BuildingType)>);
 
-
 #[derive(Resource, Default, Debug)]
 pub struct SelectedHex {
     pub selected_hex: Option<Hex>,
-    pub entity: Option<Entity>
+    pub entity: Option<Entity>,
 }
 
 #[derive(Resource, Default)]
 pub struct MouseHoverHex {
     pub hover_hex: Option<Hex>,
-    pub entity: Option<Entity>
+    pub entity: Option<Entity>,
 }
