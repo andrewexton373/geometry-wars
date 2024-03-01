@@ -1,0 +1,14 @@
+{
+  "rust-analyzer.cargo.extraEnv": {
+    "RUSTFLAGS": "-Clinker=clang -Clink-arg=-fuse-ld=lld",
+    "CARGO_TARGET_DIR": "/cache/rust-analyzer"
+  },
+  "rust-analyzer.check.command": "clippy",
+  // "rust-analyzer.check.extraArgs": [
+  //   "-- -D warnings --target-dir target/check"
+  // ],
+  "rust-analyzer.checkOnSave": true,
+  "rust-analyzer.rust.analyzerTargetDir": true,
+  "rust-analyzer.diagnostics.disabled": ["unresolved-proc-macro"],
+  "rust-analyzer.server.extraEnv": { "RUSTUP_TOOLCHAIN": "nightly" }
+}

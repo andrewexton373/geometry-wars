@@ -4,20 +4,13 @@ use bevy::prelude::*;
 use ordered_float::OrderedFloat;
 
 use crate::{
-    base_station::BaseStation,
-    inventory::{Amount, Inventory, InventoryItem},
+    asteroid::components::AsteroidMaterial,
+    inventory::components::{Inventory, InventoryItem},
     item_producer::ItemProducer,
+    items::{Amount, MetalIngot},
     recipe::Recipe,
+    space_station::components::SpaceStation,
 };
-use crate::astroid_material::AstroidMaterial;
-
-#[derive(Default, Debug, Clone, Copy, PartialEq, Hash)]
-pub enum MetalIngot {
-    #[default]
-    IronIngot,
-    SilverIngot,
-    GoldIngot,
-}
 
 #[derive(Resource)]
 pub struct RefineryTimer(pub Option<Timer>);
@@ -34,11 +27,10 @@ impl ItemProducer for Refinery {
     fn new() -> Self {
         let mut recipes = Vec::new();
 
-        let mut items_required = Vec::new();
-        items_required.push(InventoryItem::Material(
-            AstroidMaterial::Iron,
+        let items_required = vec![InventoryItem::Material(
+            AsteroidMaterial::Iron,
             Amount::Weight(OrderedFloat(20.0)),
-        ));
+        )];
 
         let iron_recipe = Recipe {
             items_required,
@@ -46,11 +38,10 @@ impl ItemProducer for Refinery {
             time_required: 2.0,
         };
 
-        let mut items_required = Vec::new();
-        items_required.push(InventoryItem::Material(
-            AstroidMaterial::Silver,
+        let items_required = vec![InventoryItem::Material(
+            AsteroidMaterial::Silver,
             Amount::Weight(OrderedFloat(50.0)),
-        ));
+        )];
 
         let silver_recipe = Recipe {
             items_required,
@@ -58,11 +49,10 @@ impl ItemProducer for Refinery {
             time_required: 5.0,
         };
 
-        let mut items_required = Vec::new();
-        items_required.push(InventoryItem::Material(
-            AstroidMaterial::Gold,
+        let items_required = vec![InventoryItem::Material(
+            AsteroidMaterial::Gold,
             Amount::Weight(OrderedFloat(100.0)),
-        ));
+        )];
 
         let gold_recipe = Recipe {
             items_required,
@@ -113,8 +103,10 @@ impl Plugin for RefineryPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SmeltEvent>()
             .insert_resource(RefineryTimer(None))
-            .add_system(Self::on_smelt_event)
-            .add_system(Self::update_refinery_processing);
+            .add_systems(
+                Update,
+                (Self::on_smelt_event, Self::update_refinery_processing),
+            );
     }
 }
 
@@ -172,8 +164,8 @@ impl RefineryPlugin {
     /// perfom actions when timer elapses.
     fn update_refinery_processing(
         mut base_station_query: Query<
-            (&BaseStation, &mut Inventory, &mut Refinery),
-            With<BaseStation>,
+            (&SpaceStation, &mut Inventory, &mut Refinery),
+            With<SpaceStation>,
         >,
         mut timer: ResMut<RefineryTimer>,
         time: Res<Time>,
@@ -203,17 +195,16 @@ impl RefineryPlugin {
         }
     }
 
-
     /// Perfom a smelt action with a recipe provided by the SmeltEvent.
     fn on_smelt_event(
         mut reader: EventReader<SmeltEvent>,
         mut base_station_query: Query<
-            (&BaseStation, &mut Inventory, &mut Refinery),
-            With<BaseStation>,
+            (&SpaceStation, &mut Inventory, &mut Refinery),
+            With<SpaceStation>,
         >,
         mut refinery_timer: ResMut<RefineryTimer>,
     ) {
-        for event in reader.iter() {
+        for event in reader.read() {
             println!("Smelt Event Detected!");
             let (_base_station, inventory, refinery) = base_station_query.single_mut();
 
@@ -229,5 +220,5 @@ impl RefineryPlugin {
     }
 }
 
+#[derive(Event)]
 pub struct SmeltEvent(pub Recipe);
-

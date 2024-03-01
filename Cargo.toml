@@ -4,24 +4,26 @@ version = "0.2.0"
 edition = "2021"
 
 [dependencies]
-ordered-float = "3.4.0"
+ordered-float = "4.2.0"
 num = "0.4.0"
-bevy = { version = "0.10", features = ["bevy_sprite"] }
-bevy_egui = "0.20"
-egui_dnd = "0.3.0"
-bevy_rapier2d = { version = "0.21.0", features = ["debug-render-2d"] }
-bevy_prototype_lyon = "0.8.0"
-bevy_particle_systems = { version = "0.9.0" }
-bevy_tweening = "0.7"
+bevy = { version = "0.12", features = ["bevy_sprite", "wayland"] }
+bevy_egui = "0.24"
+#egui_dnd = "0.7.0"
+bevy_xpbd_2d = "0.3"
+bevy_prototype_lyon = "0.10.0"
+bevy_particle_systems = { version = "0.11.0" }
+bevy_tweening = "0.9"
 strum = "0.24"
 strum_macros = "0.24"
 rand = "0.8.5"
 rand_distr = "0.4.3"
-bevy-debug-text-overlay = "5.0.0"
-geo = "0.24.0"
-bevy_ecs_tilemap = "0.10"
-bevy-inspector-egui = "0.18.1"
-hexx = "0.5.3"
+bevy-debug-text-overlay = "7.0.0"
+geo = "0.25.0"
+#bevy_ecs_tilemap = "0.11"
+bevy-inspector-egui = "0.22"
+bevy-trait-query = "0.4"
+hexx = "0.14"
+big-brain = "0.19"
 
 # Enable a small amount of optimization in debug mode
 # [profile.dev]

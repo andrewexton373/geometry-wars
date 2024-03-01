@@ -2,24 +2,17 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
+use crate::events::CraftEvent;
+use crate::items::{Amount, MetalIngot};
+use crate::upgrades::components::UpgradeComponent;
 use crate::{
-    base_station::BaseStation,
-    inventory::{Amount, Inventory, InventoryItem},
     item_producer::ItemProducer,
     recipe::Recipe,
-    refinery::MetalIngot,
     // widgets::factory::CraftEvent,
+    space_station::components::SpaceStation,
 };
-use crate::events::CraftEvent;
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Hash)]
-pub enum UpgradeComponent {
-    #[default]
-    Cog,
-    IronPlate,
-    SilverConduit,
-    GoldLeaf,
-}
+use crate::inventory::components::{Inventory, InventoryItem};
 
 #[derive(Resource)]
 
@@ -63,11 +56,10 @@ impl ItemProducer for Factory {
     fn new() -> Self {
         let mut recipes = Vec::new();
 
-        let mut items_required = Vec::new();
-        items_required.push(InventoryItem::Ingot(
+        let items_required = vec![InventoryItem::Ingot(
             MetalIngot::IronIngot,
             Amount::Quantity(2),
-        ));
+        )];
 
         let cog_recipe = Recipe {
             items_required,
@@ -75,11 +67,10 @@ impl ItemProducer for Factory {
             time_required: 4.0,
         };
 
-        let mut items_required = Vec::new();
-        items_required.push(InventoryItem::Ingot(
+        let items_required = vec![InventoryItem::Ingot(
             MetalIngot::IronIngot,
             Amount::Quantity(5),
-        ));
+        )];
 
         let iron_plate_recipe = Recipe {
             items_required,
@@ -90,11 +81,10 @@ impl ItemProducer for Factory {
             time_required: 10.0,
         };
 
-        let mut items_required = Vec::new();
-        items_required.push(InventoryItem::Ingot(
+        let items_required = vec![InventoryItem::Ingot(
             MetalIngot::SilverIngot,
             Amount::Quantity(1),
-        ));
+        )];
 
         let silver_conduit_recipe = Recipe {
             items_required,
@@ -105,11 +95,10 @@ impl ItemProducer for Factory {
             time_required: 8.0,
         };
 
-        let mut items_required = Vec::new();
-        items_required.push(InventoryItem::Ingot(
+        let items_required = vec![InventoryItem::Ingot(
             MetalIngot::GoldIngot,
             Amount::Quantity(1),
-        ));
+        )];
 
         let gold_leaf_recipe = Recipe {
             items_required,
@@ -136,8 +125,10 @@ impl Plugin for FactoryPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<CraftEvent>()
             .insert_resource(FactoryTimer(None))
-            .add_system(Self::on_craft_event)
-            .add_system(Self::update_factory_processing);
+            .add_systems(
+                Update,
+                (Self::on_craft_event, Self::update_factory_processing),
+            );
     }
 }
 
@@ -177,7 +168,7 @@ impl FactoryPlugin {
         mut factory: Mut<Factory>,
         timer: &mut ResMut<FactoryTimer>,
     ) {
-        if Self::have_materials_to_craft(inventory.as_ref(), &recipe) {
+        if Self::have_materials_to_craft(inventory.as_ref(), recipe) {
             println!("We have the materials!");
 
             // Set currently processing to the recipe, finish processing after the timer.
@@ -195,8 +186,8 @@ impl FactoryPlugin {
     /// perfom actions when timer elapses.
     fn update_factory_processing(
         mut base_station_query: Query<
-            (&BaseStation, &mut Inventory, &mut Factory),
-            With<BaseStation>,
+            (&SpaceStation, &mut Inventory, &mut Factory),
+            With<SpaceStation>,
         >,
         mut timer: ResMut<FactoryTimer>,
         time: Res<Time>,
@@ -230,12 +221,12 @@ impl FactoryPlugin {
     fn on_craft_event(
         mut reader: EventReader<CraftEvent>,
         mut base_station_query: Query<
-            (&BaseStation, &mut Inventory, &mut Factory),
-            With<BaseStation>,
+            (&SpaceStation, &mut Inventory, &mut Factory),
+            With<SpaceStation>,
         >,
         mut factory_timer: ResMut<FactoryTimer>,
     ) {
-        for event in reader.iter() {
+        for event in reader.read() {
             println!("Craft Event Detected!");
             let (_base_station, inventory, factory) = base_station_query.single_mut();
 
