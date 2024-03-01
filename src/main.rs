@@ -38,6 +38,7 @@ use bevy_particle_systems::ParticleSystemPlugin;
 use bevy_prototype_lyon::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 
+use projectile::plugin::ProjectilePlugin;
 use camera::plugin::GameCameraPlugin;
 use rcs::plugin::RCSPlugin;
 use factory::FactoryPlugin;
@@ -120,7 +121,8 @@ fn main() {
         .add_plugins((
             HealthPlugin,
             BatteryPlugin,
-            AiPlugin
+            AiPlugin,
+            ProjectilePlugin
         ))
         .insert_resource(Gravity::ZERO)
         .add_state::<AppState>()

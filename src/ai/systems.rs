@@ -1,34 +1,32 @@
 use std::f32::consts::PI;
 
 use bevy::prelude::*;
+use bevy_particle_systems::Line;
 use bevy_prototype_lyon::{draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, prelude::tess::geom::Translation, shapes};
-use bevy_xpbd_2d::components::{Collider, RigidBody};
+use bevy_xpbd_2d::components::{Collider, LinearVelocity, RigidBody};
 use big_brain::{actions::{ActionState, Steps}, pickers::FirstToScore, scorers::Score, thinker::{ActionSpan, Actor, ScorerSpan, Thinker}};
 use rand::Rng;
 
-use crate::{player::{self, components::Player}, rcs::{components::RCSBooster, events::RCSThrustVectorEvent}};
+use crate::{player::{self, components::Player}, projectile::events::FireProjectileEvent, rcs::{components::RCSBooster, events::RCSThrustVectorEvent}};
 
 use super::components::{Attack, Hostile, Hostility, MoveTowardsPlayer, Position};
 
 pub fn init_entities(mut cmd: Commands) {
 
-    let move_towards_player = Steps::build()
-        .label("MoveTowardsPlayer")
-        .step(MoveTowardsPlayer {speed: 10000000000.0});
+    let move_towards_player_and_attack = Steps::build()
+        .label("MoveTowardsPlayerAndAttack")
+        .step(MoveTowardsPlayer {speed: 10000000000.0})
+        .step(Attack {until: 5.0, per_second: 1.0});
 
     let thinker = Thinker::build()
         .label("Ai Thinker")
         .picker(FirstToScore { threshold: 0.8 })
-        // .when(Hostile, Attack {
-        //     until: 70.0,
-        //     per_second: 5.0
-        // })
-        .when(Hostile, move_towards_player);
+        .when(Hostile, move_towards_player_and_attack);
 
     let mut rng = rand::thread_rng();
 
 
-    for _ in 0..20 {
+    for _ in 0..10 {
 
         let rand = rng.gen::<f32>() * 2.0 * PI;
         let random_dir = Vec2::new(f32::cos(rand), f32::sin(rand));
@@ -49,6 +47,7 @@ pub fn init_entities(mut cmd: Commands) {
             RCSBooster::new(),
             RigidBody::Dynamic,
             Collider::ball(1.0),
+            LinearVelocity::ZERO,
             Fill::color(Color::RED),
             Hostility::new(75.0, 2.0),
             thinker.clone()
@@ -61,8 +60,11 @@ pub fn init_entities(mut cmd: Commands) {
 // ACTIONS
 pub fn attack_action_system(
     time: Res<Time>,
+    player_q: Query<&GlobalTransform, With<Player>>,
+    mut positions: Query<&GlobalTransform, Without<Player>>,
     mut hostilities: Query<&mut Hostility>,
-    mut query: Query<(&Actor, &mut ActionState, &Attack, &ActionSpan)>
+    mut query: Query<(&Actor, &mut ActionState, &Attack, &ActionSpan)>,
+    mut fire_projectile_events: EventWriter<FireProjectileEvent>
 ) {
     for (Actor(actor), mut state, attack, span) in &mut query {
 
@@ -80,10 +82,23 @@ pub fn attack_action_system(
                 ActionState::Executing => {
                     trace!("Attacking player...");
                     hostility.hostility -= attack.per_second * (time.delta().as_micros() as f32 / 1_000_000.0);
-                    if hostility.hostility <= attack.until {
-                        debug!("Done Attacking, Getting some Rest");
-                        *state = ActionState::Success;
-                    }
+
+                    let player_gt = player_q.single();
+                    let actor_gt = positions.get(*actor).expect("actor does not have a global transform");
+
+                    let dir_to_player = (player_gt.translation() - actor_gt.translation()).truncate().normalize();
+                    fire_projectile_events.send(FireProjectileEvent {
+                        entity: *actor,
+                        projectile_trajectory: LinearVelocity(dir_to_player * 50.0 * crate::PIXELS_PER_METER)                        
+                    });
+
+                    *state = ActionState::Success;
+
+
+                    // if hostility.hostility <= attack.until {
+                    //     debug!("Done Attacking, Getting some Rest");
+                    //     *state = ActionState::Success;
+                    // }
                 },
                 ActionState::Cancelled => {
                     debug!("Attack Action was cancelled!");
@@ -99,7 +114,7 @@ pub fn attack_action_system(
     }
 }
 
-pub const MAX_DISTANCE: f32 = 100.0;
+pub const MAX_DISTANCE: f32 = 600.0;
 
 pub fn move_towards_player_action_system(
     time: Res<Time>,
@@ -135,6 +150,8 @@ pub fn move_towards_player_action_system(
                         thrust_vector: step.truncate()
                     });
                     
+                } else {
+                    *action_state = ActionState::Success;
                 }
 
             },

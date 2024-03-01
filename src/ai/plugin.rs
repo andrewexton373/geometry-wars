@@ -12,7 +12,7 @@ impl Plugin for AiPlugin {
             .add_systems(Startup, init_entities)
             .add_systems(Update, hostility_system)
             .add_systems(PreUpdate, (
-                // attack_action_system,
+                attack_action_system,
                 hostility_scorer_system,
                 move_towards_player_action_system
             ).in_set(BigBrainSet::Actions));

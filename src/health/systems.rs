@@ -10,11 +10,8 @@ pub fn handle_damage_events(
     mut entity_q: Query<&mut Health>,
 ) {
     for evt in damage_events.read() {
-        dbg!("Damage: {}", evt.damage);
-
         if let Ok(mut health) = entity_q.get_mut(evt.entity) {
             health.take_damage(evt.damage);
-            dbg!("Current HP: {}", health.current());
         }
     }
 }
