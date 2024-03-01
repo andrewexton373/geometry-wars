@@ -62,6 +62,7 @@ pub fn attack_action_system(
     time: Res<Time>,
     player_q: Query<&GlobalTransform, With<Player>>,
     mut positions: Query<&GlobalTransform, Without<Player>>,
+    velocities: Query<&LinearVelocity>,
     mut hostilities: Query<&mut Hostility>,
     mut query: Query<(&Actor, &mut ActionState, &Attack, &ActionSpan)>,
     mut fire_projectile_events: EventWriter<FireProjectileEvent>
@@ -85,11 +86,12 @@ pub fn attack_action_system(
 
                     let player_gt = player_q.single();
                     let actor_gt = positions.get(*actor).expect("actor does not have a global transform");
+                    let actor_lin_vel = velocities.get(*actor).expect("actor does not have linear velocity!");
 
                     let dir_to_player = (player_gt.translation() - actor_gt.translation()).truncate().normalize();
                     fire_projectile_events.send(FireProjectileEvent {
                         entity: *actor,
-                        projectile_trajectory: LinearVelocity(dir_to_player * 50.0 * crate::PIXELS_PER_METER)                        
+                        projectile_trajectory: LinearVelocity(actor_lin_vel.0 + (dir_to_player * 50.0 * crate::PIXELS_PER_METER))                     
                     });
 
                     *state = ActionState::Success;

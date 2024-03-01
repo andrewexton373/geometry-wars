@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_xpbd_2d::components::{Collider, CollidingEntities, LinearVelocity, RigidBody};
-use bevy_xpbd_2d::plugins::collision::Collisions;
 
 use crate::health::events::DamageEvent;
 
@@ -24,7 +23,6 @@ pub fn handle_fire_projectile_events(
         };
 
         if let Ok(projectile_spawn_position) = global_transforms.get(evt.entity) {
-
             // Move projectile slightly ahead of where it was fired from to avoid self collision
             let projectile_spawn_position = projectile_spawn_position.translation().truncate() + evt.projectile_trajectory.0.trunc().normalize() * 20.0;
 
