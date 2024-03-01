@@ -168,8 +168,6 @@ pub fn update_selected_hex(
             entity: mouse_hover_hex.entity,
             selected_hex: mouse_hover_hex.hover_hex,
         };
-
-        dbg!("Selected Hex: {}", selected_hex);
     }
 }
 

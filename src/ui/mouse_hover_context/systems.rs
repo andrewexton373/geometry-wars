@@ -30,7 +30,7 @@ use super::resources::MouseHoverContext;
 pub fn update_mouse_hover_context_resource(
     mut mouse_hover_context: ResMut<MouseHoverContext>,
     mouse_world_position: Res<MouseWorldPosition>,
-    ent_query: Query<(Entity, &Name, Option<&Asteroid>)>,
+    ent_query: Query<Entity>,
     spatial_q: SpatialQuery,
 ) {
     // Raycast Mouse Position Into Viewport
@@ -41,7 +41,7 @@ pub fn update_mouse_hover_context_resource(
         true,
         SpatialQueryFilter::default(),
     ) {
-        if let Ok((ent, _name, _asteroid)) = ent_query.get(ray_hit.entity) {
+        if let Ok(ent) = ent_query.get(ray_hit.entity) {
             mouse_hover_context.0 = Some(ent);
         } else {
             mouse_hover_context.0 = None;

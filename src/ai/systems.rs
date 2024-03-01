@@ -7,9 +7,9 @@ use bevy_xpbd_2d::components::{Collider, LinearVelocity, RigidBody};
 use big_brain::{actions::{ActionState, Steps}, pickers::FirstToScore, scorers::Score, thinker::{ActionSpan, Actor, ScorerSpan, Thinker}};
 use rand::Rng;
 
-use crate::{player::{self, components::Player}, projectile::events::FireProjectileEvent, rcs::{components::RCSBooster, events::RCSThrustVectorEvent}};
+use crate::{health::components::Health, player::{self, components::Player}, projectile::events::FireProjectileEvent, rcs::{components::RCSBooster, events::RCSThrustVectorEvent}};
 
-use super::components::{Attack, Hostile, Hostility, MoveTowardsPlayer, Position};
+use super::components::{Attack, Enemy, Hostile, Hostility, MoveTowardsPlayer, Position};
 
 pub fn init_entities(mut cmd: Commands) {
 
@@ -47,14 +47,26 @@ pub fn init_entities(mut cmd: Commands) {
             RCSBooster::new(),
             RigidBody::Dynamic,
             Collider::ball(1.0),
+            Health::new(),
             LinearVelocity::ZERO,
             Fill::color(Color::RED),
             Hostility::new(75.0, 2.0),
-            thinker.clone()
+            thinker.clone(),
+            Name::new("Enemy"),
+            Enemy
         ));
     }
+}
 
-    
+pub fn despawn_dead_enemies(
+    mut commands: Commands,
+    enemies: Query<(Entity, &Enemy, &Health)>
+) {
+    for (entity, _, health) in enemies.iter() {
+        if health.current <= 0.0 {
+            commands.entity(entity).despawn_recursive();
+        }
+    }
 }
 
 // ACTIONS
