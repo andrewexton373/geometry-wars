@@ -50,7 +50,12 @@ pub fn init_space_station_core(mut commands: Commands, hex_grid_map: Res<HexGrid
     if let Some(origin_hex_ent) = hex_grid_map.entities.get(&Hex::ORIGIN).copied() {
         commands
             .entity(origin_hex_ent)
-            .insert((SpaceStationModuleType::Core, Health::with_maximum(1000.0)));
+            .insert((
+                SpaceStationModuleType::Core,
+                Health::with_maximum(1000.0),
+                SpaceStation,
+                Name::new("Base Station"),
+        ));
 
         attach_inventory_to_entity(
             &mut commands,
@@ -83,44 +88,44 @@ pub fn color_space_station_modules(
     }
 }
 
-pub fn spawn_space_station(mut commands: Commands) {
-    let base_shape = lyon::shapes::RegularPolygon {
-        sides: 6,
-        feature: lyon::shapes::RegularPolygonFeature::Radius(
-            crate::PIXELS_PER_METER * SPACE_STATION_SIZE,
-        ),
-        ..lyon::shapes::RegularPolygon::default()
-    };
+// pub fn spawn_space_station(mut commands: Commands) {
+//     let base_shape = lyon::shapes::RegularPolygon {
+//         sides: 6,
+//         feature: lyon::shapes::RegularPolygonFeature::Radius(
+//             crate::PIXELS_PER_METER * SPACE_STATION_SIZE,
+//         ),
+//         ..lyon::shapes::RegularPolygon::default()
+//     };
 
-    let base_station = commands
-        .spawn((
-            ShapeBundle {
-                path: GeometryBuilder::build_as(&base_shape),
-                spatial: Transform::from_xyz(0.0, 0.0, -100.0).into(),
+//     let base_station = commands
+//         .spawn((
+//             ShapeBundle {
+//                 path: GeometryBuilder::build_as(&base_shape),
+//                 spatial: Transform::from_xyz(0.0, 0.0, -100.0).into(),
 
-                ..default()
-            },
-            Fill::color(Color::BLUE),
-            Stroke::new(Color::WHITE, 5.0),
-            Collider::ball(crate::PIXELS_PER_METER * SPACE_STATION_SIZE),
-            SpaceStation,
-            Name::new("Base Station"),
-        ))
-        .id();
+//                 ..default()
+//             },
+//             Fill::color(Color::BLUE),
+//             Stroke::new(Color::WHITE, 5.0),
+//             Collider::ball(crate::PIXELS_PER_METER * SPACE_STATION_SIZE),
+//             SpaceStation,
+//             Name::new("Base Station"),
+//         ))
+//         .id();
 
-    attach_inventory_to_entity(
-        &mut commands,
-        Inventory {
-            items: Vec::new(),
-            capacity: Capacity {
-                maximum: OrderedFloat(1000.0),
-            },
-        },
-        base_station,
-    );
-    RefineryPlugin::attach_refinery_to_entity(&mut commands, base_station);
-    FactoryPlugin::attach_factory_to_entity(&mut commands, base_station);
-}
+//     attach_inventory_to_entity(
+//         &mut commands,
+//         Inventory {
+//             items: Vec::new(),
+//             capacity: Capacity {
+//                 maximum: OrderedFloat(1000.0),
+//             },
+//         },
+//         base_station,
+//     );
+//     RefineryPlugin::attach_refinery_to_entity(&mut commands, base_station);
+//     FactoryPlugin::attach_factory_to_entity(&mut commands, base_station);
+// }
 
 pub fn repel_asteroids_from_space_station(
     base_query: Query<(&SpaceStation, &GlobalTransform), With<SpaceStation>>,

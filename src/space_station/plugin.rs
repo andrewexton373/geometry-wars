@@ -9,7 +9,6 @@ use super::resources::CanDeposit;
 use super::systems::{
     color_space_station_modules, handle_space_station_collision_event, init_space_station_core,
     init_space_station_module_material_map, repel_asteroids_from_space_station,
-    spawn_space_station,
 };
 
 pub struct SpaceStationPlugin;
@@ -22,7 +21,6 @@ impl Plugin for SpaceStationPlugin {
                 Startup,
                 (
                     init_space_station_module_material_map,
-                    spawn_space_station,
                     init_space_station_core.after(setup_hex_grid),
                 ),
             )
