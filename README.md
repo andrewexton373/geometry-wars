@@ -23,6 +23,8 @@ RMB - Lock camera to Selected Target
 
 X - Lock camera to Player's Ship
 
+B - Enter/Exit Build Mode (Space Station Modules)
+
 < - Zoom Out
 > - Zoom In
 ```

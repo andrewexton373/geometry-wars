@@ -22,9 +22,11 @@ pub fn handle_thrust_events(
     mut entity_query: Query<(&RCSBooster, &mut ExternalForce)>
 ) {
     for evt in thrust_vector_events.read() {
+        // dbg!("EVENT: {} {}", evt.entity, evt.thrust_vector);
         if let Ok((booster, mut external_force)) = entity_query.get_mut(evt.entity) {
             let thrust_vector = evt.thrust_vector * booster.power_level;
             external_force.set_force(thrust_vector);
+            external_force.persistent = false;
         }
     }
 }

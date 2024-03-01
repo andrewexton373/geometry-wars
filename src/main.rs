@@ -21,9 +21,11 @@ pub(crate) mod space_station;
 pub(crate) mod ui;
 pub(crate) mod upgrades;
 pub(crate) mod rcs;
+pub(crate) mod ai;
 
 // #![feature(array_methods)]
 
+use ai::plugin::AiPlugin;
 use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
 
 use bevy::{
@@ -115,7 +117,11 @@ fn main() {
             ParticlePlugin,
             GameCameraPlugin,
         ))
-        .add_plugins((HealthPlugin, BatteryPlugin))
+        .add_plugins((
+            HealthPlugin,
+            BatteryPlugin,
+            AiPlugin
+        ))
         .insert_resource(Gravity::ZERO)
         .add_state::<AppState>()
         .run();

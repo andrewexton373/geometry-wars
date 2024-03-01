@@ -147,10 +147,13 @@ pub fn player_movement(
     let force = thrust.normalize_or_zero() * ACCELERATION;
     let energy_spent = force.length() / 5000000.0; // TODO: magic number
 
+    if force == Vec2::ZERO { return; }
+
     battery_events.send(DrainBatteryEvent {
         entity,
         drain: energy_spent,
     });
+
 
     thrust_vector_events.send(RCSThrustVectorEvent {
         entity,

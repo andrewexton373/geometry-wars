@@ -1878,6 +1878,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "big-brain"
+version = "0.19.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6cc1e5a464ad87f404c57b88de46e2cb3e8276dda997cc6ed48b8aa6e0310fbc"
+dependencies = [
+ "bevy 0.12.1",
+ "big-brain-derive",
+]
+
+[[package]]
+name = "big-brain-derive"
+version = "0.19.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dfb0e3fc93d1ab2bc67fc1ec8105738d0c01afaa36797ef17885f4afca8cd6dc"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "bindgen"
 version = "0.69.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2842,6 +2863,7 @@ dependencies = [
  "bevy_prototype_lyon",
  "bevy_tweening",
  "bevy_xpbd_2d",
+ "big-brain",
  "egui_dnd",
  "geo",
  "hexx",
