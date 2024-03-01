@@ -65,8 +65,8 @@ pub fn ui_mouse_hover_context(
     )>,
 ) {
     if let Some(hover_context_ent) = mouse_hover_context.0 {
-        let offset = Vec2 {x: 8.0, y: 8.0};
-        
+        let offset = Vec2 { x: 8.0, y: 8.0 };
+
         let screen_pos = Pos2 {
             x: mouse_screen_position.0.x + offset.x,
             y: mouse_screen_position.0.y + offset.y,

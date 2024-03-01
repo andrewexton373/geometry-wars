@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 
-
 #[derive(Component, Default)]
 pub struct RCSBooster {
     pub power_level: f32,

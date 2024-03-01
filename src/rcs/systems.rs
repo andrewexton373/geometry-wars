@@ -1,9 +1,17 @@
-use bevy::ecs::{change_detection::DetectChangesMut, entity::Entity, event::EventReader, system::{adapter::dbg, Query}};
+use bevy::ecs::{
+    change_detection::DetectChangesMut,
+    entity::Entity,
+    event::EventReader,
+    system::{adapter::dbg, Query},
+};
 use bevy_xpbd_2d::components::ExternalForce;
 
 use crate::player::components::Player;
 
-use super::{components::RCSBooster, events::{RCSThrustPowerEvent, RCSThrustVectorEvent}};
+use super::{
+    components::RCSBooster,
+    events::{RCSThrustPowerEvent, RCSThrustVectorEvent},
+};
 
 pub fn handle_set_thrust_power_events(
     mut engine_events: EventReader<RCSThrustPowerEvent>,
@@ -19,7 +27,7 @@ pub fn handle_set_thrust_power_events(
 
 pub fn handle_thrust_events(
     mut thrust_vector_events: EventReader<RCSThrustVectorEvent>,
-    mut entity_query: Query<(&RCSBooster, &mut ExternalForce)>
+    mut entity_query: Query<(&RCSBooster, &mut ExternalForce)>,
 ) {
     for evt in thrust_vector_events.read() {
         // dbg!("EVENT: {} {}", evt.entity, evt.thrust_vector);

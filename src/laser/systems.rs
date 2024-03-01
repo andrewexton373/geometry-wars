@@ -10,9 +10,9 @@ use bevy_xpbd_2d::plugins::spatial_query::{SpatialQuery, SpatialQueryFilter};
 use super::components::Laser;
 use super::events::LaserEvent;
 
-use crate::{asteroid::events::AblateEvent, health::events::DamageEvent};
 use crate::particles::components::LaserImpactParticleSystem;
 use crate::player::components::Player;
+use crate::{asteroid::events::AblateEvent, health::events::DamageEvent};
 
 pub fn setup_laser(mut commands: Commands, mut laser_query: Query<&mut Laser>) {
     let line = shapes::Line(Vec2::ZERO, Vec2::X);
@@ -54,7 +54,7 @@ pub fn fire_laser_raycasting(
     >,
     player_q: Query<Entity, &Player>,
     spatial_query: SpatialQuery,
-    mut damage_events: EventWriter<DamageEvent>
+    mut damage_events: EventWriter<DamageEvent>,
 ) {
     // TODO: Change Laser State To Off On Player Left Unclick
     for (ent, _, mut _t) in laser_impact_particles_query.iter_mut() {
@@ -107,9 +107,8 @@ pub fn fire_laser_raycasting(
                 ablate_event_writer.send(AblateEvent(hit_ent, hit_point, hit_normal));
                 damage_events.send(DamageEvent {
                     entity: hit_ent,
-                    damage: 5.0
+                    damage: 5.0,
                 })
-
             }
         }
     }

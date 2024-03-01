@@ -7,10 +7,6 @@ use std::f32::consts::PI;
 use super::components::Player;
 use super::resources::EmptyInventoryDepositTimer;
 
-use crate::{battery::{
-    components::Battery,
-    events::{ChargeBatteryEvent, DrainBatteryEvent},
-}, rcs::{components::RCSBooster, events::RCSThrustVectorEvent}};
 use crate::camera::components::CameraTarget;
 use crate::collectible::components::Collectible;
 use crate::crosshair::components::Crosshair;
@@ -25,6 +21,13 @@ use crate::space_station::resources::CanDeposit;
 use crate::ui::context_clue::resources::{ContextClue, ContextClues};
 use crate::upgrades::{components::UpgradesComponent, events::UpgradeEvent};
 use crate::PIXELS_PER_METER;
+use crate::{
+    battery::{
+        components::Battery,
+        events::{ChargeBatteryEvent, DrainBatteryEvent},
+    },
+    rcs::{components::RCSBooster, events::RCSThrustVectorEvent},
+};
 
 pub fn spawn_player(mut commands: Commands) {
     let player_poly = shapes::Polygon {
@@ -61,7 +64,7 @@ pub fn spawn_player(mut commands: Commands) {
             Collider::convex_hull(player_poly.points.clone()).unwrap(),
             Health::new(),
             Battery::new(),
-            RCSBooster::new()
+            RCSBooster::new(),
         ))
         .insert((
             ShapeBundle {
@@ -140,26 +143,28 @@ pub fn player_movement(
     }
 
     // If the players ship has no remaining battery capacity, end early.
-    if battery.current() <= 0.0 { return };
+    if battery.current() <= 0.0 {
+        return;
+    };
 
     const ACCELERATION: f32 = 1000.0 * PIXELS_PER_METER;
 
     let force = thrust.normalize_or_zero() * ACCELERATION;
     let energy_spent = force.length() / 5000000.0; // TODO: magic number
 
-    if force == Vec2::ZERO { return; }
+    if force == Vec2::ZERO {
+        return;
+    }
 
     battery_events.send(DrainBatteryEvent {
         entity,
         drain: energy_spent,
     });
 
-
     thrust_vector_events.send(RCSThrustVectorEvent {
         entity,
-        thrust_vector: force
+        thrust_vector: force,
     });
-
 }
 
 pub fn ship_rotate_towards_mouse(

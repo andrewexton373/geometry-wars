@@ -10,7 +10,7 @@ use crate::space_station::resources::CanDeposit;
 use crate::ui::mouse_hover_context::resources::MouseHoverContext;
 use crate::ui::{mouse_hover_context, ship_hover_context};
 
-use super::events::{DepositInventoryEvent};
+use super::events::DepositInventoryEvent;
 use super::resources::{MouseScreenPosition, MouseWorldPosition};
 
 pub fn update_mouse_world_position_resource(

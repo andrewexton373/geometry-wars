@@ -1,3 +1,4 @@
+pub(crate) mod ai;
 pub(crate) mod asteroid;
 pub(crate) mod battery;
 pub(crate) mod camera;
@@ -15,13 +16,12 @@ pub(crate) mod particles;
 pub(crate) mod player;
 pub(crate) mod player_input;
 pub(crate) mod projectile;
+pub(crate) mod rcs;
 pub(crate) mod recipe;
 pub(crate) mod refinery;
 pub(crate) mod space_station;
 pub(crate) mod ui;
 pub(crate) mod upgrades;
-pub(crate) mod rcs;
-pub(crate) mod ai;
 
 // #![feature(array_methods)]
 
@@ -38,14 +38,14 @@ use bevy_particle_systems::ParticleSystemPlugin;
 use bevy_prototype_lyon::prelude::*;
 use bevy_xpbd_2d::prelude::*;
 
-use projectile::plugin::ProjectilePlugin;
 use camera::plugin::GameCameraPlugin;
-use rcs::plugin::RCSPlugin;
 use factory::FactoryPlugin;
 use inventory::plugin::InventoryPlugin;
 use particles::plugin::ParticlePlugin;
 use player::{components::Player, plugin::PlayerPlugin};
 use player_input::plugin::PlayerInputPlugin;
+use projectile::plugin::ProjectilePlugin;
+use rcs::plugin::RCSPlugin;
 use ui::plugin::GameUIPlugin;
 // use projectile::ProjectilePlugin;
 use crate::crosshair::plugin::CrosshairPlugin;
@@ -118,12 +118,7 @@ fn main() {
             ParticlePlugin,
             GameCameraPlugin,
         ))
-        .add_plugins((
-            HealthPlugin,
-            BatteryPlugin,
-            AiPlugin,
-            ProjectilePlugin
-        ))
+        .add_plugins((HealthPlugin, BatteryPlugin, AiPlugin, ProjectilePlugin))
         .insert_resource(Gravity::ZERO)
         .add_state::<AppState>()
         .run();
