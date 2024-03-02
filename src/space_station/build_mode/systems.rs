@@ -48,9 +48,6 @@ pub fn init_materials(
 pub fn color_hexes(
     mut commands: Commands,
     _mouse_pos: Res<MouseWorldPosition>,
-    map: Res<HexGridMap>,
-    highlighted: Res<HighlightedHexes>,
-    mut hex_query: Query<(Entity, &HexTile, Option<&SpaceStationModuleType>)>,
     mouse_hover_hex: Res<MouseHoverHex>,
     selected_hex: Res<SelectedHex>,
     materials: Res<BuildModeMaterials>,
@@ -110,7 +107,7 @@ pub fn handle_build_mode_exit(
     keys: Res<Input<KeyCode>>,
     mut game_state: ResMut<NextState<AppState>>,
     mut context_clues: ResMut<ContextClues>,
-    mut hex_tile_q: Query<(Entity, &HexTile)>,
+    hex_tile_q: Query<(Entity, &HexTile)>,
 ) {
     if keys.just_pressed(KeyCode::B) {
         game_state.set(AppState::InGame);
@@ -118,9 +115,6 @@ pub fn handle_build_mode_exit(
 
         for (ent, _) in hex_tile_q.iter() {
             commands.entity(ent).remove::<BuildableHex>();
-            commands.entity(ent).log_components();
-            commands.entity(ent).remove::<Handle<ColorMaterial>>();
-            commands.entity(ent).log_components();
         }
     }
 }
