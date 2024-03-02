@@ -66,6 +66,9 @@ pub fn update_visible_sectors(
                 for _ in 0..256 {
                     let r = SECTOR_SIZE/2.0;
                     let p = Vec3::new(rng.gen_range(-r..r), rng.gen_range(-r..r), 0.0);
+
+                    let s = rng.gen_range(0.3..2.0);
+                    let scale = Vec3::new(s, s, 1.0);
                     parent.spawn((
                         SpriteBundle {
                             sprite: Sprite {
@@ -73,7 +76,12 @@ pub fn update_visible_sectors(
                                 custom_size: Some(Vec2::new(0.2 * crate::PIXELS_PER_METER, 0.2 * crate::PIXELS_PER_METER)),
                                 ..default()
                             },
-                            transform: Transform::from_translation(p),
+                            transform: Transform {
+                                translation: p,
+                                scale: scale, 
+                                ..default()
+                            },
+                            
                             ..default()
                         },
                         StarfieldBackground
