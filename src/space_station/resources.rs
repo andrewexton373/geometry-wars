@@ -21,4 +21,5 @@ pub struct SpaceStationModuleMaterialMap {
     pub fabrication_material: Handle<ColorMaterial>,
     pub storage_material: Handle<ColorMaterial>,
     pub turret_material: Handle<ColorMaterial>,
+    pub buildable_material: Handle<ColorMaterial>,
 }

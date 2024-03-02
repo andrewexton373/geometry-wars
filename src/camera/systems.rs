@@ -5,8 +5,8 @@ use bevy::{
         query::{With, Without},
         system::{Commands, Query},
     },
-    render::camera::Camera,
-    transform::components::Transform,
+    render::camera::{Camera, OrthographicProjection},
+    transform::components::Transform, utils::default,
 };
 
 use crate::player::components::Player;
@@ -16,7 +16,9 @@ use super::components::{CameraTarget, GameCamera};
 pub fn setup_camera(mut commands: Commands) {
     commands.spawn((
         GameCamera,
-        Camera2dBundle::default(),
+        Camera2dBundle {
+            ..default()
+        },
         Name::new("GameCamera"),
     ));
 }
