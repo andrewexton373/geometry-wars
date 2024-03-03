@@ -9,3 +9,6 @@ pub struct Sector {
     pub j: i32,
     pub sector_size: f32,
 }
+
+#[derive(Component, Debug, Copy, Clone)]
+pub struct Layer(pub u8);

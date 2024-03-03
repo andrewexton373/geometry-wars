@@ -1,6 +1,6 @@
 use bevy::app::{App, Plugin, Startup, Update};
 
-use super::systems::{init_starfield, update_visible_sectors};
+use super::systems::{generate_visible_sectors, init_starfield, parallax_layers};
 
 pub struct BackgroundPlugin;
 
@@ -11,7 +11,8 @@ impl Plugin for BackgroundPlugin {
                 init_starfield,
             ))
             .add_systems(Update, (
-                update_visible_sectors
+               generate_visible_sectors,
+                parallax_layers
             ));
     }
 }
