@@ -123,7 +123,7 @@ fn main() {
         .add_plugins((
             HealthPlugin,
             BatteryPlugin,
-            // AiPlugin,
+            AiPlugin,
             ProjectilePlugin,
             BackgroundPlugin,
         ))

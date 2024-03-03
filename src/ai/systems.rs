@@ -1,4 +1,4 @@
-use std::f32::consts::PI;
+use std::{borrow::{Borrow, BorrowMut}, f32::consts::PI};
 
 use bevy::prelude::*;
 use bevy_particle_systems::Line;
@@ -22,9 +22,24 @@ use crate::{
     rcs::{components::RCSBooster, events::RCSThrustVectorEvent},
 };
 
-use super::components::{Attack, Enemy, Hostile, Hostility, MoveTowardsPlayer, Position};
+use super::{components::{Attack, Enemy, Hostile, Hostility, MoveTowardsPlayer, Position}, resources::EnemySpawnTimer};
 
-pub fn init_entities(mut cmd: Commands) {
+pub fn spawn_enemies(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut spawn_time: ResMut<EnemySpawnTimer>
+) {
+    spawn_time.timer.tick(time.delta());
+
+    if spawn_time.timer.finished() {
+        spawn_enemy(commands.borrow_mut());
+        spawn_time.timer.reset();
+    }
+
+} 
+
+fn spawn_enemy(cmd: &mut Commands) {
+
     let move_towards_player_and_attack = Steps::build()
         .label("MoveTowardsPlayerAndAttack")
         .step(MoveTowardsPlayer {
@@ -42,37 +57,35 @@ pub fn init_entities(mut cmd: Commands) {
 
     let mut rng = rand::thread_rng();
 
-    for _ in 0..10 {
-        let rand = rng.gen::<f32>() * 2.0 * PI;
-        let random_dir = Vec2::new(f32::cos(rand), f32::sin(rand));
+    let rand = rng.gen::<f32>() * 2.0 * PI;
+    let random_dir = Vec2::new(f32::cos(rand), f32::sin(rand));
 
-        cmd.spawn((
-            ShapeBundle {
-                path: GeometryBuilder::new()
-                    .add(&shapes::Circle::default())
-                    .build(),
-                spatial: SpatialBundle {
-                    transform: Transform {
-                        translation: (random_dir * 1000.0).extend(0.0),
-                        scale: Vec2::new(10.0, 10.0).extend(1.0),
-                        ..default()
-                    },
+    cmd.spawn((
+        ShapeBundle {
+            path: GeometryBuilder::new()
+                .add(&shapes::Circle::default())
+                .build(),
+            spatial: SpatialBundle {
+                transform: Transform {
+                    translation: (random_dir * 1000.0).extend(0.0),
+                    scale: Vec2::new(10.0, 10.0).extend(1.0),
                     ..default()
                 },
                 ..default()
             },
-            RCSBooster::new(),
-            RigidBody::Dynamic,
-            Collider::ball(1.0),
-            Health::new(),
-            LinearVelocity::ZERO,
-            Fill::color(Color::RED),
-            Hostility::new(75.0, 2.0),
-            thinker.clone(),
-            Name::new("Enemy"),
-            Enemy,
-        ));
-    }
+            ..default()
+        },
+        RCSBooster::new(),
+        RigidBody::Dynamic,
+        Collider::ball(1.0),
+        Health::new(),
+        LinearVelocity::ZERO,
+        Fill::color(Color::RED),
+        Hostility::new(75.0, 2.0),
+        thinker.clone(),
+        Name::new("Enemy"),
+        Enemy,
+    ));
 }
 
 pub fn despawn_dead_enemies(mut commands: Commands, enemies: Query<(Entity, &Enemy, &Health)>) {
@@ -144,12 +157,12 @@ pub fn attack_action_system(
     }
 }
 
-pub const MAX_DISTANCE: f32 = 600.0;
+pub const MAX_DISTANCE: f32 = 500.0;
 
 pub fn move_towards_player_action_system(
     time: Res<Time>,
-    player_q: Query<(Entity, &GlobalTransform), With<Player>>,
-    mut positions: Query<&mut GlobalTransform, Without<Player>>,
+    player_q: Query<(Entity, &GlobalTransform, &LinearVelocity), With<Player>>,
+    mut enemies: Query<(&mut GlobalTransform, &LinearVelocity), Without<Player>>,
     mut action_query: Query<(&Actor, &mut ActionState, &MoveTowardsPlayer, &ActionSpan)>,
     mut thrust_events: EventWriter<RCSThrustVectorEvent>,
 ) {
@@ -162,11 +175,11 @@ pub fn move_towards_player_action_system(
                 *action_state = ActionState::Executing;
             }
             ActionState::Executing => {
-                let mut actor_position = positions.get_mut(actor.0).expect("actor has no position");
+                let (mut actor_position, actor_linear_velocity) = enemies.get_mut(actor.0).expect("actor has no position");
                 trace!("Actor position: {:?}", actor_position);
 
-                let (player_ent, player_position) = player_q.single();
-                let delta = player_position.translation() - actor_position.translation();
+                let (player_ent, player_position, player_linear_velocity) = player_q.single();
+                let delta = (player_position.translation() - actor_position.translation()).truncate();
                 let distance = delta.length();
 
                 if distance > MAX_DISTANCE {
@@ -175,9 +188,14 @@ pub fn move_towards_player_action_system(
                     let step_size = time.delta_seconds() * move_to.speed;
                     let step = delta.normalize() * step_size.min(distance);
 
+                    // Try and match player velocity?
+                    let delta_velocity = actor_linear_velocity.xy() - player_linear_velocity.xy();
+
+                    let mix = step.lerp(delta_velocity, 1.0/(distance - MAX_DISTANCE));
+
                     thrust_events.send(RCSThrustVectorEvent {
                         entity: actor.0,
-                        thrust_vector: step.truncate(),
+                        thrust_vector: mix,
                     });
                 } else {
                     *action_state = ActionState::Success;

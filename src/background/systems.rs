@@ -101,10 +101,10 @@ pub fn generate_visible_sectors(
 fn generate_sector(commands: &mut Commands, layer_entity: Entity, layer: &Layer, sector: Sector) {
     let mut rng: rand::prelude::ThreadRng = rand::thread_rng();
     let layer_scale = match layer.0 {
-        1 => {0.5},
-        2 => {1.0},
-        3 => {2.0},
-        _ => {0.0}
+        1 => 0.5,
+        2 => 1.0,
+        3 => 2.0,
+        _ => 0.0,
     };
 
     let sector_id = commands
