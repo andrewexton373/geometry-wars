@@ -1,5 +1,6 @@
 pub(crate) mod ai;
 pub(crate) mod asteroid;
+pub(crate) mod background;
 pub(crate) mod battery;
 pub(crate) mod camera;
 pub(crate) mod collectible;
@@ -22,7 +23,6 @@ pub(crate) mod refinery;
 pub(crate) mod space_station;
 pub(crate) mod ui;
 pub(crate) mod upgrades;
-pub(crate) mod background;
 
 // #![feature(array_methods)]
 
@@ -123,9 +123,9 @@ fn main() {
         .add_plugins((
             HealthPlugin,
             BatteryPlugin,
-            // AiPlugin, 
+            // AiPlugin,
             ProjectilePlugin,
-            BackgroundPlugin
+            BackgroundPlugin,
         ))
         .insert_resource(Gravity::ZERO)
         .add_state::<AppState>()

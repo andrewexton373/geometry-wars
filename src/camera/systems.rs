@@ -1,12 +1,19 @@
 use bevy::{
     core::Name,
-    core_pipeline::{clear_color::ClearColorConfig, core_2d::{Camera2d, Camera2dBundle}},
+    core_pipeline::{
+        clear_color::ClearColorConfig,
+        core_2d::{Camera2d, Camera2dBundle},
+    },
     ecs::{
         query::{With, Without},
         system::{Commands, Query},
     },
-    render::{camera::{Camera, OrthographicProjection}, color::Color},
-    transform::components::Transform, utils::default,
+    render::{
+        camera::{Camera, OrthographicProjection},
+        color::Color,
+    },
+    transform::components::Transform,
+    utils::default,
 };
 
 use crate::player::components::Player;
