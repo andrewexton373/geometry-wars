@@ -57,7 +57,7 @@ pub fn generate_visible_sectors(
     let j_min = ((bottom_left.y / SECTOR_SIZE) as i32) - 1;
     let j_max = ((top_right.y / SECTOR_SIZE) as i32) + 1;
 
-    for (layer_entity, _) in layers.iter() {
+    for (layer_entity, layer) in layers.iter() {
         // For each sector that's visible in the viewport plusminus one additional sector
         for i in i_min..=i_max {
             for j in j_min..=j_max {
@@ -73,6 +73,7 @@ pub fn generate_visible_sectors(
                 generate_sector(
                     commands.borrow_mut(),
                     layer_entity,
+                    layer,
                     Sector {
                         i,
                         j,
@@ -97,8 +98,14 @@ pub fn generate_visible_sectors(
     }
 }
 
-fn generate_sector(commands: &mut Commands, layer_entity: Entity, sector: Sector) {
+fn generate_sector(commands: &mut Commands, layer_entity: Entity, layer: &Layer, sector: Sector) {
     let mut rng: rand::prelude::ThreadRng = rand::thread_rng();
+    let layer_scale = match layer.0 {
+        1 => {0.5},
+        2 => {1.0},
+        3 => {2.0},
+        _ => {0.0}
+    };
 
     let sector_id = commands
         .spawn((
@@ -114,12 +121,12 @@ fn generate_sector(commands: &mut Commands, layer_entity: Entity, sector: Sector
         ))
         .with_children(|parent| {
             // Generate Foreground Stars
-            for _ in 0..256 {
+            for _ in 0..128 {
                 let r = SECTOR_SIZE / 2.0;
                 let p = Vec3::new(rng.gen_range(-r..r), rng.gen_range(-r..r), 0.0);
 
-                let s = rng.gen_range(0.3..2.0);
-                let scale = Vec3::new(s, s, 1.0);
+                let s = rng.gen_range(0.2..2.8);
+                let scale = Vec3::new(s, s, 1.0) * layer_scale;
                 parent.spawn((
                     SpriteBundle {
                         sprite: Sprite {
