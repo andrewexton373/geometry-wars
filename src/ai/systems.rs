@@ -1,6 +1,6 @@
 use std::{borrow::{Borrow, BorrowMut}, f32::consts::PI};
 
-use bevy::prelude::*;
+use bevy::{input::keyboard::KeyboardInput, prelude::*};
 use bevy_particle_systems::Line;
 use bevy_prototype_lyon::{
     draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, prelude::tess::geom::Translation,
@@ -27,18 +27,19 @@ use super::{components::{Attack, Enemy, Hostile, Hostility, MoveTowardsPlayer, P
 pub fn spawn_enemies(
     mut commands: Commands,
     time: Res<Time>,
-    mut spawn_time: ResMut<EnemySpawnTimer>
+    mut spawn_time: ResMut<EnemySpawnTimer>,
+    keys: Res<Input<KeyCode>>
 ) {
     spawn_time.timer.tick(time.delta());
 
-    if spawn_time.timer.finished() {
+    if spawn_time.timer.finished() || keys.just_pressed(KeyCode::F1) {
         spawn_enemy(commands.borrow_mut());
         spawn_time.timer.reset();
     }
 
 } 
 
-fn spawn_enemy(cmd: &mut Commands) {
+pub fn spawn_enemy(cmd: &mut Commands) {
 
     let move_towards_player_and_attack = Steps::build()
         .label("MoveTowardsPlayerAndAttack")
