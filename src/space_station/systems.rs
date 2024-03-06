@@ -1,9 +1,9 @@
 use std::fmt::DebugTuple;
 
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::{
+use bevy_prototype_lyon::{prelude::{
     self as lyon, Fill, FillOptions, GeometryBuilder, ShapeBundle, Stroke,
-};
+}, shapes};
 use bevy_xpbd_2d::prelude::*;
 use hexx::{hex, Hex};
 use ordered_float::OrderedFloat;
@@ -30,7 +30,7 @@ use crate::{
 
 use super::{
     components::SpaceStation,
-    modules::components::{SpaceStationModule, SpaceStationModuleType},
+    modules::{components::{SpaceStationModule, SpaceStationModuleType}, turret::components::Turret},
     resources::{
         CanDeposit, PlayerHoveringSpaceStationModule, SpaceStationModuleMaterialMap,
         SPACE_STATION_SIZE,
@@ -72,6 +72,60 @@ pub fn init_space_station_core(mut commands: Commands, hex_grid_map: Res<HexGrid
     }
 }
 
+pub fn init_space_station_turret(
+    mut commands: Commands,
+    hex_grid_map: Res<HexGridMap>,
+) {
+    if let Some(origin_hex_ent) = hex_grid_map.entities.get(&Hex::new(0, 1)).copied() {
+        commands.entity(origin_hex_ent).insert((
+            SpaceStationModuleType::Turret,
+            Health::with_maximum(1000.0),
+            Name::new("Space Station Turret"),
+        )).with_children(|parent| {
+
+            let barrel = shapes::Line(
+                Vec2 {
+                    x: 20.0,
+                    y: 0.0
+                },
+                Vec2 {
+                    x: 40.0,
+                    y: 0.0,
+                },
+            );
+
+            let body = shapes::RegularPolygon {
+                sides: 8,
+                center: Vec2::ZERO,
+                feature: lyon::RegularPolygonFeature::Radius(20.0),
+                ..default()
+            };
+        
+            let geometry = GeometryBuilder::new().add(&barrel).add(&body);
+            
+
+            parent.spawn((
+                Turret,
+                Name::new("Turret"),
+                ShapeBundle {
+                    path: geometry.build(),
+                    spatial: SpatialBundle {
+                        transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                        
+                        ..default()
+                    },
+                    ..default()
+                },
+                Fill::color(Color::WHITE),
+                Stroke::new(Color::BLACK, 8.0)
+            ));
+
+
+        });
+    }
+}
+
+
 pub fn color_space_station_modules(
     mut commands: Commands,
     module_query: Query<(Entity, Option<&SpaceStationModuleType>), With<HexTile>>,
@@ -97,45 +151,6 @@ pub fn color_space_station_modules(
         }
     }
 }
-
-// pub fn spawn_space_station(mut commands: Commands) {
-//     let base_shape = lyon::shapes::RegularPolygon {
-//         sides: 6,
-//         feature: lyon::shapes::RegularPolygonFeature::Radius(
-//             crate::PIXELS_PER_METER * SPACE_STATION_SIZE,
-//         ),
-//         ..lyon::shapes::RegularPolygon::default()
-//     };
-
-//     let base_station = commands
-//         .spawn((
-//             ShapeBundle {
-//                 path: GeometryBuilder::build_as(&base_shape),
-//                 spatial: Transform::from_xyz(0.0, 0.0, -100.0).into(),
-
-//                 ..default()
-//             },
-//             Fill::color(Color::BLUE),
-//             Stroke::new(Color::WHITE, 5.0),
-//             Collider::ball(crate::PIXELS_PER_METER * SPACE_STATION_SIZE),
-//             SpaceStation,
-//             Name::new("Base Station"),
-//         ))
-//         .id();
-
-//     attach_inventory_to_entity(
-//         &mut commands,
-//         Inventory {
-//             items: Vec::new(),
-//             capacity: Capacity {
-//                 maximum: OrderedFloat(1000.0),
-//             },
-//         },
-//         base_station,
-//     );
-//     RefineryPlugin::attach_refinery_to_entity(&mut commands, base_station);
-//     FactoryPlugin::attach_factory_to_entity(&mut commands, base_station);
-// }
 
 pub fn repel_asteroids_from_space_station(
     base_query: Query<(&SpaceStation, &GlobalTransform), With<SpaceStation>>,

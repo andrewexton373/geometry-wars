@@ -1,5 +1,6 @@
-use bevy::prelude::*;
+use bevy::{input::common_conditions::input_toggle_active, prelude::*};
 use bevy_egui::EguiPlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 use crate::hexgrid::systems::update_selected_hex;
 
@@ -17,6 +18,7 @@ pub struct GameUIPlugin;
 impl Plugin for GameUIPlugin {
     fn build(&self, app: &mut bevy::app::App) {
         app.add_plugins(EguiPlugin)
+            .add_plugins(WorldInspectorPlugin::default().run_if(input_toggle_active(true, KeyCode::Escape)))
             .add_plugins((
                 ContextCluePlugin,
                 ShipInventoryPlugin,

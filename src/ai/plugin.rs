@@ -16,7 +16,7 @@ impl Plugin for AiPlugin {
         app
             .init_resource::<EnemySpawnTimer>()
             .insert_resource(EnemySpawnTimer {
-                timer: Timer::from_seconds(5.0, TimerMode::Repeating)
+                timer: Timer::from_seconds(100.0, TimerMode::Repeating)
             })
             .add_plugins(BigBrainPlugin::new(PreUpdate))
             .add_systems(Update, (hostility_system, spawn_enemies, despawn_dead_enemies))
