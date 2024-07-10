@@ -11,12 +11,8 @@ use bevy_prototype_lyon::{
     draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, prelude::FillOptions,
 };
 use bevy_xpbd_2d::{
-    components::{Collider, Inertia, LinearVelocity, Mass, RigidBody, Rotation},
+    prelude::*,
     math::{Scalar, Vector, PI},
-    plugins::{
-        collision::{contact_query, Collisions},
-        spatial_query::{SpatialQuery, SpatialQueryFilter},
-    },
 };
 use ordered_float::OrderedFloat;
 use rand::Rng;
@@ -330,7 +326,7 @@ pub fn spawn_asteroid_events(
         let target_transform = evt.1;
         let linear_velocity = evt.2;
         let collider = Collider::convex_hull(asteroid.polygon().points).unwrap();
-        let health_pool = collider.mass_properties(1.0).mass(); // Set Healthpool to mass?
+        let health_pool = collider.mass_properties(1.0).mass; // Set Healthpool to mass?
 
         let mut rng = rand::thread_rng();
         let splittable = Splittable(rng.gen_range(0.4..0.8));

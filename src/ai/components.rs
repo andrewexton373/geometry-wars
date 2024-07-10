@@ -5,7 +5,7 @@ use bevy_prototype_lyon::{
     geometry::{Geometry, GeometryBuilder},
     shapes,
 };
-use bevy_xpbd_2d::components::Collider;
+use bevy_xpbd_2d::prelude::*;
 use big_brain::prelude::*;
 
 #[derive(Debug, Clone, Component, ScorerBuilder)]

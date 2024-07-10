@@ -9,7 +9,7 @@ use bevy::{
     },
     input::{
         keyboard::{KeyCode, KeyboardInput},
-        Input,
+        ButtonInput,
     },
     render::color::Color,
     sprite::ColorMaterial,
@@ -39,9 +39,9 @@ pub fn init_materials(
     mut assets: ResMut<Assets<ColorMaterial>>,
 ) {
     *materials = BuildModeMaterials {
-        buildable_hex_material: assets.add(Color::rgba(1.0, 1.0, 1.0, 0.5).into()),
-        mouse_hover_hex_material: assets.add(Color::rgba(1.0, 1.0, 1.0, 0.7).into()),
-        selected_hex_material: assets.add(Color::rgba(1.0, 1.0, 1.0, 0.9).into()),
+        buildable_hex_material: assets.add(Color::rgba(1.0, 1.0, 1.0, 0.5)),
+        mouse_hover_hex_material: assets.add(Color::rgba(1.0, 1.0, 1.0, 0.7)),
+        selected_hex_material: assets.add(Color::rgba(1.0, 1.0, 1.0, 0.9)),
     }
 }
 
@@ -92,11 +92,11 @@ pub fn handle_build_events(
 }
 
 pub fn handle_build_mode_enter(
-    keys: Res<Input<KeyCode>>,
+    keys: Res<ButtonInput<KeyCode>>,
     mut game_state: ResMut<NextState<AppState>>,
     mut context_clues: ResMut<ContextClues>,
 ) {
-    if keys.just_pressed(KeyCode::B) {
+    if keys.just_pressed(KeyCode::KeyB) {
         game_state.set(AppState::BuildMode);
         context_clues.0.insert(ContextClue::BuildModeEnabled);
     }
@@ -104,12 +104,12 @@ pub fn handle_build_mode_enter(
 
 pub fn handle_build_mode_exit(
     mut commands: Commands,
-    keys: Res<Input<KeyCode>>,
+    keys: Res<ButtonInput<KeyCode>>,
     mut game_state: ResMut<NextState<AppState>>,
     mut context_clues: ResMut<ContextClues>,
     hex_tile_q: Query<(Entity, &HexTile)>,
 ) {
-    if keys.just_pressed(KeyCode::B) {
+    if keys.just_pressed(KeyCode::KeyB) {
         game_state.set(AppState::InGame);
         context_clues.0.remove(&ContextClue::BuildModeEnabled);
 

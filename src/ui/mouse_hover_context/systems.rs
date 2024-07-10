@@ -36,7 +36,7 @@ pub fn update_mouse_hover_context_resource(
     // Raycast Mouse Position Into Viewport
     if let Some(ray_hit) = spatial_q.cast_ray(
         mouse_world_position.0,
-        bevy::prelude::Vec2::Y,
+        bevy::prelude::Direction2d::Y,
         0.001,
         true,
         SpatialQueryFilter::default(),

@@ -47,7 +47,7 @@ pub fn player_targeting(
     mut commands: Commands,
     mut camera_target_q: Query<Entity, With<CameraTarget>>,
     mouse_hover_context: Res<MouseHoverContext>,
-    mouse_events: Res<Input<MouseButton>>,
+    mouse_events: Res<ButtonInput<MouseButton>>,
 ) {
     // If mouse right click
     if mouse_events.just_pressed(MouseButton::Right) {
@@ -67,11 +67,11 @@ pub fn player_targeting(
 pub fn cancel_player_targeting(
     mut commands: Commands,
     mut camera_target_q: Query<Entity, With<CameraTarget>>,
-    mut player_q: Query<Entity, &Player>,
-    keyboard_events: Res<Input<KeyCode>>,
+    mut player_q: Query<Entity, With<Player>>,
+    keyboard_events: Res<ButtonInput<KeyCode>>,
 ) {
     // If player presses X
-    if keyboard_events.just_pressed(KeyCode::X) {
+    if keyboard_events.just_pressed(KeyCode::KeyX) {
         // Remove old CameraTarget Component
         for camera_target in camera_target_q.iter_mut() {
             commands.entity(camera_target).remove::<CameraTarget>();
@@ -103,7 +103,7 @@ pub fn scroll_events(
 
 /// Allow the player to use , and . to zoom the viewport in and out.
 pub fn player_camera_control(
-    kb: Res<Input<KeyCode>>,
+    kb: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
     mut query: Query<&mut OrthographicProjection, With<Camera2d>>,
 ) {
@@ -127,7 +127,7 @@ pub fn player_camera_control(
 // Mark InventoryItems with Deposit Component on Event
 // Use this system to deposit marked inventory items in Base Station
 pub fn player_deposit_control(
-    kb: Res<Input<KeyCode>>,
+    kb: Res<ButtonInput<KeyCode>>,
     can_deposit: Res<CanDeposit>,
     mut deposit_events: EventWriter<DepositInventoryEvent>,
 ) {
@@ -141,8 +141,8 @@ pub fn player_deposit_control(
 // and releases it when the escape key is pressed
 pub fn grab_mouse(
     mut windows: Query<&mut Window>,
-    mouse: Res<Input<MouseButton>>,
-    key: Res<Input<KeyCode>>,
+    mouse: Res<ButtonInput<MouseButton>>,
+    key: Res<ButtonInput<KeyCode>>,
 ) {
     let mut window = windows.single_mut();
 

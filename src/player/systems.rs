@@ -111,7 +111,7 @@ pub fn trickle_charge(
 }
 
 pub fn player_movement(
-    keyboard_input: Res<Input<KeyCode>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
     mut player_query: Query<(
         Entity,
         &Player,
@@ -126,19 +126,19 @@ pub fn player_movement(
 
     let mut thrust: Vec2 = Vec2::ZERO;
 
-    if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
+    if keyboard_input.pressed(KeyCode::ArrowLeft) || keyboard_input.pressed(KeyCode::KeyA) {
         thrust += -Vec2::X;
     }
 
-    if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
+    if keyboard_input.pressed(KeyCode::ArrowRight) || keyboard_input.pressed(KeyCode::KeyD) {
         thrust += Vec2::X;
     }
 
-    if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
+    if keyboard_input.pressed(KeyCode::ArrowUp) || keyboard_input.pressed(KeyCode::KeyW) {
         thrust += Vec2::Y;
     }
 
-    if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
+    if keyboard_input.pressed(KeyCode::ArrowDown) || keyboard_input.pressed(KeyCode::KeyS) {
         thrust += -Vec2::Y;
     }
 
@@ -196,7 +196,7 @@ pub fn ship_rotate_towards_mouse(
 }
 
 pub fn player_fire_laser(
-    keyboard_input: Res<Input<MouseButton>>,
+    keyboard_input: Res<ButtonInput<MouseButton>>,
     mut player_query: Query<(
         Entity,
         &mut Player,

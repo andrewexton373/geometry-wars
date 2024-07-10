@@ -2,7 +2,7 @@ use bevy::ecs::{
     change_detection::DetectChangesMut,
     entity::Entity,
     event::EventReader,
-    system::{adapter::dbg, Query},
+    system::Query,
 };
 use bevy_xpbd_2d::components::ExternalForce;
 

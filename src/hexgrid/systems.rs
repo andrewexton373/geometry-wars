@@ -1,10 +1,11 @@
 use bevy::pbr::wireframe::WireframeMaterial;
 use bevy::prelude::*;
 use bevy::render::mesh::Indices;
+use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::PrimitiveTopology;
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy::utils::hashbrown::HashMap;
-use bevy_xpbd_2d::components::Collider;
+use bevy_xpbd_2d::prelude::*;
 use hexx::{shapes, Hex, HexLayout, PlaneMeshBuilder};
 use std::f32::consts::PI;
 use std::iter::Map;
@@ -45,7 +46,6 @@ pub fn setup_hex_grid(
             blue: 0.0,
             alpha: 0.0,
         }
-        .into(),
     );
     // let factory_material = materials.add(Color::BISQUE.into());
     // let refinery_material = materials.add(Color::ORANGE_RED.into());
@@ -102,20 +102,23 @@ fn hexagonal_plane(hex_layout: &HexLayout) -> Mesh {
         .center_aligned()
         .build();
 
-    Mesh::new(PrimitiveTopology::TriangleList)
-        .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, mesh_info.vertices)
-        .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, mesh_info.normals)
-        .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, mesh_info.uvs)
-        .with_indices(Some(Indices::U16(mesh_info.indices)))
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::RENDER_WORLD
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, mesh_info.vertices)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, mesh_info.normals)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, mesh_info.uvs)
+    .with_inserted_indices(Indices::U16(mesh_info.indices))        
 }
 
-/// Input interaction
+/// ButtonInput interaction
 pub fn handle_mouse_interaction(
     mut _commands: Commands,
     mouse_position: Res<MouseWorldPosition>,
     map: Res<HexGridMap>,
     mut highlighted_hexes: ResMut<HighlightedHexes>,
-    mouse_input: Res<Input<MouseButton>>,
+    mouse_input: Res<ButtonInput<MouseButton>>,
     mut hex_query: Query<(Entity, &HexTile, &mut Building)>,
 ) {
     let pos = mouse_position.0;
@@ -159,7 +162,7 @@ pub fn update_mouse_hover_hex(
 }
 
 pub fn update_selected_hex(
-    mouse_events: Res<Input<MouseButton>>,
+    mouse_events: Res<ButtonInput<MouseButton>>,
     mouse_hover_hex: Res<MouseHoverHex>,
     mut selected_hex: ResMut<SelectedHex>,
 ) {

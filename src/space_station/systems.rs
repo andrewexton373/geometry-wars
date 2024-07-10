@@ -42,11 +42,11 @@ pub fn init_space_station_module_material_map(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.insert_resource(SpaceStationModuleMaterialMap {
-        core_material: materials.add(Color::DARK_GRAY.into()),
-        fabrication_material: materials.add(Color::ORANGE_RED.into()),
-        storage_material: materials.add(Color::TEAL.into()),
-        turret_material: materials.add(Color::PINK.into()),
-        buildable_material: materials.add(Color::rgba(0.0, 0.0, 0.0, 0.0).into()),
+        core_material: materials.add(Color::DARK_GRAY),
+        fabrication_material: materials.add(Color::ORANGE_RED),
+        storage_material: materials.add(Color::TEAL),
+        turret_material: materials.add(Color::PINK),
+        buildable_material: materials.add(Color::rgba(0.0, 0.0, 0.0, 0.0)),
     });
 }
 
