@@ -128,12 +128,12 @@ fn main() {
             BackgroundPlugin,
         ))
         .insert_resource(Gravity::ZERO)
-        .add_state::<AppState>()
+        .init_state::<AppState>()
         .run();
 }
 
 fn screen_print_debug_text(diagnostics: Res<DiagnosticsStore>) {
-    if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
+    if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(average) = fps.average() {
             screen_print!(col: Color::WHITE, "fps: {average}");
         }

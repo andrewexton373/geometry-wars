@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use bevy_xpbd_2d::components::{Collider, CollidingEntities, LinearVelocity, RigidBody};
+use bevy_xpbd_2d::prelude::*;
 
 use crate::health::events::DamageEvent;
 

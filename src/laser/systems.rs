@@ -52,7 +52,7 @@ pub fn fire_laser_raycasting(
         (Entity, &LaserImpactParticleSystem, &mut Transform),
         Without<Laser>,
     >,
-    player_q: Query<Entity, &Player>,
+    player_q: Query<Entity, With<Player>>,
     spatial_query: SpatialQuery,
     mut damage_events: EventWriter<DamageEvent>,
 ) {
@@ -75,6 +75,7 @@ pub fn fire_laser_raycasting(
         let laser_active = fire_laser_event.0;
         let ray_pos = fire_laser_event.1;
         let ray_dir = fire_laser_event.2;
+        let ray_dir_2d = Direction2d::new(ray_dir).unwrap();
 
         // If laser is active
         if laser_active {
@@ -83,7 +84,7 @@ pub fn fire_laser_raycasting(
 
             if let Some(first_hit) = spatial_query.cast_ray(
                 ray_pos,
-                ray_dir,
+                Direction2d::new(ray_dir).unwrap(),
                 10000.0,
                 false,
                 SpatialQueryFilter {
@@ -108,7 +109,7 @@ pub fn fire_laser_raycasting(
                 damage_events.send(DamageEvent {
                     entity: hit_ent,
                     damage: 5.0,
-                })
+                });
             }
         }
     }

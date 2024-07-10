@@ -6,7 +6,7 @@ use bevy_prototype_lyon::{
     draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, prelude::tess::geom::Translation,
     shapes,
 };
-use bevy_xpbd_2d::components::{Collider, LinearVelocity, RigidBody};
+use bevy_xpbd_2d::prelude::*;
 use big_brain::{
     actions::{ActionState, Steps},
     pickers::FirstToScore,
@@ -28,7 +28,7 @@ pub fn spawn_enemies(
     mut commands: Commands,
     time: Res<Time>,
     mut spawn_time: ResMut<EnemySpawnTimer>,
-    keys: Res<Input<KeyCode>>
+    keys: Res<ButtonInput<KeyCode>>
 ) {
     spawn_time.timer.tick(time.delta());
 

@@ -1,7 +1,6 @@
 use bevy::{
     core::Name,
     core_pipeline::{
-        clear_color::ClearColorConfig,
         core_2d::{Camera2d, Camera2dBundle},
     },
     ecs::{
@@ -9,7 +8,7 @@ use bevy::{
         system::{Commands, Query},
     },
     render::{
-        camera::{Camera, OrthographicProjection},
+        camera::{Camera, ClearColorConfig, OrthographicProjection},
         color::Color,
     },
     transform::components::Transform,
@@ -21,10 +20,11 @@ use crate::player::components::Player;
 use super::components::{CameraTarget, GameCamera};
 
 pub fn setup_camera(mut commands: Commands) {
+
     commands.spawn((
         GameCamera,
         Camera2dBundle {
-            camera_2d: Camera2d {
+            camera: Camera {
                 clear_color: ClearColorConfig::Custom(Color::BLACK),
                 ..default()
             },
