@@ -89,18 +89,11 @@ fn main() {
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest()),
-            // WorldInspectorPlugin::new(),
-            // OverlayPlugin {
-            //     font_size: 24.0,
-            //     ..default()
-            // },
             ShapePlugin,
-            ParticleSystemPlugin::default(),
+            ParticleSystemPlugin,
             PhysicsPlugins::default(),
-            // Enables debug rendering
             PhysicsDebugPlugin::default(),
-            // FrameTimeDiagnosticsPlugin::default(),
-        ))
+         ))
         .add_plugins((
             HexBasePlugin,
             PlayerPlugin,
