@@ -1,12 +1,13 @@
 use std::fmt::DebugTuple;
 
-use bevy::prelude::*;
+use bevy::{color::palettes::css::{BLACK, DARK_GRAY, ORANGE_RED, TEAL, WHITE}, prelude::*};
 use bevy_prototype_lyon::{prelude::{
     self as lyon, Fill, FillOptions, GeometryBuilder, ShapeBundle, Stroke,
 }, shapes};
 use bevy_xpbd_2d::prelude::*;
 use hexx::{hex, Hex};
 use ordered_float::OrderedFloat;
+use bevy::color::palettes::css::PINK;
 
 use crate::{
     asteroid::components::Asteroid,
@@ -42,10 +43,10 @@ pub fn init_space_station_module_material_map(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.insert_resource(SpaceStationModuleMaterialMap {
-        core_material: materials.add(Color::DARK_GRAY),
-        fabrication_material: materials.add(Color::ORANGE_RED),
-        storage_material: materials.add(Color::TEAL),
-        turret_material: materials.add(Color::PINK),
+        core_material: materials.add(Color::from(DARK_GRAY)),
+        fabrication_material: materials.add(Color::from(ORANGE_RED)),
+        storage_material: materials.add(Color::from(TEAL)),
+        turret_material: materials.add(Color::from(PINK)),
         buildable_material: materials.add(Color::rgba(0.0, 0.0, 0.0, 0.0)),
     });
 }
@@ -116,8 +117,8 @@ pub fn init_space_station_turret(
                     },
                     ..default()
                 },
-                Fill::color(Color::WHITE),
-                Stroke::new(Color::BLACK, 8.0)
+                Fill::color(WHITE),
+                Stroke::new(BLACK, 8.0)
             ));
 
 

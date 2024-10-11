@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{math::Direction2d, prelude::*};
 use bevy::utils::hashbrown::HashSet;
 use bevy_particle_systems::Playing;
 use bevy_prototype_lyon::{

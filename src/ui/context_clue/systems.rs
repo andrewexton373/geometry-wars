@@ -17,7 +17,7 @@ pub fn ui_context_clue(mut ctx: EguiContexts, context_clues_res: Res<ContextClue
         .resizable(false)
         .anchor(
             Align2::CENTER_BOTTOM,
-            bevy_inspector_egui::egui::Vec2 { x: 0.0, y: 100.0 },
+            bevy_egui::egui::Vec2 { x: 0.0, y: 100.0 },
         )
         .show(ctx.ctx_mut(), |ui| {
             ui.vertical(|ui| {

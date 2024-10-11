@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::css::{RED, YELLOW}, prelude::*};
 use bevy_particle_systems::*;
 
 use crate::player::components::Player;
@@ -20,7 +20,7 @@ pub fn setup_projectile_impact_particle_system(
                 initial_speed: JitteredValue::jittered(200.0, -50.0..50.0),
                 lifetime: JitteredValue::jittered(0.30, -0.2..0.2),
                 color: ColorOverTime::Gradient(Curve::new(vec![
-                    CurvePoint::new(Color::RED, 0.0),
+                    CurvePoint::new(Color::from(RED), 0.0),
                     CurvePoint::new(Color::rgba(1.0, 0.0, 0.0, 0.0), 1.0),
                 ])),
                 looping: true,
@@ -90,7 +90,7 @@ pub fn setup_ship_asteroid_impact_particle_system(
                 initial_speed: JitteredValue::jittered(200.0, -50.0..50.0),
                 lifetime: JitteredValue::jittered(0.30, -0.2..0.2),
                 color: ColorOverTime::Gradient(Curve::new(vec![
-                    CurvePoint::new(Color::YELLOW, 0.0),
+                    CurvePoint::new(Color::from(YELLOW), 0.0),
                     CurvePoint::new(Color::rgba(1.0, 1.0, 0.0, 0.0), 1.0),
                 ])),
                 looping: true,

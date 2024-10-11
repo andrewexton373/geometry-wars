@@ -35,7 +35,7 @@ impl Plugin for GameUIPlugin {
                 (absorb_egui_inputs)
                     // .after(bevy_egui::systems::process_input_system)
                     .after(update_selected_hex)
-                    .before(bevy_egui::EguiSet::BeginFrame),
+                    .before(bevy_egui::EguiSet::BeginPass),
             );
     }
 }

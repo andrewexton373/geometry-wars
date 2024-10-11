@@ -1,3 +1,4 @@
+use bevy::color::palettes::css::RED;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_xpbd_2d::prelude::*;
@@ -42,7 +43,7 @@ pub fn handle_fire_projectile_events(
 
                     ..default()
                 },
-                Fill::color(Color::RED),
+                Fill::color(Color::from(RED)),
                 RigidBody::Dynamic,
                 evt.projectile_trajectory,
                 Collider::ball(projectile_shape.radius),

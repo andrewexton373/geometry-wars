@@ -1,18 +1,13 @@
 use bevy::{
-    asset::{Assets, Handle},
-    ecs::{
+    asset::{Assets, Handle}, color::Color, ecs::{
         entity::{self, Entity},
         event::EventReader,
         query::Without,
-        schedule::NextState,
         system::{Commands, Query, Res, ResMut},
-    },
-    input::{
+    }, input::{
         keyboard::{KeyCode, KeyboardInput},
         ButtonInput,
-    },
-    render::color::Color,
-    sprite::ColorMaterial,
+    }, prelude::NextState, sprite::ColorMaterial
 };
 use bevy_tweening::lens::ColorMaterialColorLens;
 use hexx::Hex;
