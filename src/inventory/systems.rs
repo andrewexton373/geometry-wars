@@ -1,5 +1,5 @@
 use super::components::{Inventory, InventoryItem};
-use bevy::{prelude::*, utils::tracing::event};
+use bevy::prelude::*;
 
 use crate::{
     items::{Amount, MetalIngot},

@@ -1,7 +1,5 @@
 use bevy::{
-    asset::Handle,
     ecs::{entity::Entity, system::Resource},
-    sprite::ColorMaterial,
     utils::HashMap,
 };
 use hexx::{Hex, HexLayout};

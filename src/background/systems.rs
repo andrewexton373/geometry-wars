@@ -1,6 +1,6 @@
-use std::borrow::{Borrow, BorrowMut};
+use std::borrow::BorrowMut;
 
-use bevy::{prelude::*, transform};
+use bevy::prelude::*;
 use bevy_xpbd_2d::components::LinearVelocity;
 use rand::Rng;
 

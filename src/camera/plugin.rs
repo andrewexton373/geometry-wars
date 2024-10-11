@@ -1,5 +1,5 @@
 use bevy::{
-    app::{App, Plugin, PostUpdate, Startup, Update},
+    app::{App, Plugin, PostUpdate, Startup},
     ecs::schedule::IntoSystemConfigs,
     transform::TransformSystem,
 };
@@ -13,9 +13,9 @@ impl Plugin for GameCameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_camera).add_systems(
             PostUpdate,
-            (camera_follows_target
+            camera_follows_target
                 .after(PhysicsSet::Sync)
-                .before(TransformSystem::TransformPropagate)),
+                .before(TransformSystem::TransformPropagate),
         );
     }
 }

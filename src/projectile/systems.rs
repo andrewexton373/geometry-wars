@@ -54,7 +54,7 @@ pub fn handle_fire_projectile_events(
 
 pub fn handle_projectile_collision_event(
     mut commands: Commands,
-    mut projectile_query: Query<(Entity, &CollidingEntities), With<Projectile>>,
+    projectile_query: Query<(Entity, &CollidingEntities), With<Projectile>>,
     mut damage_events: EventWriter<DamageEvent>,
 ) {
     let mut projectiles_to_remove: Vec<Entity> = Vec::new();

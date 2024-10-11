@@ -1,26 +1,22 @@
 use bevy::{
-    asset::{Assets, Handle}, color::Color, ecs::{
-        entity::{self, Entity},
+    asset::Assets, color::Color, ecs::{
+        entity::{Entity},
         event::EventReader,
         query::Without,
         system::{Commands, Query, Res, ResMut},
     }, input::{
-        keyboard::{KeyCode, KeyboardInput},
+        keyboard::KeyCode,
         ButtonInput,
     }, prelude::NextState, sprite::ColorMaterial
 };
-use bevy_tweening::lens::ColorMaterialColorLens;
-use hexx::Hex;
 
 use crate::{
     hexgrid::{
         components::HexTile,
-        resources::{HexGridMap, HighlightedHexes, MouseHoverHex, SelectedHex},
+        resources::{MouseHoverHex, SelectedHex},
     },
     player_input::resources::MouseWorldPosition,
-    space_station::{
-        modules::components::SpaceStationModuleType, resources::SpaceStationModuleMaterialMap,
-    },
+    space_station::modules::components::SpaceStationModuleType,
     ui::context_clue::resources::{ContextClue, ContextClues},
     AppState,
 };

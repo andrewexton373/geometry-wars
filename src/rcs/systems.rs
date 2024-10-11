@@ -1,6 +1,4 @@
 use bevy::ecs::{
-    change_detection::DetectChangesMut,
-    entity::Entity,
     event::EventReader,
     system::Query,
 };

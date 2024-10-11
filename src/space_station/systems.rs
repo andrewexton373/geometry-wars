@@ -1,18 +1,15 @@
-use std::fmt::DebugTuple;
 
 use bevy::{color::palettes::css::{BLACK, DARK_GRAY, ORANGE_RED, TEAL, WHITE}, prelude::*};
 use bevy_prototype_lyon::{prelude::{
-    self as lyon, Fill, FillOptions, GeometryBuilder, ShapeBundle, Stroke,
+    self as lyon, Fill, GeometryBuilder, ShapeBundle, Stroke,
 }, shapes};
 use bevy_xpbd_2d::prelude::*;
-use hexx::{hex, Hex};
-use ordered_float::OrderedFloat;
+use hexx::Hex;
 use bevy::color::palettes::css::PINK;
 
 use crate::{
     asteroid::components::Asteroid,
     battery::events::ChargeBatteryEvent,
-    factory::FactoryPlugin,
     health::{components::Health, events::RepairEvent},
     hexgrid::{
         components::{BuildingType, HexTile},
@@ -20,11 +17,9 @@ use crate::{
     },
     inventory::{
         components::{Capacity, Inventory},
-        plugin::InventoryPlugin,
         systems::attach_inventory_to_entity,
     },
     player::components::Player,
-    refinery::RefineryPlugin,
     ui::context_clue::resources::{ContextClue, ContextClues},
     PIXELS_PER_METER,
 };
@@ -34,7 +29,6 @@ use super::{
     modules::{components::{SpaceStationModule, SpaceStationModuleType}, turret::components::Turret},
     resources::{
         CanDeposit, PlayerHoveringSpaceStationModule, SpaceStationModuleMaterialMap,
-        SPACE_STATION_SIZE,
     },
 };
 
@@ -186,7 +180,7 @@ pub fn handle_space_station_collision_event(
     mut charge_events: EventWriter<ChargeBatteryEvent>,
     time: Res<Time>,
 ) {
-    let (player_ent, mut player) = player_query.single_mut();
+    let (player_ent, player) = player_query.single_mut();
     let (base_station_ent, _base_station) = base_station_query.single();
 
     if let Some(_collision) = collisions.get(player_ent, base_station_ent) {

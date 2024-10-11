@@ -1,13 +1,12 @@
 use bevy::prelude::*;
 
-use crate::AppState;
 
 use super::events::BuildHexBuildingEvent;
 use super::resources::{HexGridMap, MouseHoverHex, SelectedHex};
 use super::systems::{update_mouse_hover_hex, update_selected_hex};
 use super::{
     resources::{HighlightedHexes, PlayerHoveringBuilding},
-    systems::{handle_mouse_interaction, handle_ship_hovering_context, setup_hex_grid},
+    systems::{handle_ship_hovering_context, setup_hex_grid},
 };
 
 /// World size of the hexagons (outer radius)

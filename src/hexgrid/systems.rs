@@ -1,4 +1,3 @@
-use bevy::pbr::wireframe::WireframeMaterial;
 use bevy::prelude::*;
 use bevy::render::mesh::Indices;
 use bevy::render::render_asset::RenderAssetUsages;
@@ -7,8 +6,6 @@ use bevy::sprite::MaterialMesh2dBundle;
 use bevy::utils::hashbrown::HashMap;
 use bevy_xpbd_2d::prelude::*;
 use hexx::{shapes, Hex, HexLayout, PlaneMeshBuilder};
-use std::f32::consts::PI;
-use std::iter::Map;
 
 use crate::hexgrid::components::Building;
 use crate::player::components::Player;

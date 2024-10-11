@@ -1,13 +1,9 @@
-use std::fmt::format;
 
 use bevy::prelude::*;
-use bevy_egui::egui::panel::Side;
-use bevy_egui::egui::CentralPanel;
-use bevy_egui::egui::{Frame, Margin, Pos2, SidePanel};
+use bevy_egui::egui::Pos2;
 use bevy_egui::{egui::Window, EguiContexts};
 
 use crate::camera::components::GameCamera;
-use crate::hexgrid::events::BuildHexBuildingEvent;
 use crate::hexgrid::resources::SelectedHex;
 use crate::space_station::build_mode::events::BuildSpaceStationModuleEvent;
 use crate::space_station::modules::components::SpaceStationModuleType;
