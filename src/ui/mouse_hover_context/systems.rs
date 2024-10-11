@@ -1,12 +1,9 @@
 use bevy::{
-    core::Name,
-    ecs::{
+    core::Name, ecs::{
         entity::Entity,
         query::With,
         system::{Query, Res, ResMut},
-    },
-    render::camera::Camera,
-    transform::components::GlobalTransform,
+    }, math::Direction2d, render::camera::Camera, transform::components::GlobalTransform
 };
 use bevy_egui::{
     egui::{Align2, Pos2, Vec2, Window},
@@ -36,7 +33,7 @@ pub fn update_mouse_hover_context_resource(
     // Raycast Mouse Position Into Viewport
     if let Some(ray_hit) = spatial_q.cast_ray(
         mouse_world_position.0,
-        bevy::prelude::Direction2d::Y,
+        Direction2d::Y,
         0.001,
         true,
         SpatialQueryFilter::default(),

@@ -1,14 +1,8 @@
 use bevy::{
-    asset::AssetServer,
-    ecs::{
+    asset::AssetServer, color::{palettes::css::RED, Color, Srgba}, ecs::{
         event::EventReader,
         system::{Commands, Res},
-    },
-    hierarchy::DespawnRecursiveExt,
-    render::color::Color,
-    text::{Text, Text2dBundle, TextStyle},
-    transform,
-    utils::default,
+    }, hierarchy::DespawnRecursiveExt, text::{Text, Text2dBundle, TextStyle}, transform, utils::default
 };
 use bevy_tweening::{
     lens::TextColorLens, Animator, EaseFunction, RepeatCount, Tween, TweenCompleted,
@@ -32,18 +26,18 @@ pub fn damage_indicator_events(
             EaseFunction::ExponentialInOut,
             std::time::Duration::from_millis(3000),
             TextColorLens {
-                start: Color::Rgba {
+                start: Color::from(Srgba {
                     red: 255.0,
                     green: 0.0,
                     blue: 0.0,
                     alpha: 1.0,
-                },
-                end: Color::Rgba {
+                }),
+                end: Color::from(Srgba {
                     red: 255.0,
                     green: 0.0,
                     blue: 0.0,
                     alpha: 0.0,
-                },
+                }),
                 section: 0,
             },
         )
@@ -57,7 +51,7 @@ pub fn damage_indicator_events(
                     TextStyle {
                         font: font.clone(),
                         font_size: 32.0,
-                        color: Color::RED,
+                        color: Color::from(RED),
                     },
                 ),
                 transform,

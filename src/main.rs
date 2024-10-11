@@ -28,12 +28,10 @@ pub(crate) mod upgrades;
 
 use ai::plugin::AiPlugin;
 use background::plugin::BackgroundPlugin;
-use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
+// use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
 
 use bevy::{
-    diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
-    prelude::*,
-    render::camera::CameraPlugin,
+    color::palettes::css::WHITE, diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::camera::CameraPlugin
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_particle_systems::ParticleSystemPlugin;
@@ -92,16 +90,16 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
             // WorldInspectorPlugin::new(),
-            OverlayPlugin {
-                font_size: 24.0,
-                ..default()
-            },
+            // OverlayPlugin {
+            //     font_size: 24.0,
+            //     ..default()
+            // },
             ShapePlugin,
             ParticleSystemPlugin::default(),
             PhysicsPlugins::default(),
             // Enables debug rendering
             PhysicsDebugPlugin::default(),
-            FrameTimeDiagnosticsPlugin::default(),
+            // FrameTimeDiagnosticsPlugin::default(),
         ))
         .add_plugins((
             HexBasePlugin,
@@ -135,7 +133,8 @@ fn main() {
 fn screen_print_debug_text(diagnostics: Res<DiagnosticsStore>) {
     if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(average) = fps.average() {
-            screen_print!(col: Color::WHITE, "fps: {average}");
+            // screen_print!(col: bevy_render::color::Color::WHITE, "fps: {average}");
+
         }
     }
 }

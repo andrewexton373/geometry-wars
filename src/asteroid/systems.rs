@@ -5,7 +5,7 @@ use crate::{
     player::components::Player,
     ui::damage_indicator::events::DamageIndicatorEvent,
 };
-use bevy::prelude::*;
+use bevy::{color::palettes::css::{DARK_GRAY, GOLD, GRAY, SILVER}, prelude::*};
 use bevy_particle_systems::Playing;
 use bevy_prototype_lyon::{
     draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, prelude::FillOptions,
@@ -102,19 +102,19 @@ pub fn update_collectible_material_color(
         match asteroid.primary_composition() {
             AsteroidMaterial::Iron => {
                 *fill = Fill {
-                    color: Color::GRAY,
+                    color: GRAY.into(),
                     options: FillOptions::default(),
                 };
             }
             AsteroidMaterial::Silver => {
                 *fill = Fill {
-                    color: Color::SILVER,
+                    color: SILVER.into(),
                     options: FillOptions::default(),
                 };
             }
             AsteroidMaterial::Gold => {
                 *fill = Fill {
-                    color: Color::GOLD,
+                    color: GOLD.into(),
                     options: FillOptions::default(),
                 };
             }
@@ -349,7 +349,7 @@ pub fn spawn_asteroid_events(
                         ..default()
                     },
                     Health::with_maximum(Asteroid::polygon_area(asteroid.polygon().points)),
-                    Fill::color(Color::DARK_GRAY),
+                    Fill::color(Color::from(DARK_GRAY)),
                 ))
                 .id();
         }

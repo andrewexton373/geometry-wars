@@ -1,6 +1,6 @@
 use bevy::{
     app::{App, Plugin, Startup, Update},
-    ecs::schedule::{common_conditions::in_state, IntoSystemConfigs, OnExit},
+    ecs::schedule::IntoSystemConfigs, prelude::in_state,
 };
 
 use crate::{space_station::systems::color_space_station_modules, AppState};

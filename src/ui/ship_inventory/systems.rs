@@ -19,7 +19,7 @@ pub fn ui_ship_inventory(
         .resizable(false)
         .anchor(
             Align2::LEFT_BOTTOM,
-            bevy_inspector_egui::egui::Vec2 { x: 0.0, y: 0.0 },
+            bevy_egui::egui::Vec2 { x: 0.0, y: 0.0 },
         )
         .show(ctx.ctx_mut(), |ui| {
             let (_, inventory) = inventory_query.single_mut();

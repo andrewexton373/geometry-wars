@@ -29,7 +29,7 @@ pub fn setup_hex_grid(
 ) {
     let layout = HexLayout {
         hex_size: HEX_SIZE,
-        origin: Vec2::ZERO,
+        origin: hexx::Vec2::ZERO,
         ..default()
     };
 
@@ -40,12 +40,12 @@ pub fn setup_hex_grid(
     // let ship_hover_material = materials.add(Color::LIME_GREEN.into());
     // let ring_material = materials.add(Color::YELLOW.into());
     let default_material = materials.add(
-        Color::Rgba {
+        Color::from(Srgba {
             red: 0.0,
             green: 0.0,
             blue: 0.0,
             alpha: 0.0,
-        }
+        })
     );
     // let factory_material = materials.add(Color::BISQUE.into());
     // let refinery_material = materials.add(Color::ORANGE_RED.into());

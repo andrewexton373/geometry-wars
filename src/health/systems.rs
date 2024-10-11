@@ -21,7 +21,7 @@ pub fn handle_repair_events(
     mut entity_q: Query<&mut Health>,
 ) {
     for evt in damage_events.read() {
-        if let Ok(mut health) = entity_q.get_component_mut::<Health>(evt.entity) {
+        if let Ok(mut health) = entity_q.get_mut(evt.entity) {
             health.repair_damage(evt.repair);
         }
     }

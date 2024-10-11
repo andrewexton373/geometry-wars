@@ -1,6 +1,6 @@
 use std::{borrow::{Borrow, BorrowMut}, f32::consts::PI};
 
-use bevy::{input::keyboard::KeyboardInput, prelude::*};
+use bevy::{color::palettes::css::RED, input::keyboard::KeyboardInput, prelude::*};
 use bevy_particle_systems::Line;
 use bevy_prototype_lyon::{
     draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, prelude::tess::geom::Translation,
@@ -81,7 +81,7 @@ pub fn spawn_enemy(cmd: &mut Commands) {
         Collider::ball(1.0),
         Health::new(),
         LinearVelocity::ZERO,
-        Fill::color(Color::RED),
+        Fill::color(RED),
         Hostility::new(75.0, 2.0),
         thinker.clone(),
         Name::new("Enemy"),

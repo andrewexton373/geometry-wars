@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::css::RED, prelude::*};
 use bevy_prototype_lyon::prelude::*;
 use bevy_prototype_lyon::prelude::RegularPolygon;
 
@@ -32,7 +32,7 @@ pub fn spawn_player_base_guide_arrow(mut commands: Commands) {
                 },
                 ..default()
             },
-            Fill::color(Color::RED),
+            Fill::color(RED),
             Name::new("SpaceStationDirectionIndicator"),
         ))
         .id();
@@ -72,12 +72,12 @@ pub fn guide_player_to_space_station(
     let opacity = (distance_to_base / FADE_DISTANCE).powi(2).clamp(0.0, 1.0);
 
     *dir_indicator_fill = Fill {
-        color: Color::Rgba {
+        color: Color::from(Srgba {
             red: 255.0,
             green: 0.0,
             blue: 0.0,
             alpha: opacity,
-        },
+        }).into(),
         options: FillOptions::default(),
     }
 }
