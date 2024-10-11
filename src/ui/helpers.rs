@@ -1,8 +1,7 @@
 use bevy::{
-    ecs::system::{Query, ResMut},
-    input::{keyboard::KeyCode, mouse::MouseButton, ButtonInput},
+    ecs::system::ResMut,
+    input::{mouse::MouseButton, ButtonInput},
 };
-use bevy_egui::EguiContext;
 
 pub fn progress_string(progress: f32) -> String {
     let progress_bar_len = 10;

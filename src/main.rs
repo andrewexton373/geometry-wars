@@ -31,9 +31,8 @@ use background::plugin::BackgroundPlugin;
 // use bevy_debug_text_overlay::{screen_print, OverlayPlugin};
 
 use bevy::{
-    color::palettes::css::WHITE, diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::camera::CameraPlugin
+    diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*
 };
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_particle_systems::ParticleSystemPlugin;
 use bevy_prototype_lyon::prelude::*;
 use bevy_xpbd_2d::prelude::*;
@@ -42,7 +41,7 @@ use camera::plugin::GameCameraPlugin;
 use factory::FactoryPlugin;
 use inventory::plugin::InventoryPlugin;
 use particles::plugin::ParticlePlugin;
-use player::{components::Player, plugin::PlayerPlugin};
+use player::plugin::PlayerPlugin;
 use player_input::plugin::PlayerInputPlugin;
 use projectile::plugin::ProjectilePlugin;
 use rcs::plugin::RCSPlugin;

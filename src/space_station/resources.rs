@@ -2,7 +2,7 @@ pub const SPACE_STATION_SIZE: f32 = 20.0;
 
 use bevy::{
     asset::Handle,
-    ecs::{component::Component, entity::Entity},
+    ecs::entity::Entity,
     prelude::Resource,
     sprite::ColorMaterial,
 };

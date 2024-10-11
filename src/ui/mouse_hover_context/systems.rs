@@ -1,12 +1,11 @@
 use bevy::{
     core::Name, ecs::{
         entity::Entity,
-        query::With,
         system::{Query, Res, ResMut},
-    }, math::Direction2d, render::camera::Camera, transform::components::GlobalTransform
+    }, math::Direction2d
 };
 use bevy_egui::{
-    egui::{Align2, Pos2, Vec2, Window},
+    egui::{Pos2, Vec2, Window},
     EguiContexts,
 };
 use bevy_xpbd_2d::{
@@ -19,7 +18,7 @@ use crate::{
     health::components::Health,
     player_input::resources::{MouseScreenPosition, MouseWorldPosition},
     space_station::modules::components::SpaceStationModuleType,
-    ui::{helpers::progress_string, ship_hover_context::plugin::ShipHoverContext},
+    ui::helpers::progress_string,
 };
 
 use super::resources::MouseHoverContext;

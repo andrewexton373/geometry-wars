@@ -1,6 +1,5 @@
-use bevy::input::mouse::{self, MouseWheel};
+use bevy::input::mouse::{MouseWheel};
 use bevy::prelude::*;
-use bevy::render::camera;
 use bevy::window::{CursorGrabMode, PrimaryWindow};
 
 use crate::camera::components::{CameraTarget, GameCamera};
@@ -8,7 +7,6 @@ use crate::player::components::Player;
 use crate::rcs::events::RCSThrustPowerEvent;
 use crate::space_station::resources::CanDeposit;
 use crate::ui::mouse_hover_context::resources::MouseHoverContext;
-use crate::ui::{mouse_hover_context, ship_hover_context};
 
 use super::events::DepositInventoryEvent;
 use super::resources::{MouseScreenPosition, MouseWorldPosition};

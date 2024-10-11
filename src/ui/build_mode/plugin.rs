@@ -12,7 +12,7 @@ impl Plugin for BuildModeUIPlugin {
             // .init_resource::<PlayerHoveringBuilding>()
             .add_systems(
                 Update,
-                (ui_build_mode.run_if(in_state(AppState::BuildMode))),
+                ui_build_mode.run_if(in_state(AppState::BuildMode)),
             );
     }
 }

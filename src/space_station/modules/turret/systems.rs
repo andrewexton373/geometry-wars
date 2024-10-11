@@ -1,6 +1,6 @@
 use bevy::{ecs::{entity::Entity, query::With, system::Query}, hierarchy::Parent, math::{Quat, Vec2, Vec3}, transform::components::{GlobalTransform, Transform}};
 
-use crate::{ai::components::Enemy, space_station::modules::components::SpaceStationModuleType};
+use crate::ai::components::Enemy;
 
 use super::components::Turret;
 

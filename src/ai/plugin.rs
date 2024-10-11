@@ -1,5 +1,5 @@
 use bevy::{
-    app::{App, Plugin, PreUpdate, Startup, Update},
+    app::{App, Plugin, PreUpdate, Update},
     ecs::schedule::IntoSystemConfigs, time::{Timer, TimerMode},
 };
 use big_brain::{BigBrainPlugin, BigBrainSet};

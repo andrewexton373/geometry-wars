@@ -2,7 +2,7 @@ use bevy::{
     asset::AssetServer, color::{palettes::css::RED, Color, Srgba}, ecs::{
         event::EventReader,
         system::{Commands, Res},
-    }, hierarchy::DespawnRecursiveExt, text::{Text, Text2dBundle, TextStyle}, transform, utils::default
+    }, hierarchy::DespawnRecursiveExt, text::{Text, Text2dBundle, TextStyle}, utils::default
 };
 use bevy_tweening::{
     lens::TextColorLens, Animator, EaseFunction, RepeatCount, Tween, TweenCompleted,

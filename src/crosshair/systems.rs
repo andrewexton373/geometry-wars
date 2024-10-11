@@ -1,4 +1,4 @@
-use bevy::{prelude::*, transform};
+use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
 use crate::player::components::Player;

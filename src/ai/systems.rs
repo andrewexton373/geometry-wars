@@ -1,9 +1,8 @@
-use std::{borrow::{Borrow, BorrowMut}, f32::consts::PI};
+use std::{borrow::BorrowMut, f32::consts::PI};
 
-use bevy::{color::palettes::css::RED, input::keyboard::KeyboardInput, prelude::*};
-use bevy_particle_systems::Line;
+use bevy::{color::palettes::css::RED, prelude::*};
 use bevy_prototype_lyon::{
-    draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, prelude::tess::geom::Translation,
+    draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder,
     shapes,
 };
 use bevy_xpbd_2d::prelude::*;
@@ -17,12 +16,12 @@ use rand::Rng;
 
 use crate::{
     health::components::Health,
-    player::{self, components::Player},
+    player::{components::Player},
     projectile::events::FireProjectileEvent,
     rcs::{components::RCSBooster, events::RCSThrustVectorEvent},
 };
 
-use super::{components::{Attack, Enemy, Hostile, Hostility, MoveTowardsPlayer, Position}, resources::EnemySpawnTimer};
+use super::{components::{Attack, Enemy, Hostile, Hostility, MoveTowardsPlayer}, resources::EnemySpawnTimer};
 
 pub fn spawn_enemies(
     mut commands: Commands,
@@ -101,7 +100,7 @@ pub fn despawn_dead_enemies(mut commands: Commands, enemies: Query<(Entity, &Ene
 pub fn attack_action_system(
     time: Res<Time>,
     player_q: Query<&GlobalTransform, With<Player>>,
-    mut positions: Query<&GlobalTransform, Without<Player>>,
+    positions: Query<&GlobalTransform, Without<Player>>,
     velocities: Query<&LinearVelocity>,
     mut hostilities: Query<&mut Hostility>,
     mut query: Query<(&Actor, &mut ActionState, &Attack, &ActionSpan)>,
@@ -176,7 +175,7 @@ pub fn move_towards_player_action_system(
                 *action_state = ActionState::Executing;
             }
             ActionState::Executing => {
-                let (mut actor_position, actor_linear_velocity) = enemies.get_mut(actor.0).expect("actor has no position");
+                let (actor_position, actor_linear_velocity) = enemies.get_mut(actor.0).expect("actor has no position");
                 trace!("Actor position: {:?}", actor_position);
 
                 let (player_ent, player_position, player_linear_velocity) = player_q.single();

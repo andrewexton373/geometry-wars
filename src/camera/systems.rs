@@ -1,11 +1,10 @@
 use bevy::{
-    color::{palettes::css::BLACK, Color}, core::Name, core_pipeline::core_2d::{Camera2d, Camera2dBundle}, ecs::{
+    color::{palettes::css::BLACK, Color}, core::Name, core_pipeline::core_2d::Camera2dBundle, ecs::{
         query::{With, Without},
         system::{Commands, Query},
-    }, render::camera::{Camera, ClearColorConfig, OrthographicProjection}, transform::components::Transform, utils::default
+    }, render::camera::{Camera, ClearColorConfig}, transform::components::Transform, utils::default
 };
 
-use crate::player::components::Player;
 
 use super::components::{CameraTarget, GameCamera};
 

@@ -8,16 +8,13 @@ use super::components::Player;
 use super::resources::EmptyInventoryDepositTimer;
 
 use crate::camera::components::CameraTarget;
-use crate::collectible::components::Collectible;
 use crate::crosshair::components::Crosshair;
 use crate::health::components::Health;
 use crate::inventory::components::{Capacity, Inventory};
-use crate::inventory::plugin::InventoryPlugin;
 use crate::inventory::systems::attach_inventory_to_entity;
 use crate::laser::events::LaserEvent;
 use crate::player_input::resources::MouseWorldPosition;
 use crate::space_station::components::SpaceStation;
-use crate::space_station::resources::CanDeposit;
 use crate::ui::context_clue::resources::{ContextClue, ContextClues};
 use crate::upgrades::{components::UpgradesComponent, events::UpgradeEvent};
 use crate::PIXELS_PER_METER;
@@ -99,7 +96,7 @@ pub fn spawn_player(mut commands: Commands) {
 }
 
 pub fn trickle_charge(
-    mut battery_q: Query<(Entity, &Battery), With<Player>>,
+    battery_q: Query<(Entity, &Battery), With<Player>>,
     mut battery_events: EventWriter<ChargeBatteryEvent>,
 ) {
     if let Ok((entity, battery)) = battery_q.get_single() {
@@ -122,7 +119,7 @@ pub fn player_movement(
     mut battery_events: EventWriter<DrainBatteryEvent>,
     mut thrust_vector_events: EventWriter<RCSThrustVectorEvent>,
 ) {
-    let (entity, player, battery, mut transform, mut ext_force) = player_query.single_mut();
+    let (entity, player, battery, transform, ext_force) = player_query.single_mut();
 
     let mut thrust: Vec2 = Vec2::ZERO;
 
@@ -207,7 +204,7 @@ pub fn player_fire_laser(
     mut laser_event_writer: EventWriter<LaserEvent>,
     mut battery_events: EventWriter<DrainBatteryEvent>,
 ) {
-    let (entity, mut player, battery, player_transform, player_global_trans) =
+    let (entity, player, battery, player_transform, player_global_trans) =
         player_query.single_mut();
     let player_direction = (player_transform.rotation * Vec3::Y).truncate().normalize();
 

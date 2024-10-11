@@ -1,11 +1,4 @@
 use bevy::prelude::*;
-use bevy_prototype_lyon::{
-    draw::Fill,
-    entity::{Path, ShapeBundle},
-    geometry::{Geometry, GeometryBuilder},
-    shapes,
-};
-use bevy_xpbd_2d::prelude::*;
 use big_brain::prelude::*;
 
 #[derive(Debug, Clone, Component, ScorerBuilder)]

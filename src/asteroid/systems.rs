@@ -174,7 +174,7 @@ pub fn handle_asteroid_collision_event(
     mut player_damage_particle_query: Query<(Entity, &ShipDamageParticleSystem, &mut Transform)>,
     mut damage_events: EventWriter<DamageEvent>,
 ) {
-    let (player_ent, mut player) = player_query.single_mut();
+    let (player_ent, player) = player_query.single_mut();
 
     let (damage_particles_ent, _, mut damage_particles_t) =
         player_damage_particle_query.single_mut();
@@ -228,7 +228,7 @@ pub fn ablate_asteroids_events(
         let mut rng = rand::thread_rng();
         // let split_angle = rng.gen_range(0.0..PI / 4.0); TODO: Might keep splititng asteroids
 
-        if let Ok((ent, mut asteroid_to_ablate, mut asteroid_health, _g_trans)) =
+        if let Ok((ent, asteroid_to_ablate, mut asteroid_health, _g_trans)) =
             asteroids_query.get_mut(ablate_event.0)
         {
             let damaged_health = asteroid_health.current() - LASER_DAMAGE;
