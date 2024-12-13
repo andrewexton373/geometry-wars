@@ -5,7 +5,7 @@ use bevy_prototype_lyon::{
     draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder,
     shapes,
 };
-use bevy_xpbd_2d::prelude::*;
+use avian2d::prelude::*;
 use big_brain::{
     actions::{ActionState, Steps},
     pickers::FirstToScore,
@@ -65,19 +65,16 @@ pub fn spawn_enemy(cmd: &mut Commands) {
             path: GeometryBuilder::new()
                 .add(&shapes::Circle::default())
                 .build(),
-            spatial: SpatialBundle {
-                transform: Transform {
-                    translation: (random_dir * 1000.0).extend(0.0),
-                    scale: Vec2::new(10.0, 10.0).extend(1.0),
-                    ..default()
-                },
+            transform: Transform {
+                translation: (random_dir * 1000.0).extend(0.0),
+                scale: Vec2::new(10.0, 10.0).extend(1.0),
                 ..default()
             },
             ..default()
         },
         RCSBooster::new(),
         RigidBody::Dynamic,
-        Collider::ball(1.0),
+        Collider::circle(1.0),
         Health::new(),
         LinearVelocity::ZERO,
         Fill::color(RED),
@@ -136,7 +133,7 @@ pub fn attack_action_system(
                     fire_projectile_events.send(FireProjectileEvent {
                         entity: *actor,
                         projectile_trajectory: LinearVelocity(
-                            actor_lin_vel.0 + (dir_to_player * 50.0 * crate::PIXELS_PER_METER),
+                            actor_lin_vel.0 + (dir_to_player * 50.0 * crate::PIXELS_PER_METER as f32).as_dvec2(),
                         ),
                     });
 
@@ -185,13 +182,13 @@ pub fn move_towards_player_action_system(
                 if distance > MAX_DISTANCE {
                     trace!("Thrusting Closer.");
 
-                    let step_size = time.delta_seconds() * move_to.speed;
+                    let step_size = time.delta_secs() * move_to.speed;
                     let step = delta.normalize() * step_size.min(distance);
 
                     // Try and match player velocity?
                     let delta_velocity = actor_linear_velocity.xy() - player_linear_velocity.xy();
 
-                    let mix = step.lerp(delta_velocity, 1.0/(distance - MAX_DISTANCE));
+                    let mix = step.lerp(delta_velocity.as_vec2(), 1.0/(distance - MAX_DISTANCE));
 
                     thrust_events.send(RCSThrustVectorEvent {
                         entity: actor.0,

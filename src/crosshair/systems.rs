@@ -16,14 +16,11 @@ pub fn spawn_crosshair(mut commands: Commands) {
             Crosshair {},
             ShapeBundle {
                 path: GeometryBuilder::build_as(&line),
-                spatial: SpatialBundle {
-                    transform: Transform {
-                        translation: Vec3 {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 1.0,
-                        },
-                        ..default()
+                transform: Transform {
+                    translation: Vec3 {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 1.0,
                     },
                     ..default()
                 },
@@ -94,14 +91,11 @@ pub fn spawn_pointer(mut commands: Commands) {
             MousePointer {},
             ShapeBundle {
                 path: geometry.build(),
-                spatial: SpatialBundle {
-                    transform: Transform {
-                        translation: Vec3 {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 1.0,
-                        },
-                        ..default()
+                transform: Transform {
+                    translation: Vec3 {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 1.0,
                     },
                     ..default()
                 },

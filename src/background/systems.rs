@@ -1,7 +1,7 @@
 use std::borrow::BorrowMut;
 
+use avian2d::prelude::LinearVelocity;
 use bevy::prelude::*;
-use bevy_xpbd_2d::components::LinearVelocity;
 use rand::Rng;
 
 use crate::{camera::components::GameCamera, player::components::Player};
@@ -11,7 +11,7 @@ use super::components::{Layer, Sector, StarfieldBackground};
 pub fn init_starfield(mut commands: Commands) {
     // Spawn 3 Layers
     for layer in 1..4 {
-        commands.spawn((Layer(layer), SpatialBundle::default()));
+        commands.spawn((Layer(layer), Transform::default(), Visibility::default()));
     }
 }
 
@@ -25,7 +25,7 @@ pub fn parallax_layers(
         // Transform Each Layer Correlated to Player Linear Velocity
         *transform = Transform {
             translation: (transform.translation.truncate()
-                + velocity.xy() / (600.0 * layer.0 as f32))
+                + velocity.xy().as_vec2() / (600.0 * layer.0 as f32))
                 .extend(0.0),
             rotation: transform.rotation,
             scale: transform.scale,
@@ -128,21 +128,17 @@ fn generate_sector(commands: &mut Commands, layer_entity: Entity, layer: &Layer,
                 let s = rng.gen_range(0.2..2.8);
                 let scale = Vec3::new(s, s, 1.0) * layer_scale;
                 parent.spawn((
-                    SpriteBundle {
-                        sprite: Sprite {
-                            color: Color::WHITE,
-                            custom_size: Some(Vec2::new(
-                                0.2 * crate::PIXELS_PER_METER,
-                                0.2 * crate::PIXELS_PER_METER,
-                            )),
-                            ..default()
-                        },
-                        transform: Transform {
-                            translation: p,
-                            scale: scale,
-                            ..default()
-                        },
-
+                    Sprite {
+                        color: Color::WHITE,
+                        custom_size: Some(Vec2::new(
+                            0.2 * crate::PIXELS_PER_METER as f32,
+                            0.2 * crate::PIXELS_PER_METER as f32,
+                        )),
+                        ..default()
+                    },
+                    Transform {
+                        translation: p,
+                        scale: scale,
                         ..default()
                     },
                     StarfieldBackground,
@@ -151,5 +147,5 @@ fn generate_sector(commands: &mut Commands, layer_entity: Entity, layer: &Layer,
         })
         .id();
 
-    commands.entity(layer_entity).push_children(&[sector_id]);
+    commands.entity(layer_entity).add_child(sector_id);
 }

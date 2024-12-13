@@ -1,9 +1,9 @@
+use avian2d::prelude::LinearVelocity;
 use bevy::{
     math::Vec2,
     prelude::{Entity, Event},
     transform::components::Transform,
 };
-use bevy_xpbd_2d::components::LinearVelocity;
 
 use super::components::Asteroid;
 

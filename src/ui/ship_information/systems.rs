@@ -1,9 +1,9 @@
+use avian2d::prelude::LinearVelocity;
 use bevy::ecs::{query::With, system::Query};
 use bevy_egui::{
     egui::{Align2, Slider, Vec2, Window},
     EguiContexts,
 };
-use bevy_xpbd_2d::components::LinearVelocity;
 
 use crate::{
     battery::components::Battery, health::components::Health, player::components::Player,
@@ -44,7 +44,7 @@ pub fn ui_ship_information(
                     );
                     ui.label(format!("Speed: {:.2}", velocity.0.length()));
 
-                    let direction_radians = velocity.0.angle_between(hexx::Vec2::X);
+                    let direction_radians = velocity.0.angle_between(hexx::Vec2::X.as_dvec2());
 
                     // TODO: procedure to convert direction_radians to cardinal directions (nice to have)
                     ui.label(format!("Direction: {:.2}", direction_radians));

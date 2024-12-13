@@ -1,11 +1,6 @@
-use bevy::{
-    asset::AssetServer, color::{palettes::css::RED, Color, Srgba}, ecs::{
-        event::EventReader,
-        system::{Commands, Res},
-    }, hierarchy::DespawnRecursiveExt, text::{Text, Text2dBundle, TextStyle}, utils::default
-};
+use bevy::{color::palettes::css::RED, prelude::*};
 use bevy_tweening::{
-    lens::TextColorLens, Animator, EaseFunction, RepeatCount, Tween, TweenCompleted,
+    lens::TextColorLens, Animator, RepeatCount, Tween, TweenCompleted,
 };
 
 use super::events::DamageIndicatorEvent;
@@ -38,25 +33,21 @@ pub fn damage_indicator_events(
                     blue: 0.0,
                     alpha: 0.0,
                 }),
-                section: 0,
+                // section: 0,
             },
         )
         .with_repeat_count(RepeatCount::Finite(1))
         .with_completed_event(111);
 
         commands.spawn((
-            Text2dBundle {
-                text: Text::from_section(
-                    damage_text,
-                    TextStyle {
-                        font: font.clone(),
-                        font_size: 32.0,
-                        color: Color::from(RED),
-                    },
-                ),
-                transform,
+            Text2d(damage_text),
+            TextFont {
+                font: font.clone(),
+                font_size: 32.0,
                 ..default()
             },
+            TextColor(Color::from(RED)),
+            transform,
             Animator::new(tween),
         ));
     }

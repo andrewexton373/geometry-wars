@@ -1,8 +1,8 @@
+use avian2d::prelude::ExternalForce;
 use bevy::ecs::{
     event::EventReader,
     system::Query,
 };
-use bevy_xpbd_2d::components::ExternalForce;
 
 use crate::player::components::Player;
 
@@ -31,7 +31,7 @@ pub fn handle_thrust_events(
         // dbg!("EVENT: {} {}", evt.entity, evt.thrust_vector);
         if let Ok((booster, mut external_force)) = entity_query.get_mut(evt.entity) {
             let thrust_vector = evt.thrust_vector * booster.power_level;
-            external_force.set_force(thrust_vector);
+            external_force.set_force(thrust_vector.as_dvec2());
             external_force.persistent = false;
         }
     }

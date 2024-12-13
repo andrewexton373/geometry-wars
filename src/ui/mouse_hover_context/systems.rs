@@ -1,17 +1,15 @@
+use avian2d::prelude::{Mass, SpatialQuery, SpatialQueryFilter};
 use bevy::{
     core::Name, ecs::{
         entity::Entity,
         system::{Query, Res, ResMut},
-    }, math::Direction2d
+    }, math::{Dir2, Direction2d}
 };
 use bevy_egui::{
     egui::{Pos2, Vec2, Window},
     EguiContexts,
 };
-use bevy_xpbd_2d::{
-    components::Mass,
-    plugins::spatial_query::{SpatialQuery, SpatialQueryFilter},
-};
+
 
 use crate::{
     asteroid::components::Asteroid,
@@ -31,11 +29,11 @@ pub fn update_mouse_hover_context_resource(
 ) {
     // Raycast Mouse Position Into Viewport
     if let Some(ray_hit) = spatial_q.cast_ray(
-        mouse_world_position.0,
-        Direction2d::Y,
+        mouse_world_position.0.as_dvec2(),
+        Dir2::Y,
         0.001,
         true,
-        SpatialQueryFilter::default(),
+        &SpatialQueryFilter::default(),
     ) {
         if let Ok(ent) = ent_query.get(ray_hit.entity) {
             mouse_hover_context.0 = Some(ent);

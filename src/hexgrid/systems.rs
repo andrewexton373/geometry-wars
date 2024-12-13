@@ -4,7 +4,7 @@ use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::PrimitiveTopology;
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy::utils::hashbrown::HashMap;
-use bevy_xpbd_2d::prelude::*;
+use avian2d::prelude::*;
 use hexx::{shapes, Hex, HexLayout, PlaneMeshBuilder};
 
 use crate::hexgrid::components::Building;
@@ -53,33 +53,30 @@ pub fn setup_hex_grid(
     let mesh_handle = meshes.add(mesh);
 
     let points: Vec<Vec2> = HexLayout::hex_corners(&layout, Hex::ZERO).into();
-    let collider = Collider::convex_hull(points).unwrap();
+    let collider = Collider::convex_hull(points.iter().map(|point| point.as_dvec2()).collect()).unwrap();
 
     let entities: HashMap<Hex, Entity> = shapes::hexagon(Hex::default(), 1)
         .map(|hex| {
             let pos = layout.hex_to_world_pos(hex);
 
             let id = commands
-                .spawn(MaterialMesh2dBundle {
-                    transform: Transform::from_xyz(pos.x, pos.y, 0.0),
-                    // .with_rotation(Quat::from_rotation_x(PI / 2.0)),
-                    mesh: bevy::sprite::Mesh2dHandle(mesh_handle.clone()),
-                    material: default_material.clone(),
-                    ..default()
-                })
+                .spawn((
+                    Mesh2d(mesh_handle.clone()),
+                    MeshMaterial2d(default_material.clone()),
+                    Transform::from_xyz(pos.x, pos.y, 0.0)
+                ))
                 .with_children(|b| {
-                    b.spawn(Text2dBundle {
-                        text: Text::from_section(
-                            format!("{},{}", hex.x, hex.y),
-                            TextStyle {
+                    b.spawn(
+                        (
+                            Text2d(format!("{},{}", hex.x, hex.y)),
+                            TextFont {
                                 font_size: 32.0,
-                                color: Color::BLACK,
                                 ..default()
                             },
-                        ),
-                        transform: Transform::from_xyz(0.0, 0.0, 10.0),
-                        ..default()
-                    });
+                            TextColor(Color::BLACK),
+                            Transform::from_xyz(0.0, 0.0, 10.0)
+                        )
+                     );
                 })
                 .insert(collider.clone())
                 .insert(Name::new("HexTile"))

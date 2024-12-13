@@ -6,13 +6,12 @@ use crate::{
     ui::damage_indicator::events::DamageIndicatorEvent,
 };
 use bevy::{color::palettes::css::{DARK_GRAY, GOLD, GRAY, SILVER}, prelude::*};
-use bevy_particle_systems::Playing;
+// use bevy_particle_systems::Playing;
 use bevy_prototype_lyon::{
     draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, prelude::FillOptions,
 };
-use bevy_xpbd_2d::{
-    prelude::*,
-    math::{Scalar, Vector, PI},
+use avian2d::{
+    math::{Scalar, Vector, PI}, prelude::*
 };
 use ordered_float::OrderedFloat;
 use rand::Rng;
@@ -56,12 +55,12 @@ pub fn spawn_asteroids_aimed_at_ship(
             (player_g_transform.translation() - base_station_g_transform.translation()).length();
         let player_position = player_g_transform.translation().truncate();
 
-        let rand_x: f32 = rng.gen_range(-PI..PI);
-        let rand_y: f32 = rng.gen_range(-PI..PI);
+        let rand_x: f32 = rng.gen_range(-PI as f32..PI as f32);
+        let rand_y: f32 = rng.gen_range(-PI as f32..PI as f32);
         let rand_direction = Vec2::new(rand_x.cos(), rand_y.sin()).normalize();
 
         let random_spawn_position =
-            player_position + (rand_direction * SPAWN_DISTANCE * crate::PIXELS_PER_METER);
+            player_position + (rand_direction * SPAWN_DISTANCE * crate::PIXELS_PER_METER as f32);
         let direction_to_player = (player_position - random_spawn_position).normalize() * 200.0; // maybe?
 
         let asteroid = Asteroid::new_with(
@@ -69,7 +68,7 @@ pub fn spawn_asteroids_aimed_at_ship(
             AsteroidComposition::new_with_distance(distance_to_base_station),
         );
         let asteroid_transform = Transform::from_translation(random_spawn_position.extend(0.0));
-        let asteroid_linear_velocity = LinearVelocity(direction_to_player);
+        let asteroid_linear_velocity = LinearVelocity(direction_to_player.as_dvec2());
 
         spawn_asteroid_events.send(SpawnAsteroidEvent(
             asteroid,
@@ -128,7 +127,7 @@ pub fn despawn_far_asteroids(
     asteroid_query: Query<(Entity, &mut Asteroid, &mut Transform), With<Asteroid>>,
     player_query: Query<(&Player, &Transform), (With<Player>, Without<Asteroid>)>,
 ) {
-    const DESPAWN_DISTANCE: f32 = 1000.0 * PIXELS_PER_METER;
+    const DESPAWN_DISTANCE: f32 = 1000.0 * PIXELS_PER_METER as f32;
     let (_player, transform) = player_query.single();
     let player_position = transform.translation.truncate();
 
@@ -171,14 +170,14 @@ pub fn handle_asteroid_collision_event(
     collisions: Res<Collisions>,
     mut asteroid_query: Query<(Entity, &Asteroid, &Mass), Without<Collectible>>,
     mut player_query: Query<(Entity, &mut Player), With<Player>>,
-    mut player_damage_particle_query: Query<(Entity, &ShipDamageParticleSystem, &mut Transform)>,
+    // mut player_damage_particle_query: Query<(Entity, &ShipDamageParticleSystem, &mut Transform)>,
     mut damage_events: EventWriter<DamageEvent>,
 ) {
     let (player_ent, player) = player_query.single_mut();
 
-    let (damage_particles_ent, _, mut damage_particles_t) =
-        player_damage_particle_query.single_mut();
-    commands.entity(damage_particles_ent).remove::<Playing>();
+    // let (damage_particles_ent, _, mut damage_particles_t) =
+    //     player_damage_particle_query.single_mut();
+    // commands.entity(damage_particles_ent).remove::<Playing>();
 
     for (asteroid_entity, asteroid, mass) in asteroid_query.iter_mut() {
         if let Some(collision) = collisions.get(player_ent, asteroid_entity) {
@@ -186,12 +185,12 @@ pub fn handle_asteroid_collision_event(
 
             damage_events.send(DamageEvent {
                 entity: player_ent,
-                damage,
+                damage: damage as f32,
             });
 
-            damage_particles_t.translation =
-                (collision.manifolds[0].contacts[0].point1 * crate::PIXELS_PER_METER).extend(999.0);
-            commands.entity(damage_particles_ent).insert(Playing);
+            // damage_particles_t.translation =
+            //     (collision.manifolds[0].contacts[0].point1.as_vec2() * crate::PIXELS_PER_METER as f32).extend(999.0);
+            // commands.entity(damage_particles_ent).insert(Playing);
         }
     }
 }
@@ -263,7 +262,7 @@ pub fn ablate_asteroids_events(
             spawn_asteroid_events.send(SpawnAsteroidEvent(
                 asteroid.clone(),
                 Transform::from_translation(ablate_event.1.extend(0.0)),
-                LinearVelocity(ablate_event.2),
+                LinearVelocity(ablate_event.2.as_dvec2()),
             ));
         }
     }
@@ -325,7 +324,7 @@ pub fn spawn_asteroid_events(
         let asteroid = evt.0.clone();
         let target_transform = evt.1;
         let linear_velocity = evt.2;
-        let collider = Collider::convex_hull(asteroid.polygon().points).unwrap();
+        let collider = Collider::convex_hull(asteroid.polygon().points.iter().map(|point| Vector {x: point.x as f64, y: point.y as f64}).collect()).unwrap();
         let health_pool = collider.mass_properties(1.0).mass; // Set Healthpool to mass?
 
         let mut rng = rand::thread_rng();
@@ -340,12 +339,12 @@ pub fn spawn_asteroid_events(
                     RigidBody::Dynamic,
                     collider,
                     linear_velocity,
-                    Inertia(1.0),
+                    // Inertia(1.0),
                     splittable,
                     Name::new("Asteroid"),
                     ShapeBundle {
                         path: GeometryBuilder::build_as(&asteroid.polygon()),
-                        spatial: SpatialBundle::from_transform(transform),
+                        transform,
                         ..default()
                     },
                     Health::with_maximum(Asteroid::polygon_area(asteroid.polygon().points)),
@@ -364,7 +363,7 @@ fn find_free_space(
     margin: Scalar,
     max_iterations: usize,
 ) -> Option<Transform> {
-    let mut target_position = target_transform.translation.truncate();
+    let mut target_position: Position = Position::new(target_transform.translation.truncate().as_dvec2());
     let rotation = Rotation::from(target_transform.rotation);
 
     // Scale collider by margin
@@ -380,14 +379,14 @@ fn find_free_space(
         // Get entities intersecting the space
         let intersections = spatial.shape_intersections(
             &collider,
-            target_position,
+            target_position.as_vec2().as_dvec2(),
             rotation.as_radians(),
-            filter.clone(),
+            &filter.clone(),
         );
 
         if intersections.is_empty() {
             // No intersections, free space found
-            return Some(target_transform.with_translation(target_position.extend(0.0)));
+            return Some(target_transform.with_translation(target_position.extend(0.0).as_vec3()));
         } else {
             // Iterate over intersections and move the target position
             // based on computed contact data.
@@ -396,7 +395,7 @@ fn find_free_space(
                 let Ok((hit_collider, hit_transform)) = query.get(entity) else {
                     continue;
                 };
-                let hit_translation = hit_transform.translation.truncate();
+                let hit_translation: Position = Position::new(hit_transform.translation.truncate().as_dvec2());
 
                 // Compute contact between the entity to spawn and the intersecting entity
                 if let Ok(Some(contact)) = contact_query::contact(
@@ -414,7 +413,7 @@ fn find_free_space(
                     let delta = normal * (contact.penetration + 0.00001);
 
                     // Move target position to solve overlap
-                    target_position += delta;
+                    target_position =  Position::new(target_position.as_vec2().as_dvec2() + delta);
                 }
             }
         }

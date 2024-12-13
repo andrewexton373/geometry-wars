@@ -1,9 +1,9 @@
+use avian2d::prelude::PhysicsSet;
 use bevy::{
     app::{App, Plugin, PostUpdate, Startup},
     ecs::schedule::IntoSystemConfigs,
     transform::TransformSystem,
 };
-use bevy_xpbd_2d::PhysicsSet;
 
 use super::systems::{camera_follows_target, setup_camera};
 

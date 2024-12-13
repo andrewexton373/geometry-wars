@@ -1,14 +1,14 @@
+use avian2d::prelude::*;
 use bevy::color::palettes::css::RED;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use bevy_xpbd_2d::prelude::*;
 
 use crate::health::events::DamageEvent;
 
 use super::components::Projectile;
 use super::events::FireProjectileEvent;
 
-pub const PROJECTILE_RADIUS: f32 = 0.160;
+pub const PROJECTILE_RADIUS: f64 = 0.160;
 
 pub fn handle_fire_projectile_events(
     mut commands: Commands,
@@ -19,14 +19,14 @@ pub fn handle_fire_projectile_events(
         const BULLET_SPEED: f32 = 6.0;
 
         let projectile_shape = shapes::Circle {
-            radius: PROJECTILE_RADIUS * crate::PIXELS_PER_METER,
+            radius: (PROJECTILE_RADIUS * crate::PIXELS_PER_METER) as f32,
             ..default()
         };
 
         if let Ok(projectile_spawn_position) = global_transforms.get(evt.entity) {
             // Move projectile slightly ahead of where it was fired from to avoid self collision
-            let projectile_spawn_position = projectile_spawn_position.translation().truncate()
-                + evt.projectile_trajectory.0.trunc().normalize() * 20.0;
+            let projectile_spawn_position = projectile_spawn_position.translation().truncate().as_dvec2()
+                + evt.projectile_trajectory.0.trunc().normalize().as_vec2().as_dvec2() * 20.0;
 
             commands.spawn((
                 Projectile {
@@ -34,19 +34,15 @@ pub fn handle_fire_projectile_events(
                 },
                 ShapeBundle {
                     path: GeometryBuilder::build_as(&projectile_shape),
-                    spatial: SpatialBundle {
-                        transform: Transform::from_translation(
-                            projectile_spawn_position.extend(2.0),
-                        ),
-                        ..default()
-                    },
-
+                    transform: Transform::from_translation(
+                        projectile_spawn_position.extend(2.0).as_vec3(),
+                    ),
                     ..default()
                 },
                 Fill::color(Color::from(RED)),
                 RigidBody::Dynamic,
                 evt.projectile_trajectory,
-                Collider::ball(projectile_shape.radius),
+                Collider::circle(projectile_shape.radius as f64),
             ));
         }
     }

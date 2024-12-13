@@ -3,7 +3,7 @@ use bevy::{color::palettes::css::{BLACK, DARK_GRAY, ORANGE_RED, TEAL, WHITE}, pr
 use bevy_prototype_lyon::{prelude::{
     self as lyon, Fill, GeometryBuilder, ShapeBundle, Stroke,
 }, shapes};
-use bevy_xpbd_2d::prelude::*;
+use avian2d::prelude::*;
 use hexx::Hex;
 use bevy::color::palettes::css::PINK;
 
@@ -104,11 +104,7 @@ pub fn init_space_station_turret(
                 Name::new("Turret"),
                 ShapeBundle {
                     path: geometry.build(),
-                    spatial: SpatialBundle {
-                        transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                        
-                        ..default()
-                    },
+                    transform: Transform::from_xyz(0.0, 0.0, 1.0),
                     ..default()
                 },
                 Fill::color(WHITE),
@@ -137,12 +133,12 @@ pub fn color_space_station_modules(
             };
 
             // Color HexTiles based on Module Type.
-            commands.entity(ent).insert(material.clone());
+            commands.entity(ent).insert(MeshMaterial2d(material.clone()));
         } else {
             // Color Hex as Transparent Buildable HexTile
             commands
                 .entity(ent)
-                .insert(module_material_map.buildable_material.clone());
+                .insert(MeshMaterial2d(module_material_map.buildable_material.clone()));
         }
     }
 }
@@ -151,8 +147,8 @@ pub fn repel_asteroids_from_space_station(
     base_query: Query<(&SpaceStation, &GlobalTransform), With<SpaceStation>>,
     mut asteroid_query: Query<(&Asteroid, &GlobalTransform, &mut LinearVelocity), With<Asteroid>>,
 ) {
-    const REPEL_RADIUS: f32 = 120.0 * PIXELS_PER_METER;
-    const REPEL_STRENGTH: f32 = 25.0;
+    const REPEL_RADIUS: f64 = 120.0 * PIXELS_PER_METER;
+    const REPEL_STRENGTH: f64 = 25.0;
 
     let (_base_station, base_station_transform) = base_query.single();
 
@@ -160,12 +156,12 @@ pub fn repel_asteroids_from_space_station(
         let base_station_pos = base_station_transform.translation().truncate();
         let asteroid_pos = asteroid_transform.translation().truncate();
 
-        let distance = base_station_pos.distance(asteroid_pos);
-        let distance_weight = 1.0 - (distance / REPEL_RADIUS);
+        let distance = base_station_pos.distance(asteroid_pos) as f64;
+        let distance_weight: f64 = 1.0 - (distance as f64 / REPEL_RADIUS);
 
         if distance < REPEL_RADIUS {
             let repel_vector = (asteroid_pos - base_station_pos).normalize();
-            asteroid_velocity.0 += repel_vector * distance_weight * REPEL_STRENGTH;
+            asteroid_velocity.0 += repel_vector.as_dvec2() * distance_weight * REPEL_STRENGTH;
         }
     }
 }
@@ -189,12 +185,12 @@ pub fn handle_space_station_collision_event(
 
         charge_events.send(ChargeBatteryEvent {
             entity: player_ent,
-            charge: 100.0 * time.delta_seconds(),
+            charge: 100.0 * time.delta_secs(),
         });
 
         repair_events.send(RepairEvent {
             entity: player_ent,
-            repair: 10.0 * time.delta_seconds(),
+            repair: 10.0 * time.delta_secs(),
         });
     } else {
         *can_deposit_res = CanDeposit(false);

@@ -1,6 +1,7 @@
+use bevy::math::DVec2;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use bevy_xpbd_2d::prelude::*;
+use avian2d::prelude::*;
 use ordered_float::OrderedFloat;
 use std::f32::consts::PI;
 
@@ -31,15 +32,15 @@ pub fn spawn_player(mut commands: Commands) {
         points: vec![
             Vec2 {
                 x: 0.0,
-                y: 4.0 * crate::PIXELS_PER_METER,
+                y: 4.0 * crate::PIXELS_PER_METER as f32,
             },
             Vec2 {
-                x: 2.0 * crate::PIXELS_PER_METER,
-                y: -2.0 * crate::PIXELS_PER_METER,
+                x: 2.0 * crate::PIXELS_PER_METER as f32,
+                y: -2.0 * crate::PIXELS_PER_METER as f32,
             },
             Vec2 {
-                x: -2.0 * crate::PIXELS_PER_METER,
-                y: -2.0 * crate::PIXELS_PER_METER,
+                x: -2.0 * crate::PIXELS_PER_METER as f32,
+                y: -2.0 * crate::PIXELS_PER_METER as f32,
             },
         ],
         closed: true,
@@ -52,13 +53,13 @@ pub fn spawn_player(mut commands: Commands) {
         .insert((
             RigidBody::Dynamic,
             Mass(1.0),
-            Inertia(1.0),
+            // Inertia(1.0),
             AngularDamping(0.99),
             ExternalForce::ZERO,
             AngularVelocity::ZERO,
             LinearVelocity::ZERO,
             Friction::new(10.0),
-            Collider::convex_hull(player_poly.points.clone()).unwrap(),
+            Collider::convex_hull(player_poly.points.clone().iter().map(|point| DVec2::new(point.x as f64, point.y as f64)).collect()).unwrap(),
             Health::new(),
             Battery::new(),
             RCSBooster::new(),
@@ -66,14 +67,11 @@ pub fn spawn_player(mut commands: Commands) {
         .insert((
             ShapeBundle {
                 path: GeometryBuilder::build_as(&player_poly),
-                spatial: SpatialBundle {
-                    transform: Transform {
-                        translation: Vec3 {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 2.0,
-                        },
-                        ..default()
+                transform: Transform {
+                    translation: Vec3 {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 2.0,
                     },
                     ..default()
                 },
@@ -144,23 +142,23 @@ pub fn player_movement(
         return;
     };
 
-    const ACCELERATION: f32 = 1000.0 * PIXELS_PER_METER;
+    const ACCELERATION: f64 = 1000.0 * PIXELS_PER_METER;
 
-    let force = thrust.normalize_or_zero() * ACCELERATION;
+    let force = thrust.normalize_or_zero().as_dvec2() * ACCELERATION;
     let energy_spent = force.length() / 5000000.0; // TODO: magic number
 
-    if force == Vec2::ZERO {
+    if force == DVec2::ZERO {
         return;
     }
 
     battery_events.send(DrainBatteryEvent {
         entity,
-        drain: energy_spent,
+        drain: energy_spent as f32,
     });
 
     thrust_vector_events.send(RCSThrustVectorEvent {
         entity,
-        thrust_vector: force,
+        thrust_vector: force.as_vec2(),
     });
 }
 
@@ -174,7 +172,7 @@ pub fn ship_rotate_towards_mouse(
     let cursor_pos = mouse_position.0;
     let (_player, player_trans, mut ang_velocity) = player_query.single_mut();
 
-    const SPIN_ACCELERATION: f32 = 500.0;
+    const SPIN_ACCELERATION: f64 = 500.0;
 
     let player_to_mouse = (cursor_pos - player_trans.translation.truncate()).normalize();
     let player_ship_rotation = (player_trans.rotation * Vec3::Y).truncate().normalize();
@@ -184,9 +182,9 @@ pub fn ship_rotate_towards_mouse(
 
     //Rotate towards position mouse is on
     if ship_angle_difference_percent > 0.001 {
-        ang_velocity.0 = -SPIN_ACCELERATION * ship_angle_difference_percent.powf(2.0);
+        ang_velocity.0 = -SPIN_ACCELERATION * ship_angle_difference_percent.powf(2.0) as f64;
     } else if ship_angle_difference_percent < -0.001 {
-        ang_velocity.0 = SPIN_ACCELERATION * ship_angle_difference_percent.powf(2.0);
+        ang_velocity.0 = SPIN_ACCELERATION * ship_angle_difference_percent.powf(2.0) as f64;
     } else {
         ang_velocity.0 = 0.0;
     }

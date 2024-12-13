@@ -10,7 +10,7 @@ use super::components::SpaceStationDirectionIndicator;
 pub fn spawn_player_base_guide_arrow(mut commands: Commands) {
     let direction_indicator_shape = RegularPolygon {
         sides: 3,
-        feature: RegularPolygonFeature::Radius(crate::PIXELS_PER_METER * 2.0),
+        feature: RegularPolygonFeature::Radius(crate::PIXELS_PER_METER as f32 * 2.0),
         ..RegularPolygon::default()
     };
 
@@ -19,14 +19,11 @@ pub fn spawn_player_base_guide_arrow(mut commands: Commands) {
             SpaceStationDirectionIndicator,
             ShapeBundle {
                 path: GeometryBuilder::build_as(&direction_indicator_shape),
-                spatial: SpatialBundle {
-                    transform: Transform {
-                        translation: Vec3 {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 1.0,
-                        },
-                        ..default()
+                transform: Transform {
+                    translation: Vec3 {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 1.0,
                     },
                     ..default()
                 },

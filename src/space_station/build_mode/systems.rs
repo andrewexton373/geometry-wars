@@ -1,13 +1,13 @@
 use bevy::{
     asset::Assets, color::Color, ecs::{
-        entity::{Entity},
+        entity::Entity,
         event::EventReader,
         query::Without,
         system::{Commands, Query, Res, ResMut},
     }, input::{
         keyboard::KeyCode,
         ButtonInput,
-    }, prelude::NextState, sprite::ColorMaterial
+    }, prelude::NextState, sprite::{ColorMaterial, MeshMaterial2d}
 };
 
 use crate::{
@@ -47,14 +47,16 @@ pub fn color_hexes(
     if let Some(entity) = mouse_hover_hex.entity {
         commands
             .entity(entity)
-            .insert(materials.mouse_hover_hex_material.clone());
+            .insert(MeshMaterial2d(materials.mouse_hover_hex_material.clone()));
     }
+
+    
 
     // 3: Color Selected Hover
     if let Some(entity) = selected_hex.entity {
         commands
             .entity(entity)
-            .insert(materials.selected_hex_material.clone());
+            .insert(MeshMaterial2d(materials.selected_hex_material.clone()));
     }
 }
 
@@ -66,7 +68,8 @@ pub fn highlight_build_locations(
     for (build_location_ent, _) in build_locations_q.iter() {
         commands
             .entity(build_location_ent)
-            .insert((materials.buildable_hex_material.clone(), BuildableHex));
+            .insert(MeshMaterial2d(materials.buildable_hex_material.clone()))
+            .insert(BuildableHex);
     }
 }
 

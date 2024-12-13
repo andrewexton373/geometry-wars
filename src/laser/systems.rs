@@ -1,11 +1,12 @@
+use avian2d::prelude::{SpatialQuery, SpatialQueryFilter};
+use bevy::ecs::entity::EntityHash;
 use bevy::{math::Direction2d, prelude::*};
 use bevy::utils::hashbrown::HashSet;
-use bevy_particle_systems::Playing;
+// use bevy_particle_systems::Playing;
 use bevy_prototype_lyon::{
     prelude::{GeometryBuilder, Path, ShapeBundle, ShapePath, Stroke},
     shapes,
 };
-use bevy_xpbd_2d::plugins::spatial_query::{SpatialQuery, SpatialQueryFilter};
 
 use super::components::Laser;
 use super::events::LaserEvent;
@@ -22,14 +23,11 @@ pub fn setup_laser(mut commands: Commands, mut laser_query: Query<&mut Laser>) {
         commands.spawn(Laser).insert((
             ShapeBundle {
                 path: GeometryBuilder::build_as(&line),
-                spatial: SpatialBundle {
-                    transform: Transform {
-                        translation: Vec3 {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 1.0,
-                        },
-                        ..default()
+                transform: Transform {
+                    translation: Vec3 {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 1.0,
                     },
                     ..default()
                 },
@@ -58,14 +56,14 @@ pub fn fire_laser_raycasting(
 ) {
     // TODO: Change Laser State To Off On Player Left Unclick
     for (ent, _, mut _t) in laser_impact_particles_query.iter_mut() {
-        commands.entity(ent).remove::<Playing>();
+        // commands.entity(ent).remove::<Playing>();
     }
 
     let mut laser_path = laser_query.single_mut();
     let player_ent = player_q.single();
 
     // Exclude Player from Raycasting
-    let excluded_entities: HashSet<Entity> = vec![player_ent].into_iter().collect();
+    let excluded_entities: HashSet<Entity, EntityHash> = vec![player_ent].into_iter().collect();
 
     // Reset laser
     let line = shapes::Line(Vec2::ZERO, Vec2::ZERO);
@@ -75,7 +73,7 @@ pub fn fire_laser_raycasting(
         let laser_active = fire_laser_event.0;
         let ray_pos = fire_laser_event.1;
         let ray_dir = fire_laser_event.2;
-        let ray_dir_2d = Direction2d::new(ray_dir).unwrap();
+        let ray_dir_2d = Dir2::new(ray_dir).unwrap();
 
         // If laser is active
         if laser_active {
@@ -83,29 +81,29 @@ pub fn fire_laser_raycasting(
             *laser_path = ShapePath::build_as(&line);
 
             if let Some(first_hit) = spatial_query.cast_ray(
-                ray_pos,
-                Direction2d::new(ray_dir).unwrap(),
+                ray_pos.as_dvec2(),
+                Dir2::new(ray_dir).unwrap(),
                 10000.0,
                 false,
-                SpatialQueryFilter {
+                &SpatialQueryFilter {
                     excluded_entities: excluded_entities.clone(),
                     ..default()
                 },
             ) {
-                let hit_point = ray_pos + ray_dir * first_hit.time_of_impact;
+                let hit_point = ray_pos.as_dvec2() + ray_dir.as_dvec2() * first_hit.distance;
                 let hit_normal = first_hit.normal;
                 let hit_ent = first_hit.entity;
 
                 for (ent, _, mut t) in laser_impact_particles_query.iter_mut() {
-                    commands.entity(ent).insert(Playing);
-                    t.translation = hit_point.extend(0.0);
+                    // commands.entity(ent).insert(Playing);
+                    t.translation = hit_point.extend(0.0).as_vec3();
                 }
 
-                let line = shapes::Line(ray_pos, hit_point);
+                let line = shapes::Line(ray_pos, hit_point.as_vec2());
 
                 *laser_path = ShapePath::build_as(&line);
 
-                ablate_event_writer.send(AblateEvent(hit_ent, hit_point, hit_normal));
+                ablate_event_writer.send(AblateEvent(hit_ent, hit_point.as_vec2(), hit_normal.as_vec2()));
                 damage_events.send(DamageEvent {
                     entity: hit_ent,
                     damage: 5.0,

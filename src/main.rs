@@ -33,9 +33,9 @@ use background::plugin::BackgroundPlugin;
 use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*
 };
-use bevy_particle_systems::ParticleSystemPlugin;
+// use bevy_particle_systems::ParticleSystemPlugin;
 use bevy_prototype_lyon::prelude::*;
-use bevy_xpbd_2d::prelude::*;
+use avian2d::prelude::*;
 
 use camera::plugin::GameCameraPlugin;
 use factory::FactoryPlugin;
@@ -60,7 +60,7 @@ use upgrades::plugin::UpgradesPlugin;
 // Defines the amount of time that should elapse between each physics step.
 // const TIME_STEP: f32 = 1.0 / 60.0;
 
-pub const PIXELS_PER_METER: f32 = 10.0;
+pub const PIXELS_PER_METER: f64 = 10.0;
 
 // const BACKGROUND_COLOR: Color = Color::rgb(0.0, 0.0, 0.0);
 
@@ -89,7 +89,7 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
             ShapePlugin,
-            ParticleSystemPlugin,
+            // ParticleSystemPlugin,
             PhysicsPlugins::default(),
             PhysicsDebugPlugin::default(),
          ))

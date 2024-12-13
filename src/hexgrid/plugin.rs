@@ -10,7 +10,7 @@ use super::{
 };
 
 /// World size of the hexagons (outer radius)
-pub const HEX_SIZE: Vec2 = Vec2::splat(10.0 * crate::PIXELS_PER_METER);
+pub const HEX_SIZE: Vec2 = Vec2::splat(10.0 * crate::PIXELS_PER_METER as f32);
 
 pub struct HexBasePlugin;
 
