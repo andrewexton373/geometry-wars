@@ -1,7 +1,5 @@
 use bevy::{color::palettes::css::RED, prelude::*};
-use bevy_tweening::{
-    lens::TextColorLens, Animator, RepeatCount, Tween, TweenCompleted,
-};
+use bevy_tweening::{lens::TextColorLens, Animator, RepeatCount, Tween, TweenCompleted};
 
 use super::events::DamageIndicatorEvent;
 

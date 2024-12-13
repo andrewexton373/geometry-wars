@@ -1,7 +1,7 @@
 use avian2d::prelude::{SpatialQuery, SpatialQueryFilter};
 use bevy::ecs::entity::EntityHash;
-use bevy::{math::Direction2d, prelude::*};
 use bevy::utils::hashbrown::HashSet;
+use bevy::{math::Direction2d, prelude::*};
 // use bevy_particle_systems::Playing;
 use bevy_prototype_lyon::{
     prelude::{GeometryBuilder, Path, ShapeBundle, ShapePath, Stroke},
@@ -103,7 +103,11 @@ pub fn fire_laser_raycasting(
 
                 *laser_path = ShapePath::build_as(&line);
 
-                ablate_event_writer.send(AblateEvent(hit_ent, hit_point.as_vec2(), hit_normal.as_vec2()));
+                ablate_event_writer.send(AblateEvent(
+                    hit_ent,
+                    hit_point.as_vec2(),
+                    hit_normal.as_vec2(),
+                ));
                 damage_events.send(DamageEvent {
                     entity: hit_ent,
                     damage: 5.0,

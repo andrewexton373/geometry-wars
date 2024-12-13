@@ -16,7 +16,8 @@ pub fn gravitate_collectibles_towards_player_ship(
         let distance_to_player_from_collectible = player_transform
             .translation
             .truncate()
-            .distance(collectible_tranform.translation.truncate()) as f64;
+            .distance(collectible_tranform.translation.truncate())
+            as f64;
         if distance_to_player_from_collectible < MAX_GRAVITATION_DISTANCE {
             let percent_distance_from_max =
                 distance_to_player_from_collectible / MAX_GRAVITATION_DISTANCE;
@@ -24,10 +25,11 @@ pub fn gravitate_collectibles_towards_player_ship(
                 - collectible_tranform.translation.truncate())
             .normalize();
             let gravitation_factor = 1.0 - percent_distance_from_max;
-            velocity.0 = velocity.0 + direction_to_player_from_collectible.as_dvec2()
-                * gravitation_factor
-                * 5.0
-                * crate::PIXELS_PER_METER;
+            velocity.0 = velocity.0
+                + direction_to_player_from_collectible.as_dvec2()
+                    * gravitation_factor
+                    * 5.0
+                    * crate::PIXELS_PER_METER;
         }
     }
 }

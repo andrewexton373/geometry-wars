@@ -8,7 +8,9 @@ use super::modules::turret::plugin::SpaceStationTurretPlugin;
 use super::resources::CanDeposit;
 
 use super::systems::{
-    color_space_station_modules, handle_space_station_collision_event, init_space_station_core, init_space_station_module_material_map, init_space_station_turret, repel_asteroids_from_space_station
+    color_space_station_modules, handle_space_station_collision_event, init_space_station_core,
+    init_space_station_module_material_map, init_space_station_turret,
+    repel_asteroids_from_space_station,
 };
 
 pub struct SpaceStationPlugin;
@@ -23,7 +25,7 @@ impl Plugin for SpaceStationPlugin {
                     init_space_station_module_material_map,
                     (init_space_station_core, init_space_station_turret)
                         .after(setup_hex_grid)
-                        .after(init_space_station_module_material_map)
+                        .after(init_space_station_module_material_map),
                 ),
             )
             .add_systems(

@@ -1,4 +1,7 @@
-use bevy::{color::palettes::css::{RED, YELLOW}, prelude::*};
+use bevy::{
+    color::palettes::css::{RED, YELLOW},
+    prelude::*,
+};
 // use bevy_particle_systems::*;
 
 use crate::player::components::Player;

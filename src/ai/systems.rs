@@ -1,11 +1,8 @@
 use std::{borrow::BorrowMut, f32::consts::PI};
 
-use bevy::{color::palettes::css::RED, prelude::*};
-use bevy_prototype_lyon::{
-    draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder,
-    shapes,
-};
 use avian2d::prelude::*;
+use bevy::{color::palettes::css::RED, prelude::*};
+use bevy_prototype_lyon::{draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, shapes};
 use big_brain::{
     actions::{ActionState, Steps},
     pickers::FirstToScore,
@@ -16,18 +13,21 @@ use rand::Rng;
 
 use crate::{
     health::components::Health,
-    player::{components::Player},
+    player::components::Player,
     projectile::events::FireProjectileEvent,
     rcs::{components::RCSBooster, events::RCSThrustVectorEvent},
 };
 
-use super::{components::{Attack, Enemy, Hostile, Hostility, MoveTowardsPlayer}, resources::EnemySpawnTimer};
+use super::{
+    components::{Attack, Enemy, Hostile, Hostility, MoveTowardsPlayer},
+    resources::EnemySpawnTimer,
+};
 
 pub fn spawn_enemies(
     mut commands: Commands,
     time: Res<Time>,
     mut spawn_time: ResMut<EnemySpawnTimer>,
-    keys: Res<ButtonInput<KeyCode>>
+    keys: Res<ButtonInput<KeyCode>>,
 ) {
     spawn_time.timer.tick(time.delta());
 
@@ -35,11 +35,9 @@ pub fn spawn_enemies(
         spawn_enemy(commands.borrow_mut());
         spawn_time.timer.reset();
     }
-
-} 
+}
 
 pub fn spawn_enemy(cmd: &mut Commands) {
-
     let move_towards_player_and_attack = Steps::build()
         .label("MoveTowardsPlayerAndAttack")
         .step(MoveTowardsPlayer {
@@ -133,7 +131,9 @@ pub fn attack_action_system(
                     fire_projectile_events.send(FireProjectileEvent {
                         entity: *actor,
                         projectile_trajectory: LinearVelocity(
-                            actor_lin_vel.0 + (dir_to_player * 50.0 * crate::PIXELS_PER_METER as f32).as_dvec2(),
+                            actor_lin_vel.0
+                                + (dir_to_player * 50.0 * crate::PIXELS_PER_METER as f32)
+                                    .as_dvec2(),
                         ),
                     });
 
@@ -172,11 +172,13 @@ pub fn move_towards_player_action_system(
                 *action_state = ActionState::Executing;
             }
             ActionState::Executing => {
-                let (actor_position, actor_linear_velocity) = enemies.get_mut(actor.0).expect("actor has no position");
+                let (actor_position, actor_linear_velocity) =
+                    enemies.get_mut(actor.0).expect("actor has no position");
                 trace!("Actor position: {:?}", actor_position);
 
                 let (player_ent, player_position, player_linear_velocity) = player_q.single();
-                let delta = (player_position.translation() - actor_position.translation()).truncate();
+                let delta =
+                    (player_position.translation() - actor_position.translation()).truncate();
                 let distance = delta.length();
 
                 if distance > MAX_DISTANCE {
@@ -188,7 +190,7 @@ pub fn move_towards_player_action_system(
                     // Try and match player velocity?
                     let delta_velocity = actor_linear_velocity.xy() - player_linear_velocity.xy();
 
-                    let mix = step.lerp(delta_velocity.as_vec2(), 1.0/(distance - MAX_DISTANCE));
+                    let mix = step.lerp(delta_velocity.as_vec2(), 1.0 / (distance - MAX_DISTANCE));
 
                     thrust_events.send(RCSThrustVectorEvent {
                         entity: actor.0,

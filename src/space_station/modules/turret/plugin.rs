@@ -6,9 +6,6 @@ pub struct SpaceStationTurretPlugin;
 
 impl Plugin for SpaceStationTurretPlugin {
     fn build(&self, app: &mut App) {
-        
-        app
-            .add_systems(Update, update_turret_weapons);
-
+        app.add_systems(Update, update_turret_weapons);
     }
 }

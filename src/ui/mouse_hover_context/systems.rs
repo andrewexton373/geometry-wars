@@ -1,15 +1,16 @@
 use avian2d::prelude::{Mass, SpatialQuery, SpatialQueryFilter};
 use bevy::{
-    core::Name, ecs::{
+    core::Name,
+    ecs::{
         entity::Entity,
         system::{Query, Res, ResMut},
-    }, math::{Dir2, Direction2d}
+    },
+    math::{Dir2, Direction2d},
 };
 use bevy_egui::{
     egui::{Pos2, Vec2, Window},
     EguiContexts,
 };
-
 
 use crate::{
     asteroid::components::Asteroid,

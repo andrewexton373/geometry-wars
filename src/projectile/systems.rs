@@ -25,8 +25,18 @@ pub fn handle_fire_projectile_events(
 
         if let Ok(projectile_spawn_position) = global_transforms.get(evt.entity) {
             // Move projectile slightly ahead of where it was fired from to avoid self collision
-            let projectile_spawn_position = projectile_spawn_position.translation().truncate().as_dvec2()
-                + evt.projectile_trajectory.0.trunc().normalize().as_vec2().as_dvec2() * 20.0;
+            let projectile_spawn_position = projectile_spawn_position
+                .translation()
+                .truncate()
+                .as_dvec2()
+                + evt
+                    .projectile_trajectory
+                    .0
+                    .trunc()
+                    .normalize()
+                    .as_vec2()
+                    .as_dvec2()
+                    * 20.0;
 
             commands.spawn((
                 Projectile {

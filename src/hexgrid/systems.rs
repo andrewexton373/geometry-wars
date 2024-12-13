@@ -1,10 +1,10 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy::render::mesh::Indices;
 use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::PrimitiveTopology;
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy::utils::hashbrown::HashMap;
-use avian2d::prelude::*;
 use hexx::{shapes, Hex, HexLayout, PlaneMeshBuilder};
 
 use crate::hexgrid::components::Building;
@@ -36,14 +36,12 @@ pub fn setup_hex_grid(
     // let selected_material = materials.add(Color::RED.into());
     // let ship_hover_material = materials.add(Color::LIME_GREEN.into());
     // let ring_material = materials.add(Color::YELLOW.into());
-    let default_material = materials.add(
-        Color::from(Srgba {
-            red: 0.0,
-            green: 0.0,
-            blue: 0.0,
-            alpha: 0.0,
-        })
-    );
+    let default_material = materials.add(Color::from(Srgba {
+        red: 0.0,
+        green: 0.0,
+        blue: 0.0,
+        alpha: 0.0,
+    }));
     // let factory_material = materials.add(Color::BISQUE.into());
     // let refinery_material = materials.add(Color::ORANGE_RED.into());
     // let storage_material = materials.add(Color::GOLD.into());
@@ -53,7 +51,8 @@ pub fn setup_hex_grid(
     let mesh_handle = meshes.add(mesh);
 
     let points: Vec<Vec2> = HexLayout::hex_corners(&layout, Hex::ZERO).into();
-    let collider = Collider::convex_hull(points.iter().map(|point| point.as_dvec2()).collect()).unwrap();
+    let collider =
+        Collider::convex_hull(points.iter().map(|point| point.as_dvec2()).collect()).unwrap();
 
     let entities: HashMap<Hex, Entity> = shapes::hexagon(Hex::default(), 1)
         .map(|hex| {
@@ -63,20 +62,18 @@ pub fn setup_hex_grid(
                 .spawn((
                     Mesh2d(mesh_handle.clone()),
                     MeshMaterial2d(default_material.clone()),
-                    Transform::from_xyz(pos.x, pos.y, 0.0)
+                    Transform::from_xyz(pos.x, pos.y, 0.0),
                 ))
                 .with_children(|b| {
-                    b.spawn(
-                        (
-                            Text2d(format!("{},{}", hex.x, hex.y)),
-                            TextFont {
-                                font_size: 32.0,
-                                ..default()
-                            },
-                            TextColor(Color::BLACK),
-                            Transform::from_xyz(0.0, 0.0, 10.0)
-                        )
-                     );
+                    b.spawn((
+                        Text2d(format!("{},{}", hex.x, hex.y)),
+                        TextFont {
+                            font_size: 32.0,
+                            ..default()
+                        },
+                        TextColor(Color::BLACK),
+                        Transform::from_xyz(0.0, 0.0, 10.0),
+                    ));
                 })
                 .insert(collider.clone())
                 .insert(Name::new("HexTile"))
@@ -98,12 +95,12 @@ fn hexagonal_plane(hex_layout: &HexLayout) -> Mesh {
 
     Mesh::new(
         PrimitiveTopology::TriangleList,
-        RenderAssetUsages::RENDER_WORLD
+        RenderAssetUsages::RENDER_WORLD,
     )
     .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, mesh_info.vertices)
     .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, mesh_info.normals)
     .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, mesh_info.uvs)
-    .with_inserted_indices(Indices::U16(mesh_info.indices))        
+    .with_inserted_indices(Indices::U16(mesh_info.indices))
 }
 
 /// ButtonInput interaction

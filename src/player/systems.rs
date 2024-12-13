@@ -1,7 +1,7 @@
+use avian2d::prelude::*;
 use bevy::math::DVec2;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use avian2d::prelude::*;
 use ordered_float::OrderedFloat;
 use std::f32::consts::PI;
 
@@ -59,7 +59,15 @@ pub fn spawn_player(mut commands: Commands) {
             AngularVelocity::ZERO,
             LinearVelocity::ZERO,
             Friction::new(10.0),
-            Collider::convex_hull(player_poly.points.clone().iter().map(|point| DVec2::new(point.x as f64, point.y as f64)).collect()).unwrap(),
+            Collider::convex_hull(
+                player_poly
+                    .points
+                    .clone()
+                    .iter()
+                    .map(|point| DVec2::new(point.x as f64, point.y as f64))
+                    .collect(),
+            )
+            .unwrap(),
             Health::new(),
             Battery::new(),
             RCSBooster::new(),

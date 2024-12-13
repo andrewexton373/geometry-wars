@@ -1,13 +1,15 @@
 use bevy::{
-    asset::Assets, color::Color, ecs::{
+    asset::Assets,
+    color::Color,
+    ecs::{
         entity::Entity,
         event::EventReader,
         query::Without,
         system::{Commands, Query, Res, ResMut},
-    }, input::{
-        keyboard::KeyCode,
-        ButtonInput,
-    }, prelude::NextState, sprite::{ColorMaterial, MeshMaterial2d}
+    },
+    input::{keyboard::KeyCode, ButtonInput},
+    prelude::NextState,
+    sprite::{ColorMaterial, MeshMaterial2d},
 };
 
 use crate::{
@@ -49,8 +51,6 @@ pub fn color_hexes(
             .entity(entity)
             .insert(MeshMaterial2d(materials.mouse_hover_hex_material.clone()));
     }
-
-    
 
     // 3: Color Selected Hover
     if let Some(entity) = selected_hex.entity {

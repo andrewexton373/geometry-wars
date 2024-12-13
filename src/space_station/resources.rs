@@ -1,11 +1,6 @@
 pub const SPACE_STATION_SIZE: f32 = 20.0;
 
-use bevy::{
-    asset::Handle,
-    ecs::entity::Entity,
-    prelude::Resource,
-    sprite::ColorMaterial,
-};
+use bevy::{asset::Handle, ecs::entity::Entity, prelude::Resource, sprite::ColorMaterial};
 
 use crate::hexgrid::components::BuildingType;
 

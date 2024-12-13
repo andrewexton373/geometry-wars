@@ -5,7 +5,6 @@ use rand::{distributions::Distribution, seq::SliceRandom};
 use rand_distr::Normal;
 use std::{cmp::Ordering, fmt};
 
-
 #[derive(Component)]
 pub struct Splittable(pub f32);
 

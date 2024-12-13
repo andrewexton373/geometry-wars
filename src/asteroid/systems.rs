@@ -5,13 +5,17 @@ use crate::{
     player::components::Player,
     ui::damage_indicator::events::DamageIndicatorEvent,
 };
-use bevy::{color::palettes::css::{DARK_GRAY, GOLD, GRAY, SILVER}, prelude::*};
+use bevy::{
+    color::palettes::css::{DARK_GRAY, GOLD, GRAY, SILVER},
+    prelude::*,
+};
 // use bevy_particle_systems::Playing;
+use avian2d::{
+    math::{Scalar, Vector, PI},
+    prelude::*,
+};
 use bevy_prototype_lyon::{
     draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, prelude::FillOptions,
-};
-use avian2d::{
-    math::{Scalar, Vector, PI}, prelude::*
 };
 use ordered_float::OrderedFloat;
 use rand::Rng;
@@ -324,7 +328,18 @@ pub fn spawn_asteroid_events(
         let asteroid = evt.0.clone();
         let target_transform = evt.1;
         let linear_velocity = evt.2;
-        let collider = Collider::convex_hull(asteroid.polygon().points.iter().map(|point| Vector {x: point.x as f64, y: point.y as f64}).collect()).unwrap();
+        let collider = Collider::convex_hull(
+            asteroid
+                .polygon()
+                .points
+                .iter()
+                .map(|point| Vector {
+                    x: point.x as f64,
+                    y: point.y as f64,
+                })
+                .collect(),
+        )
+        .unwrap();
         let health_pool = collider.mass_properties(1.0).mass; // Set Healthpool to mass?
 
         let mut rng = rand::thread_rng();
@@ -363,7 +378,8 @@ fn find_free_space(
     margin: Scalar,
     max_iterations: usize,
 ) -> Option<Transform> {
-    let mut target_position: Position = Position::new(target_transform.translation.truncate().as_dvec2());
+    let mut target_position: Position =
+        Position::new(target_transform.translation.truncate().as_dvec2());
     let rotation = Rotation::from(target_transform.rotation);
 
     // Scale collider by margin
@@ -395,7 +411,8 @@ fn find_free_space(
                 let Ok((hit_collider, hit_transform)) = query.get(entity) else {
                     continue;
                 };
-                let hit_translation: Position = Position::new(hit_transform.translation.truncate().as_dvec2());
+                let hit_translation: Position =
+                    Position::new(hit_transform.translation.truncate().as_dvec2());
 
                 // Compute contact between the entity to spawn and the intersecting entity
                 if let Ok(Some(contact)) = contact_query::contact(
@@ -413,7 +430,7 @@ fn find_free_space(
                     let delta = normal * (contact.penetration + 0.00001);
 
                     // Move target position to solve overlap
-                    target_position =  Position::new(target_position.as_vec2().as_dvec2() + delta);
+                    target_position = Position::new(target_position.as_vec2().as_dvec2() + delta);
                 }
             }
         }

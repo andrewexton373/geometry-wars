@@ -1,8 +1,5 @@
 use avian2d::prelude::ExternalForce;
-use bevy::ecs::{
-    event::EventReader,
-    system::Query,
-};
+use bevy::ecs::{event::EventReader, system::Query};
 
 use crate::player::components::Player;
 

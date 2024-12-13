@@ -1,7 +1,6 @@
 use bevy::{color::palettes::css::RED, prelude::*};
-use bevy_prototype_lyon::prelude::*;
 use bevy_prototype_lyon::prelude::RegularPolygon;
-
+use bevy_prototype_lyon::prelude::*;
 
 use crate::{player::components::Player, space_station::components::SpaceStation};
 
@@ -74,7 +73,8 @@ pub fn guide_player_to_space_station(
             green: 0.0,
             blue: 0.0,
             alpha: opacity,
-        }).into(),
+        })
+        .into(),
         options: FillOptions::default(),
     }
 }

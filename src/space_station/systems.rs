@@ -1,11 +1,14 @@
-
-use bevy::{color::palettes::css::{BLACK, DARK_GRAY, ORANGE_RED, TEAL, WHITE}, prelude::*};
-use bevy_prototype_lyon::{prelude::{
-    self as lyon, Fill, GeometryBuilder, ShapeBundle, Stroke,
-}, shapes};
 use avian2d::prelude::*;
-use hexx::Hex;
 use bevy::color::palettes::css::PINK;
+use bevy::{
+    color::palettes::css::{BLACK, DARK_GRAY, ORANGE_RED, TEAL, WHITE},
+    prelude::*,
+};
+use bevy_prototype_lyon::{
+    prelude::{self as lyon, Fill, GeometryBuilder, ShapeBundle, Stroke},
+    shapes,
+};
+use hexx::Hex;
 
 use crate::{
     asteroid::components::Asteroid,
@@ -26,10 +29,11 @@ use crate::{
 
 use super::{
     components::SpaceStation,
-    modules::{components::{SpaceStationModule, SpaceStationModuleType}, turret::components::Turret},
-    resources::{
-        CanDeposit, PlayerHoveringSpaceStationModule, SpaceStationModuleMaterialMap,
+    modules::{
+        components::{SpaceStationModule, SpaceStationModuleType},
+        turret::components::Turret,
     },
+    resources::{CanDeposit, PlayerHoveringSpaceStationModule, SpaceStationModuleMaterialMap},
 };
 
 pub fn init_space_station_module_material_map(
@@ -67,55 +71,41 @@ pub fn init_space_station_core(mut commands: Commands, hex_grid_map: Res<HexGrid
     }
 }
 
-pub fn init_space_station_turret(
-    mut commands: Commands,
-    hex_grid_map: Res<HexGridMap>,
-) {
+pub fn init_space_station_turret(mut commands: Commands, hex_grid_map: Res<HexGridMap>) {
     if let Some(origin_hex_ent) = hex_grid_map.entities.get(&Hex::new(0, 1)).copied() {
-        commands.entity(origin_hex_ent).insert((
-            SpaceStationModuleType::Turret,
-            Health::with_maximum(1000.0),
-            Name::new("Space Station Turret"),
-        )).with_children(|parent| {
+        commands
+            .entity(origin_hex_ent)
+            .insert((
+                SpaceStationModuleType::Turret,
+                Health::with_maximum(1000.0),
+                Name::new("Space Station Turret"),
+            ))
+            .with_children(|parent| {
+                let barrel = shapes::Line(Vec2 { x: 20.0, y: 0.0 }, Vec2 { x: 40.0, y: 0.0 });
 
-            let barrel = shapes::Line(
-                Vec2 {
-                    x: 20.0,
-                    y: 0.0
-                },
-                Vec2 {
-                    x: 40.0,
-                    y: 0.0,
-                },
-            );
-
-            let body = shapes::RegularPolygon {
-                sides: 8,
-                center: Vec2::ZERO,
-                feature: lyon::RegularPolygonFeature::Radius(20.0),
-                ..default()
-            };
-        
-            let geometry = GeometryBuilder::new().add(&barrel).add(&body);
-            
-
-            parent.spawn((
-                Turret,
-                Name::new("Turret"),
-                ShapeBundle {
-                    path: geometry.build(),
-                    transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                let body = shapes::RegularPolygon {
+                    sides: 8,
+                    center: Vec2::ZERO,
+                    feature: lyon::RegularPolygonFeature::Radius(20.0),
                     ..default()
-                },
-                Fill::color(WHITE),
-                Stroke::new(BLACK, 8.0)
-            ));
+                };
 
+                let geometry = GeometryBuilder::new().add(&barrel).add(&body);
 
-        });
+                parent.spawn((
+                    Turret,
+                    Name::new("Turret"),
+                    ShapeBundle {
+                        path: geometry.build(),
+                        transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                        ..default()
+                    },
+                    Fill::color(WHITE),
+                    Stroke::new(BLACK, 8.0),
+                ));
+            });
     }
 }
-
 
 pub fn color_space_station_modules(
     mut commands: Commands,
@@ -133,12 +123,14 @@ pub fn color_space_station_modules(
             };
 
             // Color HexTiles based on Module Type.
-            commands.entity(ent).insert(MeshMaterial2d(material.clone()));
-        } else {
-            // Color Hex as Transparent Buildable HexTile
             commands
                 .entity(ent)
-                .insert(MeshMaterial2d(module_material_map.buildable_material.clone()));
+                .insert(MeshMaterial2d(material.clone()));
+        } else {
+            // Color Hex as Transparent Buildable HexTile
+            commands.entity(ent).insert(MeshMaterial2d(
+                module_material_map.buildable_material.clone(),
+            ));
         }
     }
 }
