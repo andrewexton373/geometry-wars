@@ -40,14 +40,8 @@ impl fmt::Debug for Amount {
 impl AddAssign for Amount {
     fn add_assign(&mut self, rhs: Self) {
         match self {
-            Amount::Weight(weight) => match rhs {
-                Amount::Weight(w) => *weight += w,
-                _ => {}
-            },
-            Amount::Quantity(quantity) => match rhs {
-                Amount::Quantity(q) => *quantity += q,
-                _ => {}
-            },
+            Amount::Weight(weight) => if let Amount::Weight(w) = rhs { *weight += w },
+            Amount::Quantity(quantity) => if let Amount::Quantity(q) = rhs { *quantity += q },
             Amount::None => {}
         }
     }
@@ -56,14 +50,8 @@ impl AddAssign for Amount {
 impl SubAssign for Amount {
     fn sub_assign(&mut self, rhs: Self) {
         match self {
-            Amount::Weight(weight) => match rhs {
-                Amount::Weight(w) => *weight -= w,
-                _ => {}
-            },
-            Amount::Quantity(quantity) => match rhs {
-                Amount::Quantity(q) => *quantity -= q,
-                _ => {}
-            },
+            Amount::Weight(weight) => if let Amount::Weight(w) = rhs { *weight -= w },
+            Amount::Quantity(quantity) => if let Amount::Quantity(q) = rhs { *quantity -= q },
             Amount::None => {}
         }
     }

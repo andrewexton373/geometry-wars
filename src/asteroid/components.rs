@@ -21,7 +21,7 @@ impl Asteroid {
         use geo::{Area, Coord, LineString, Point, Polygon};
 
         let asteroid_polygon_tuple = verticies
-            .into_iter()
+            .iter()
             .map(|item| {
                 Point(Coord {
                     x: item.x,
@@ -36,7 +36,7 @@ impl Asteroid {
 
     pub fn new_with(radius: f32, comp: AsteroidComposition) -> Self {
         let asteroid_polygon = Self::generate_shape_from_size(radius);
-        let poly_area = Self::polygon_area(asteroid_polygon.vertices.into_iter().as_slice());
+        let poly_area = Self::polygon_area(asteroid_polygon.vertices.iter().as_slice());
 
         // Compute Health from Generated Shape Mass?
 
@@ -57,9 +57,9 @@ impl Asteroid {
     }
 
     fn generate_shape_from_size(radius: f32) -> BoxedPolygon {
-        return BoxedPolygon {
+        BoxedPolygon {
             vertices: Self::make_valtr_convex_polygon_coords(6, radius).into(),
-        };
+        }
     }
 
     // TODO: comment this well...

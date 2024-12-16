@@ -27,8 +27,8 @@ pub fn spawn_enemies(
     time: Res<Time>,
     mut spawn_time: ResMut<EnemySpawnTimer>,
     keys: Res<ButtonInput<KeyCode>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    meshes: ResMut<Assets<Mesh>>,
+    materials: ResMut<Assets<ColorMaterial>>,
 ) {
     spawn_time.timer.tick(time.delta());
 

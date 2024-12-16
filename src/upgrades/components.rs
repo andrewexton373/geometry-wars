@@ -153,7 +153,7 @@ impl UpgradeType {
             }
         }
 
-        return Some(UpgradeRequirements { requirements });
+        Some(UpgradeRequirements { requirements })
     }
 
     pub fn next(&self) -> Self {

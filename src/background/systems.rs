@@ -138,7 +138,7 @@ fn generate_sector(commands: &mut Commands, layer_entity: Entity, layer: &Layer,
                     },
                     Transform {
                         translation: p,
-                        scale: scale,
+                        scale,
                         ..default()
                     },
                     StarfieldBackground,

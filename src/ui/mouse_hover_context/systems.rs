@@ -5,7 +5,7 @@ use bevy::{
         entity::Entity,
         system::{Query, Res, ResMut},
     },
-    math::{Dir2, Direction2d},
+    math::Dir2,
 };
 use bevy_egui::{
     egui::{Pos2, Vec2, Window},

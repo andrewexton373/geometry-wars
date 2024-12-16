@@ -3,7 +3,6 @@ use bevy::prelude::*;
 use bevy::render::mesh::Indices;
 use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::PrimitiveTopology;
-use bevy::sprite::MaterialMesh2dBundle;
 use bevy::utils::hashbrown::HashMap;
 use hexx::{shapes, Hex, HexLayout, PlaneMeshBuilder};
 

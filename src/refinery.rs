@@ -91,9 +91,7 @@ impl ItemProducer for Refinery {
     }
 
     fn remaining_processing_time(&self) -> Option<f32> {
-        if self.currently_processing.is_none() {
-            return None;
-        }
+        self.currently_processing.as_ref()?;
         Some(self.remaining_processing_time)
     }
 }
@@ -146,7 +144,7 @@ impl RefineryPlugin {
         mut refinery: Mut<Refinery>,
         timer: &mut ResMut<RefineryTimer>,
     ) {
-        if Self::have_materials_to_smelt(inventory.as_ref(), &recipe) {
+        if Self::have_materials_to_smelt(inventory.as_ref(), recipe) {
             println!("We have the materials!");
 
             // Set currently processing to the recipe, finish processing after the timer.

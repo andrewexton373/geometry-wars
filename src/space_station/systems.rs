@@ -1,7 +1,7 @@
 use avian2d::prelude::*;
 use bevy::color::palettes::css::PINK;
 use bevy::{
-    color::palettes::css::{BLACK, DARK_GRAY, ORANGE_RED, TEAL, WHITE},
+    color::palettes::css::{DARK_GRAY, ORANGE_RED, TEAL, WHITE},
     prelude::*,
 };
 // use bevy_prototype_lyon::prelude::*;
@@ -72,7 +72,7 @@ pub fn init_space_station_turret(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    mut gizmos: Gizmos,
+    gizmos: Gizmos,
     hex_grid_map: Res<HexGridMap>,
 ) {
     if let Some(origin_hex_ent) = hex_grid_map.entities.get(&Hex::new(0, 1)).copied() {
@@ -156,7 +156,7 @@ pub fn repel_asteroids_from_space_station(
         let asteroid_pos = asteroid_transform.translation().truncate();
 
         let distance = base_station_pos.distance(asteroid_pos) as f64;
-        let distance_weight: f64 = 1.0 - (distance as f64 / REPEL_RADIUS);
+        let distance_weight: f64 = 1.0 - (distance / REPEL_RADIUS);
 
         if distance < REPEL_RADIUS {
             let repel_vector = (asteroid_pos - base_station_pos).normalize();
@@ -206,7 +206,7 @@ pub fn update_space_station_module_context(
     let player_ent = player_ship_q.single();
 
     for (module_ent, module_type) in space_station_module_q.iter() {
-        if let Some(_) = collisions.get(player_ent, module_ent) {
+        if collisions.get(player_ent, module_ent).is_some() {
             space_station_module_context.0 = Some((module_ent, *module_type));
             dbg!("Module Context {}", space_station_module_context.0);
         }

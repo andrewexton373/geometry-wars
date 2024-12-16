@@ -1,17 +1,11 @@
-use bevy::{
-    color::palettes::css::{RED, YELLOW},
-    prelude::*,
-};
+use bevy::prelude::*;
 // use bevy_particle_systems::*;
 
 use crate::player::components::Player;
 
-use super::components::{
-    LaserImpactParticleSystem, PlayerShipTrailParticles, ShipDamageParticleSystem,
-};
 
 pub fn setup_projectile_impact_particle_system(
-    mut commands: Commands,
+    commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
     // commands
@@ -37,7 +31,7 @@ pub fn setup_projectile_impact_particle_system(
 }
 
 pub fn setup_player_ship_trail_particle_system(
-    mut commands: Commands,
+    commands: Commands,
     player_q: Query<(Entity, &Player, Option<&Children>)>,
     // particle_q: Query<(Entity, &ParticleSystem)>,
     asset_server: Res<AssetServer>,
@@ -81,7 +75,7 @@ pub fn setup_player_ship_trail_particle_system(
 }
 
 pub fn setup_ship_asteroid_impact_particle_system(
-    mut commands: Commands,
+    commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
     // commands

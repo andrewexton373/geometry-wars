@@ -31,7 +31,7 @@ pub fn spawn_player_base_guide_arrow(
 
 pub fn guide_player_to_space_station(
     mut dir_indicator_query: Query<
-        (&mut Transform),
+        &mut Transform,
         (
             With<SpaceStationDirectionIndicator>,
             Without<SpaceStation>,
@@ -43,7 +43,7 @@ pub fn guide_player_to_space_station(
 ) {
     const FADE_DISTANCE: f32 = 500.0;
 
-    let (mut dir_indicator_transform) = dir_indicator_query.single_mut();
+    let mut dir_indicator_transform = dir_indicator_query.single_mut();
     let (_player, player_trans) = player_query.single();
     let (_base_station, base_station_trans) = base_query.single();
 

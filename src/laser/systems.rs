@@ -1,8 +1,8 @@
 use avian2d::prelude::{SpatialQuery, SpatialQueryFilter};
-use bevy::color::palettes::css::{BLACK, RED};
+use bevy::color::palettes::css::RED;
 use bevy::ecs::entity::EntityHash;
 use bevy::utils::hashbrown::HashSet;
-use bevy::{math::Direction2d, prelude::*};
+use bevy::prelude::*;
 // use bevy_particle_systems::Playing;
 
 use super::components::Laser;
@@ -25,7 +25,7 @@ pub fn setup_laser(mut commands: Commands, mut laser_query: Query<&mut Laser>) {
 }
 
 pub fn fire_laser_raycasting(
-    mut commands: Commands,
+    commands: Commands,
     mut laser_event_reader: EventReader<LaserEvent>,
     mut ablate_event_writer: EventWriter<AblateEvent>,
     // rapier_context: Res<RapierContext>,

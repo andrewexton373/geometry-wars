@@ -6,13 +6,12 @@ use crate::{
     ui::damage_indicator::events::DamageIndicatorEvent,
 };
 use bevy::{
-    color::palettes::css::{DARK_GRAY, GOLD, GRAY, LIMEGREEN, PURPLE, SILVER},
+    color::palettes::css::{GOLD, GRAY, LIMEGREEN, SILVER},
     prelude::*,
 };
 // use bevy_particle_systems::Playing;
 use avian2d::{
     math::{Scalar, Vector, PI},
-    parry::either::IntoEither,
     prelude::*,
 };
 use ordered_float::OrderedFloat;
@@ -20,7 +19,6 @@ use rand::Rng;
 
 use crate::{
     collectible::components::Collectible,
-    particles::components::ShipDamageParticleSystem,
     space_station::components::SpaceStation,
     ui::context_clue::resources::{ContextClue, ContextClues},
     PIXELS_PER_METER,
@@ -159,7 +157,7 @@ pub fn handle_collectible_collision_event(
 }
 
 pub fn handle_asteroid_collision_event(
-    mut commands: Commands,
+    commands: Commands,
     collisions: Res<Collisions>,
     mut asteroid_query: Query<(Entity, &Asteroid, &Mass), Without<Collectible>>,
     mut player_query: Query<(Entity, &mut Player), With<Player>>,
@@ -280,7 +278,7 @@ pub fn split_asteroid_events(
 ) {
     for evt in split_astroid_events.read() {
         let asteroid_ent = evt.0;
-        if let Some((asteroid, transform, linear_velocity)) = asteroid_q.get_mut(asteroid_ent).ok()
+        if let Ok((asteroid, transform, linear_velocity)) = asteroid_q.get_mut(asteroid_ent)
         {
             let right_velocity = Vec2::ZERO;
             let left_velocity = Vec2::ZERO;
@@ -312,8 +310,8 @@ pub fn spawn_asteroid_events(
     mut spawn_asteroid_events: EventReader<SpawnAsteroidEvent>,
     spatial: SpatialQuery,
     query: Query<(&Collider, &Transform)>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    meshes: ResMut<Assets<Mesh>>,
+    materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for evt in spawn_asteroid_events.read() {
         let asteroid = evt.0.clone();
@@ -351,7 +349,7 @@ pub fn spawn_asteroid_events(
                     // MeshMaterial2d(materials.add(ColorMaterial::from_color(DARK_GRAY))),
                     transform,
                     Health::with_maximum(Asteroid::polygon_area(
-                        asteroid.polygon().vertices.into_iter().as_slice(),
+                        asteroid.polygon().vertices.iter().as_slice(),
                     )),
                 ))
                 .id();

@@ -30,7 +30,7 @@ pub fn ui_ship_hover_context(
     mut build_event: EventWriter<BuildHexBuildingEvent>,
 ) {
     //If player is not hovering over a building
-    if !player_hovering_building.0.is_some() {
+    if player_hovering_building.0.is_none() {
         return;
     }
 
@@ -70,26 +70,23 @@ pub fn ui_ship_hover_context(
                         ui.group(|ui| {
                             let factory = factory_query.single();
 
-                            match &factory.currently_processing {
-                                Some(recipe) => {
-                                    ui.group(|ui| {
-                                        ui.heading("Factory Processing:");
-                                        ui.label(format!(
-                                            "Currently Crafting: {:?}",
-                                            recipe.item_created
-                                        ));
-                                        ui.label(format!(
-                                            "Time Remaining: {:.1} sec",
-                                            factory.remaining_processing_time
-                                        ));
-                                        ui.label(progress_string(
-                                            (recipe.time_required
-                                                - factory.remaining_processing_time)
-                                                / recipe.time_required,
-                                        ));
-                                    });
-                                }
-                                None => {}
+                            if let Some(recipe) = &factory.currently_processing {
+                                ui.group(|ui| {
+                                    ui.heading("Factory Processing:");
+                                    ui.label(format!(
+                                        "Currently Crafting: {:?}",
+                                        recipe.item_created
+                                    ));
+                                    ui.label(format!(
+                                        "Time Remaining: {:.1} sec",
+                                        factory.remaining_processing_time
+                                    ));
+                                    ui.label(progress_string(
+                                        (recipe.time_required
+                                            - factory.remaining_processing_time)
+                                            / recipe.time_required,
+                                    ));
+                                });
                             }
 
                             ui.heading("Factory Recipes:");
@@ -127,24 +124,21 @@ pub fn ui_ship_hover_context(
                         ui.group(|ui| {
                             let refinery = refinery_query.single();
 
-                            match &refinery.currently_processing {
-                                Some(recipe) => {
-                                    ui.group(|ui| {
-                                        ui.heading("Refinery Processing:");
+                            if let Some(recipe) = &refinery.currently_processing {
+                                ui.group(|ui| {
+                                    ui.heading("Refinery Processing:");
 
-                                        ui.label(format!("Currently Refining: {:?}", recipe));
-                                        ui.label(format!(
-                                            "Time Remaining: {:.1} sec",
-                                            refinery.remaining_processing_time
-                                        ));
-                                        ui.label(progress_string(
-                                            (recipe.time_required
-                                                - refinery.remaining_processing_time)
-                                                / recipe.time_required,
-                                        ));
-                                    });
-                                }
-                                None => {}
+                                    ui.label(format!("Currently Refining: {:?}", recipe));
+                                    ui.label(format!(
+                                        "Time Remaining: {:.1} sec",
+                                        refinery.remaining_processing_time
+                                    ));
+                                    ui.label(progress_string(
+                                        (recipe.time_required
+                                            - refinery.remaining_processing_time)
+                                            / recipe.time_required,
+                                    ));
+                                });
                             }
 
                             ui.heading("Refine Raw Ores:");
