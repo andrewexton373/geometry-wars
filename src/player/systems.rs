@@ -1,9 +1,9 @@
+use avian2d::math::PI;
 use avian2d::prelude::*;
 use bevy::color::palettes::css::WHITE;
 use bevy::math::DVec2;
 use bevy::prelude::*;
 use ordered_float::OrderedFloat;
-use std::f32::consts::PI;
 
 use super::components::Player;
 use super::resources::EmptyInventoryDepositTimer;
@@ -93,6 +93,7 @@ pub fn spawn_player(
     );
 }
 
+
 pub fn trickle_charge(
     battery_q: Query<(Entity, &Battery), With<Player>>,
     mut battery_events: EventWriter<ChargeBatteryEvent>,
@@ -174,17 +175,16 @@ pub fn ship_rotate_towards_mouse(
 
     const SPIN_ACCELERATION: f64 = 500.0;
 
-    let player_to_mouse = (cursor_pos - player_trans.translation.truncate()).normalize();
-    let player_ship_rotation = (player_trans.rotation * Vec3::Y).truncate().normalize();
+    let player_to_mouse = (cursor_pos - player_trans.translation.truncate()).normalize().as_dvec2();
+    let player_ship_rotation = (player_trans.rotation * Vec3::Y).truncate().normalize().as_dvec2();
 
-    let ship_angle_difference_percent =
-        Vec2::angle_between(player_to_mouse, player_ship_rotation) / PI;
+    let ship_angle_difference_percent = player_to_mouse.angle_to(player_ship_rotation) / PI;
 
     //Rotate towards position mouse is on
     if ship_angle_difference_percent > 0.001 {
-        ang_velocity.0 = -SPIN_ACCELERATION * ship_angle_difference_percent.powf(2.0) as f64;
+        ang_velocity.0 = -SPIN_ACCELERATION * ship_angle_difference_percent.powf(2.0);
     } else if ship_angle_difference_percent < -0.001 {
-        ang_velocity.0 = SPIN_ACCELERATION * ship_angle_difference_percent.powf(2.0) as f64;
+        ang_velocity.0 = SPIN_ACCELERATION * ship_angle_difference_percent.powf(2.0);
     } else {
         ang_velocity.0 = 0.0;
     }
