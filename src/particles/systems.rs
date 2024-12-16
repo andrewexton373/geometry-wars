@@ -39,7 +39,7 @@ pub fn setup_projectile_impact_particle_system(
  
     let tangent = writer.lit(Vec3::Z).cross(normal.clone());
     let spread = writer.rand(ScalarType::Float) * writer.lit(2.) - writer.lit(1.);
-    let speed = writer.rand(ScalarType::Float) * writer.lit(40.0);
+    let speed = writer.rand(ScalarType::Float) * writer.lit(1000.0);
     let velocity = (normal + tangent * spread * writer.lit(5.0)).normalized() * speed; 
     let init_vel = SetAttributeModifier::new(Attribute::VELOCITY, velocity.expr());
 
@@ -47,7 +47,7 @@ pub fn setup_projectile_impact_particle_system(
     // the time for which it's simulated and rendered. This modifier
     // is almost always required, otherwise the particles will stay
     // alive forever, and new particles can't be spawned instead.
-    let lifetime = writer.lit(2.); // literal value "10.0"
+    let lifetime = writer.lit(0.1); // literal value "10.0"
     let init_lifetime = SetAttributeModifier::new(Attribute::LIFETIME, lifetime.expr());
 
     // Every frame, add a gravity-like acceleration downward
