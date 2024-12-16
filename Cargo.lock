@@ -177,6 +177,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "anyhow"
+version = "1.0.94"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c1fd03a028ef38ba2276dce7e33fcd6369c158a1bca17946c4b1b701891c1ff7"
+
+[[package]]
 name = "approx"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -820,6 +826,28 @@ dependencies = [
  "serde",
  "serde_json",
  "smallvec",
+]
+
+[[package]]
+name = "bevy_hanabi"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d0a6beb69876c338eec53ad41c0e4f81dd3a8fbbeb0b9921eda38ac81be5d9fb"
+dependencies = [
+ "anyhow",
+ "bevy",
+ "bitflags 2.6.0",
+ "bytemuck",
+ "copyless",
+ "fixedbitset 0.5.7",
+ "naga",
+ "naga_oil",
+ "rand",
+ "rand_pcg",
+ "ron",
+ "serde",
+ "thiserror",
+ "wgpu",
 ]
 
 [[package]]
@@ -1785,6 +1813,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "copyless"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2df960f5d869b2dd8532793fde43eb5427cceb126c929747a26823ab0eeb536"
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2442,6 +2476,7 @@ dependencies = [
  "bevy-inspector-egui",
  "bevy-trait-query",
  "bevy_egui",
+ "bevy_hanabi",
  "bevy_tweening",
  "big-brain",
  "geo",
@@ -4007,6 +4042,15 @@ checksum = "32cb0b9bc82b0a0876c2dd994a7e7a2683d3e7390ca40e6886785ef0c7e3ee31"
 dependencies = [
  "num-traits",
  "rand",
+]
+
+[[package]]
+name = "rand_pcg"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59cad018caf63deb318e5a4586d99a24424a364f40f1e5778c29aca23f4fc73e"
+dependencies = [
+ "rand_core",
 ]
 
 [[package]]

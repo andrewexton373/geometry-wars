@@ -12,6 +12,7 @@ bevy_egui = "0.31.1"
 avian2d = { git = "https://github.com/Jondolf/avian.git", branch = "main", default-features = false, features = ["2d", "f64", "parry-f64", "debug-plugin"] }
 #bevy_prototype_lyon = { git="https://github.com/Nilirad/bevy_prototype_lyon.git", branch="master"}
 #bevy_particle_systems = { version = "0.13.0" }
+bevy_hanabi = { version = "0.14", default-features = false, features = ["2d"] }
 bevy_tweening = "0.12"
 strum = "0.26.3"
 strum_macros = "0.26.4"
