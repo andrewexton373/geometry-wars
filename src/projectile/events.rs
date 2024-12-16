@@ -1,5 +1,5 @@
 use avian2d::prelude::LinearVelocity;
-use bevy::prelude::*;
+use bevy::prelude::{Entity, Event};
 
 #[derive(Event)]
 pub struct FireProjectileEvent {

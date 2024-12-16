@@ -36,8 +36,6 @@ use bevy::{
 };
 // use bevy_particle_systems::ParticleSystemPlugin;
 use avian2d::prelude::*;
-use bevy_prototype_lyon::prelude::*;
-
 use camera::plugin::GameCameraPlugin;
 use factory::FactoryPlugin;
 use inventory::plugin::InventoryPlugin;
@@ -89,7 +87,6 @@ fn main() {
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest()),
-            ShapePlugin,
             // ParticleSystemPlugin,
             PhysicsPlugins::default(),
             PhysicsDebugPlugin::default(),

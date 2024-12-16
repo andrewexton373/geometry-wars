@@ -2,7 +2,6 @@ use std::{borrow::BorrowMut, f32::consts::PI};
 
 use avian2d::prelude::*;
 use bevy::{color::palettes::css::RED, prelude::*};
-use bevy_prototype_lyon::{draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, shapes};
 use big_brain::{
     actions::{ActionState, Steps},
     pickers::FirstToScore,
@@ -28,16 +27,22 @@ pub fn spawn_enemies(
     time: Res<Time>,
     mut spawn_time: ResMut<EnemySpawnTimer>,
     keys: Res<ButtonInput<KeyCode>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>
 ) {
     spawn_time.timer.tick(time.delta());
 
     if spawn_time.timer.finished() || keys.just_pressed(KeyCode::F1) {
-        spawn_enemy(commands.borrow_mut());
+        spawn_enemy(commands.borrow_mut(), meshes, materials);
         spawn_time.timer.reset();
     }
 }
 
-pub fn spawn_enemy(cmd: &mut Commands) {
+pub fn spawn_enemy(
+    cmd: &mut Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>
+) {
     let move_towards_player_and_attack = Steps::build()
         .label("MoveTowardsPlayerAndAttack")
         .step(MoveTowardsPlayer {
@@ -59,15 +64,11 @@ pub fn spawn_enemy(cmd: &mut Commands) {
     let random_dir = Vec2::new(f32::cos(rand), f32::sin(rand));
 
     cmd.spawn((
-        ShapeBundle {
-            path: GeometryBuilder::new()
-                .add(&shapes::Circle::default())
-                .build(),
-            transform: Transform {
-                translation: (random_dir * 1000.0).extend(0.0),
-                scale: Vec2::new(10.0, 10.0).extend(1.0),
-                ..default()
-            },
+        Mesh2d(meshes.add(Circle::default())),
+        MeshMaterial2d(materials.add(ColorMaterial::from_color(RED))),
+        Transform {
+            translation: (random_dir * 1000.0).extend(0.0),
+            scale: Vec2::new(10.0, 10.0).extend(1.0),
             ..default()
         },
         RCSBooster::new(),
@@ -75,7 +76,6 @@ pub fn spawn_enemy(cmd: &mut Commands) {
         Collider::circle(1.0),
         Health::new(),
         LinearVelocity::ZERO,
-        Fill::color(RED),
         Hostility::new(75.0, 2.0),
         thinker.clone(),
         Name::new("Enemy"),

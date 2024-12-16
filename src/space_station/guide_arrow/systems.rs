@@ -1,34 +1,30 @@
 use bevy::{color::palettes::css::RED, prelude::*};
-use bevy_prototype_lyon::prelude::RegularPolygon;
-use bevy_prototype_lyon::prelude::*;
 
 use crate::{player::components::Player, space_station::components::SpaceStation};
 
 use super::components::SpaceStationDirectionIndicator;
 
-pub fn spawn_player_base_guide_arrow(mut commands: Commands) {
-    let direction_indicator_shape = RegularPolygon {
-        sides: 3,
-        feature: RegularPolygonFeature::Radius(crate::PIXELS_PER_METER as f32 * 2.0),
-        ..RegularPolygon::default()
-    };
+
+pub fn spawn_player_base_guide_arrow(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    // let direction_indicator_shape = RegularPolygon {
+    //     sides: 3,
+    //     feature: RegularPolygonFeature::Radius(crate::PIXELS_PER_METER as f32 * 2.0),
+    //     ..RegularPolygon::default()
+    // };
+
+    let direction_indicator_shape = RegularPolygon::new(crate::PIXELS_PER_METER as f32 * 2.0, 3);
 
     let _direction_indicator = commands
         .spawn((
             SpaceStationDirectionIndicator,
-            ShapeBundle {
-                path: GeometryBuilder::build_as(&direction_indicator_shape),
-                transform: Transform {
-                    translation: Vec3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 1.0,
-                    },
-                    ..default()
-                },
-                ..default()
-            },
-            Fill::color(RED),
+            Mesh2d(meshes.add(direction_indicator_shape)),
+            MeshMaterial2d(materials.add(ColorMaterial::from_color(Color::from(RED)))),
+            // generate_guide_arrow(0.0),
+            Transform::from_xyz(0.0, 0.0, 1.0),
             Name::new("SpaceStationDirectionIndicator"),
         ))
         .id();
@@ -36,7 +32,7 @@ pub fn spawn_player_base_guide_arrow(mut commands: Commands) {
 
 pub fn guide_player_to_space_station(
     mut dir_indicator_query: Query<
-        (&mut Transform, &mut Fill),
+        (&mut Transform),
         (
             With<SpaceStationDirectionIndicator>,
             Without<SpaceStation>,
@@ -48,7 +44,7 @@ pub fn guide_player_to_space_station(
 ) {
     const FADE_DISTANCE: f32 = 500.0;
 
-    let (mut dir_indicator_transform, mut dir_indicator_fill) = dir_indicator_query.single_mut();
+    let (mut dir_indicator_transform) = dir_indicator_query.single_mut();
     let (_player, player_trans) = player_query.single();
     let (_base_station, base_station_trans) = base_query.single();
 
@@ -67,14 +63,5 @@ pub fn guide_player_to_space_station(
 
     let opacity = (distance_to_base / FADE_DISTANCE).powi(2).clamp(0.0, 1.0);
 
-    *dir_indicator_fill = Fill {
-        color: Color::from(Srgba {
-            red: 255.0,
-            green: 0.0,
-            blue: 0.0,
-            alpha: opacity,
-        })
-        .into(),
-        options: FillOptions::default(),
-    }
+    // *shape = generate_guide_arrow(opacity);
 }

@@ -6,16 +6,12 @@ use crate::{
     ui::damage_indicator::events::DamageIndicatorEvent,
 };
 use bevy::{
-    color::palettes::css::{DARK_GRAY, GOLD, GRAY, SILVER},
+    color::palettes::css::{DARK_GRAY, GOLD, GRAY, LIMEGREEN, PURPLE, SILVER},
     prelude::*,
 };
 // use bevy_particle_systems::Playing;
 use avian2d::{
-    math::{Scalar, Vector, PI},
-    prelude::*,
-};
-use bevy_prototype_lyon::{
-    draw::Fill, entity::ShapeBundle, geometry::GeometryBuilder, prelude::FillOptions,
+    math::{Scalar, Vector, PI}, parry::either::IntoEither, prelude::*
 };
 use ordered_float::OrderedFloat;
 use rand::Rng;
@@ -99,30 +95,21 @@ pub fn tag_small_asteroids_as_collectible(
 
 // TODO: Verify this is working...
 pub fn update_collectible_material_color(
-    mut asteroid_query: Query<(&Asteroid, &mut Fill), With<Collectible>>,
+    mut commands: Commands,
+    mut asteroid_query: Query<(Entity, &Asteroid), With<Collectible>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    for (asteroid, mut fill) in asteroid_query.iter_mut() {
-        match asteroid.primary_composition() {
-            AsteroidMaterial::Iron => {
-                *fill = Fill {
-                    color: GRAY.into(),
-                    options: FillOptions::default(),
-                };
-            }
-            AsteroidMaterial::Silver => {
-                *fill = Fill {
-                    color: SILVER.into(),
-                    options: FillOptions::default(),
-                };
-            }
-            AsteroidMaterial::Gold => {
-                *fill = Fill {
-                    color: GOLD.into(),
-                    options: FillOptions::default(),
-                };
-            }
-            _ => {}
-        }
+    for (ent, asteroid) in asteroid_query.iter_mut() {
+
+        let color = match asteroid.primary_composition() {
+            AsteroidMaterial::Iron => GRAY,
+            AsteroidMaterial::Silver => SILVER,
+            AsteroidMaterial::Gold => GOLD,
+            _ => LIMEGREEN
+        };
+
+        commands.entity(ent).insert(MeshMaterial2d(materials.add(ColorMaterial::from_color(color))));
+
     }
 }
 
@@ -323,6 +310,8 @@ pub fn spawn_asteroid_events(
     mut spawn_asteroid_events: EventReader<SpawnAsteroidEvent>,
     spatial: SpatialQuery,
     query: Query<(&Collider, &Transform)>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for evt in spawn_asteroid_events.read() {
         let asteroid = evt.0.clone();
@@ -331,7 +320,7 @@ pub fn spawn_asteroid_events(
         let collider = Collider::convex_hull(
             asteroid
                 .polygon()
-                .points
+                .vertices
                 .iter()
                 .map(|point| Vector {
                     x: point.x as f64,
@@ -354,16 +343,12 @@ pub fn spawn_asteroid_events(
                     RigidBody::Dynamic,
                     collider,
                     linear_velocity,
-                    // Inertia(1.0),
                     splittable,
                     Name::new("Asteroid"),
-                    ShapeBundle {
-                        path: GeometryBuilder::build_as(&asteroid.polygon()),
-                        transform,
-                        ..default()
-                    },
-                    Health::with_maximum(Asteroid::polygon_area(asteroid.polygon().points)),
-                    Fill::color(Color::from(DARK_GRAY)),
+                    // Mesh2d(meshes.add(BoxedPolyline2d::new(asteroid.polygon().vertices)).into()),
+                    // MeshMaterial2d(materials.add(ColorMaterial::from_color(DARK_GRAY))),
+                    transform,
+                    Health::with_maximum(Asteroid::polygon_area(asteroid.polygon().vertices.into_iter().as_slice())),
                 ))
                 .id();
         }

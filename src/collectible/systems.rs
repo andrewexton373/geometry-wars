@@ -25,8 +25,7 @@ pub fn gravitate_collectibles_towards_player_ship(
                 - collectible_tranform.translation.truncate())
             .normalize();
             let gravitation_factor = 1.0 - percent_distance_from_max;
-            velocity.0 = velocity.0
-                + direction_to_player_from_collectible.as_dvec2()
+            velocity.0 += direction_to_player_from_collectible.as_dvec2()
                     * gravitation_factor
                     * 5.0
                     * crate::PIXELS_PER_METER;

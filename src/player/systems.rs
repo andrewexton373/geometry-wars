@@ -1,7 +1,7 @@
 use avian2d::prelude::*;
+use bevy::color::palettes::css::WHITE;
 use bevy::math::DVec2;
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::*;
 use ordered_float::OrderedFloat;
 use std::f32::consts::PI;
 
@@ -27,24 +27,28 @@ use crate::{
     rcs::{components::RCSBooster, events::RCSThrustVectorEvent},
 };
 
-pub fn spawn_player(mut commands: Commands) {
-    let player_poly = shapes::Polygon {
-        points: vec![
-            Vec2 {
-                x: 0.0,
-                y: 4.0 * crate::PIXELS_PER_METER as f32,
-            },
-            Vec2 {
-                x: 2.0 * crate::PIXELS_PER_METER as f32,
-                y: -2.0 * crate::PIXELS_PER_METER as f32,
-            },
-            Vec2 {
-                x: -2.0 * crate::PIXELS_PER_METER as f32,
-                y: -2.0 * crate::PIXELS_PER_METER as f32,
-            },
-        ],
-        closed: true,
-    };
+pub fn spawn_player(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>
+) {
+
+    let player_poly: Polygon<3> = Polygon::new(vec![
+        Vec2 {
+            x: 0.0,
+            y: 4.0 * crate::PIXELS_PER_METER as f32,
+        },
+        Vec2 {
+            x: 2.0 * crate::PIXELS_PER_METER as f32,
+            y: -2.0 * crate::PIXELS_PER_METER as f32,
+        },
+        Vec2 {
+            x: -2.0 * crate::PIXELS_PER_METER as f32,
+            y: -2.0 * crate::PIXELS_PER_METER as f32,
+        },
+    ]);
+
+    let player_poly = RegularPolygon::new(6.0, 3);
 
     let player = commands
         .spawn(Player::new())
@@ -60,10 +64,7 @@ pub fn spawn_player(mut commands: Commands) {
             LinearVelocity::ZERO,
             Friction::new(10.0),
             Collider::convex_hull(
-                player_poly
-                    .points
-                    .clone()
-                    .iter()
+                player_poly.vertices(0.0).into_iter()
                     .map(|point| DVec2::new(point.x as f64, point.y as f64))
                     .collect(),
             )
@@ -73,19 +74,9 @@ pub fn spawn_player(mut commands: Commands) {
             RCSBooster::new(),
         ))
         .insert((
-            ShapeBundle {
-                path: GeometryBuilder::build_as(&player_poly),
-                transform: Transform {
-                    translation: Vec3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 2.0,
-                    },
-                    ..default()
-                },
-                ..default()
-            },
-            Fill::color(Color::WHITE),
+            Mesh2d(meshes.add(player_poly)),
+            MeshMaterial2d(materials.add(ColorMaterial::from_color(WHITE))),
+            Transform::from_xyz(0.0, 0.0, 2.0),
         ))
         .id();
 

@@ -1,7 +1,6 @@
 use avian2d::prelude::*;
 use bevy::color::palettes::css::RED;
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::*;
 
 use crate::health::events::DamageEvent;
 
@@ -14,14 +13,14 @@ pub fn handle_fire_projectile_events(
     mut commands: Commands,
     global_transforms: Query<&GlobalTransform>,
     mut events: EventReader<FireProjectileEvent>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>
+    
 ) {
     for evt in events.read() {
         const BULLET_SPEED: f32 = 6.0;
 
-        let projectile_shape = shapes::Circle {
-            radius: (PROJECTILE_RADIUS * crate::PIXELS_PER_METER) as f32,
-            ..default()
-        };
+        let projectile_shape = Circle::new((PROJECTILE_RADIUS * crate::PIXELS_PER_METER) as f32);
 
         if let Ok(projectile_spawn_position) = global_transforms.get(evt.entity) {
             // Move projectile slightly ahead of where it was fired from to avoid self collision
@@ -42,14 +41,11 @@ pub fn handle_fire_projectile_events(
                 Projectile {
                     timer: Timer::from_seconds(5.0, TimerMode::Once),
                 },
-                ShapeBundle {
-                    path: GeometryBuilder::build_as(&projectile_shape),
-                    transform: Transform::from_translation(
-                        projectile_spawn_position.extend(2.0).as_vec3(),
-                    ),
-                    ..default()
-                },
-                Fill::color(Color::from(RED)),
+                Mesh2d(meshes.add(projectile_shape)),
+                MeshMaterial2d(materials.add(ColorMaterial::from_color(Color::from(RED)))),
+                Transform::from_translation(
+                    projectile_spawn_position.extend(2.0).as_vec3(),
+                ),
                 RigidBody::Dynamic,
                 evt.projectile_trajectory,
                 Collider::circle(projectile_shape.radius as f64),

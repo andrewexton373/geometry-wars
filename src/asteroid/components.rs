@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use bevy_prototype_lyon::shapes::Polygon;
 use rand::{distributions::Distribution, seq::SliceRandom};
 use rand_distr::Normal;
 use std::{cmp::Ordering, fmt};
@@ -13,12 +12,12 @@ pub struct Asteroid {
     // pub size: AsteroidSize,
     // pub health: Health,
     pub composition: AsteroidComposition,
-    pub polygon: Polygon,
+    pub polygon: BoxedPolygon,
     pub radius: f32,
 }
 
 impl Asteroid {
-    pub fn polygon_area(verticies: Vec<Vec2>) -> f32 {
+    pub fn polygon_area(verticies: &[Vec2]) -> f32 {
         use geo::{Area, Coord, LineString, Point, Polygon};
 
         let asteroid_polygon_tuple = verticies
@@ -37,7 +36,7 @@ impl Asteroid {
 
     pub fn new_with(radius: f32, comp: AsteroidComposition) -> Self {
         let asteroid_polygon = Self::generate_shape_from_size(radius);
-        let poly_area = Self::polygon_area(asteroid_polygon.points.clone());
+        let poly_area = Self::polygon_area(asteroid_polygon.vertices.into_iter().as_slice());
 
         // Compute Health from Generated Shape Mass?
 
@@ -53,14 +52,13 @@ impl Asteroid {
         self.composition.most_abundant()
     }
 
-    pub fn polygon(&self) -> Polygon {
+    pub fn polygon(&self) -> BoxedPolygon {
         self.polygon.clone()
     }
 
-    fn generate_shape_from_size(radius: f32) -> Polygon {
-        return Polygon {
-            points: Self::make_valtr_convex_polygon_coords(6, radius),
-            closed: true,
+    fn generate_shape_from_size(radius: f32) -> BoxedPolygon {
+        return BoxedPolygon {
+            vertices: Self::make_valtr_convex_polygon_coords(6, radius).into(),
         };
     }
 

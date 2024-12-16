@@ -4,10 +4,7 @@ use bevy::{
     color::palettes::css::{BLACK, DARK_GRAY, ORANGE_RED, TEAL, WHITE},
     prelude::*,
 };
-use bevy_prototype_lyon::{
-    prelude::{self as lyon, Fill, GeometryBuilder, ShapeBundle, Stroke},
-    shapes,
-};
+// use bevy_prototype_lyon::prelude::*;
 use hexx::Hex;
 
 use crate::{
@@ -71,7 +68,13 @@ pub fn init_space_station_core(mut commands: Commands, hex_grid_map: Res<HexGrid
     }
 }
 
-pub fn init_space_station_turret(mut commands: Commands, hex_grid_map: Res<HexGridMap>) {
+pub fn init_space_station_turret(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut gizmos: Gizmos,
+    hex_grid_map: Res<HexGridMap>
+) {
     if let Some(origin_hex_ent) = hex_grid_map.entities.get(&Hex::new(0, 1)).copied() {
         commands
             .entity(origin_hex_ent)
@@ -81,28 +84,30 @@ pub fn init_space_station_turret(mut commands: Commands, hex_grid_map: Res<HexGr
                 Name::new("Space Station Turret"),
             ))
             .with_children(|parent| {
-                let barrel = shapes::Line(Vec2 { x: 20.0, y: 0.0 }, Vec2 { x: 40.0, y: 0.0 });
-
-                let body = shapes::RegularPolygon {
-                    sides: 8,
-                    center: Vec2::ZERO,
-                    feature: lyon::RegularPolygonFeature::Radius(20.0),
-                    ..default()
-                };
-
-                let geometry = GeometryBuilder::new().add(&barrel).add(&body);
+                let barrel = Rectangle::new(20.0, 1.0);
+                let body = RegularPolygon::new(20.0, 8);
 
                 parent.spawn((
                     Turret,
+                    Mesh2d(meshes.add(body)),
+                    MeshMaterial2d(materials.add(Color::from(WHITE))),
                     Name::new("Turret"),
-                    ShapeBundle {
-                        path: geometry.build(),
-                        transform: Transform::from_xyz(0.0, 0.0, 1.0),
-                        ..default()
-                    },
-                    Fill::color(WHITE),
-                    Stroke::new(BLACK, 8.0),
+                    Transform::from_xyz(0.0, 0.0, 1.0)
+                )).with_child((
+                    // Turret,
+                    Mesh2d(meshes.add(barrel)),
+                    MeshMaterial2d(materials.add(Color::from(WHITE))),
+                    Name::new("Turret Barrel"),
+                    Transform::from_xyz(0.0, 0.0, 1.0)
                 ));
+
+                // parent.spawn((
+                //     Turret,
+                //     Mesh2d(meshes.add(barrel)),
+                //     MeshMaterial2d(materials.add(Color::from(WHITE))),
+                //     Name::new("Turret"),
+                //     Transform::from_xyz(0.0, 0.0, 1.0)
+                // ));
             });
     }
 }

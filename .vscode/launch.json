@@ -13,7 +13,6 @@
                     "build",
                     "--bin=geometry-wars",
                     "--package=geometry-wars",
-                    "--color=always",
                     "--features=bevy/dynamic_linking",
                 ],
                 "filter": {
