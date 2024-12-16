@@ -73,7 +73,7 @@ pub fn init_space_station_turret(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut gizmos: Gizmos,
-    hex_grid_map: Res<HexGridMap>
+    hex_grid_map: Res<HexGridMap>,
 ) {
     if let Some(origin_hex_ent) = hex_grid_map.entities.get(&Hex::new(0, 1)).copied() {
         commands
@@ -87,19 +87,21 @@ pub fn init_space_station_turret(
                 let barrel = Rectangle::new(20.0, 1.0);
                 let body = RegularPolygon::new(20.0, 8);
 
-                parent.spawn((
-                    Turret,
-                    Mesh2d(meshes.add(body)),
-                    MeshMaterial2d(materials.add(Color::from(WHITE))),
-                    Name::new("Turret"),
-                    Transform::from_xyz(0.0, 0.0, 1.0)
-                )).with_child((
-                    // Turret,
-                    Mesh2d(meshes.add(barrel)),
-                    MeshMaterial2d(materials.add(Color::from(WHITE))),
-                    Name::new("Turret Barrel"),
-                    Transform::from_xyz(0.0, 0.0, 1.0)
-                ));
+                parent
+                    .spawn((
+                        Turret,
+                        Mesh2d(meshes.add(body)),
+                        MeshMaterial2d(materials.add(Color::from(WHITE))),
+                        Name::new("Turret"),
+                        Transform::from_xyz(0.0, 0.0, 1.0),
+                    ))
+                    .with_child((
+                        // Turret,
+                        Mesh2d(meshes.add(barrel)),
+                        MeshMaterial2d(materials.add(Color::from(WHITE))),
+                        Name::new("Turret Barrel"),
+                        Transform::from_xyz(0.0, 0.0, 1.0),
+                    ));
 
                 // parent.spawn((
                 //     Turret,

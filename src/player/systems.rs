@@ -30,9 +30,8 @@ use crate::{
 pub fn spawn_player(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-
     let player_poly: Polygon<3> = Polygon::new(vec![
         Vec2 {
             x: 0.0,
@@ -64,7 +63,9 @@ pub fn spawn_player(
             LinearVelocity::ZERO,
             Friction::new(10.0),
             Collider::convex_hull(
-                player_poly.vertices(0.0).into_iter()
+                player_poly
+                    .vertices(0.0)
+                    .into_iter()
                     .map(|point| DVec2::new(point.x as f64, point.y as f64))
                     .collect(),
             )

@@ -17,10 +17,9 @@ pub fn setup_laser(mut commands: Commands, mut laser_query: Query<&mut Laser>) {
 
     // Create Laser if it Doesn't Exist
     let Ok(_laser) = laser_query.get_single_mut() else {
-        commands.spawn(Laser).insert((
-            Transform::from_xyz(0.0, 0.0, 1.0),
-            Name::new("Laser"),
-        ));
+        commands
+            .spawn(Laser)
+            .insert((Transform::from_xyz(0.0, 0.0, 1.0), Name::new("Laser")));
         return;
     };
 }
@@ -38,7 +37,7 @@ pub fn fire_laser_raycasting(
     player_q: Query<Entity, With<Player>>,
     spatial_query: SpatialQuery,
     mut damage_events: EventWriter<DamageEvent>,
-    mut gizmos: Gizmos
+    mut gizmos: Gizmos,
 ) {
     // TODO: Change Laser State To Off On Player Left Unclick
     for (ent, _, mut _t) in laser_impact_particles_query.iter_mut() {
@@ -74,7 +73,6 @@ pub fn fire_laser_raycasting(
             //                 .stroke((Color::srgba(1.0, 0.0, 0.0, 0.9), 5.0))
             //                 .build();
 
-
             if let Some(first_hit) = spatial_query.cast_ray(
                 ray_pos.as_dvec2(),
                 Dir2::new(ray_dir).unwrap(),
@@ -102,7 +100,6 @@ pub fn fire_laser_raycasting(
                 //                 .build();
 
                 gizmos.line_2d(ray_pos, hit_point.as_vec2(), Color::from(RED));
-
 
                 ablate_event_writer.send(AblateEvent(
                     hit_ent,

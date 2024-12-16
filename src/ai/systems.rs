@@ -28,7 +28,7 @@ pub fn spawn_enemies(
     mut spawn_time: ResMut<EnemySpawnTimer>,
     keys: Res<ButtonInput<KeyCode>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     spawn_time.timer.tick(time.delta());
 
@@ -41,7 +41,7 @@ pub fn spawn_enemies(
 pub fn spawn_enemy(
     cmd: &mut Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let move_towards_player_and_attack = Steps::build()
         .label("MoveTowardsPlayerAndAttack")

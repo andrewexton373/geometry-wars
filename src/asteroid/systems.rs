@@ -11,7 +11,9 @@ use bevy::{
 };
 // use bevy_particle_systems::Playing;
 use avian2d::{
-    math::{Scalar, Vector, PI}, parry::either::IntoEither, prelude::*
+    math::{Scalar, Vector, PI},
+    parry::either::IntoEither,
+    prelude::*,
 };
 use ordered_float::OrderedFloat;
 use rand::Rng;
@@ -100,16 +102,16 @@ pub fn update_collectible_material_color(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for (ent, asteroid) in asteroid_query.iter_mut() {
-
         let color = match asteroid.primary_composition() {
             AsteroidMaterial::Iron => GRAY,
             AsteroidMaterial::Silver => SILVER,
             AsteroidMaterial::Gold => GOLD,
-            _ => LIMEGREEN
+            _ => LIMEGREEN,
         };
 
-        commands.entity(ent).insert(MeshMaterial2d(materials.add(ColorMaterial::from_color(color))));
-
+        commands.entity(ent).insert(MeshMaterial2d(
+            materials.add(ColorMaterial::from_color(color)),
+        ));
     }
 }
 
@@ -348,7 +350,9 @@ pub fn spawn_asteroid_events(
                     // Mesh2d(meshes.add(BoxedPolyline2d::new(asteroid.polygon().vertices)).into()),
                     // MeshMaterial2d(materials.add(ColorMaterial::from_color(DARK_GRAY))),
                     transform,
-                    Health::with_maximum(Asteroid::polygon_area(asteroid.polygon().vertices.into_iter().as_slice())),
+                    Health::with_maximum(Asteroid::polygon_area(
+                        asteroid.polygon().vertices.into_iter().as_slice(),
+                    )),
                 ))
                 .id();
         }

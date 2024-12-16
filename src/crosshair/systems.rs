@@ -37,11 +37,23 @@ pub fn draw_crosshair(
     let (_player, player_trans) = player_query.single();
 
     // Player to Mouse
-    gizmos.line_2d(player_trans.translation.truncate(), mouse_position.0, Color::from(WHITE));
+    gizmos.line_2d(
+        player_trans.translation.truncate(),
+        mouse_position.0,
+        Color::from(WHITE),
+    );
 
     // Crosshair
-    gizmos.line_2d(Vec2::new(-100.0, 0.0) + mouse_position.0, Vec2::new(100.0, 0.0) + mouse_position.0, Color::from(WHITE));
-    gizmos.line_2d(Vec2::new(-0.0, -100.0) + mouse_position.0, Vec2::new(0.0, 100.0) + mouse_position.0, Color::from(WHITE));
+    gizmos.line_2d(
+        Vec2::new(-100.0, 0.0) + mouse_position.0,
+        Vec2::new(100.0, 0.0) + mouse_position.0,
+        Color::from(WHITE),
+    );
+    gizmos.line_2d(
+        Vec2::new(-0.0, -100.0) + mouse_position.0,
+        Vec2::new(0.0, 100.0) + mouse_position.0,
+        Color::from(WHITE),
+    );
 }
 
 #[derive(Component)]

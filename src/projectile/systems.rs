@@ -14,8 +14,7 @@ pub fn handle_fire_projectile_events(
     global_transforms: Query<&GlobalTransform>,
     mut events: EventReader<FireProjectileEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>
-    
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for evt in events.read() {
         const BULLET_SPEED: f32 = 6.0;
@@ -43,9 +42,7 @@ pub fn handle_fire_projectile_events(
                 },
                 Mesh2d(meshes.add(projectile_shape)),
                 MeshMaterial2d(materials.add(ColorMaterial::from_color(Color::from(RED)))),
-                Transform::from_translation(
-                    projectile_spawn_position.extend(2.0).as_vec3(),
-                ),
+                Transform::from_translation(projectile_spawn_position.extend(2.0).as_vec3()),
                 RigidBody::Dynamic,
                 evt.projectile_trajectory,
                 Collider::circle(projectile_shape.radius as f64),

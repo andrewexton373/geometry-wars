@@ -4,7 +4,6 @@ use crate::{player::components::Player, space_station::components::SpaceStation}
 
 use super::components::SpaceStationDirectionIndicator;
 
-
 pub fn spawn_player_base_guide_arrow(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
