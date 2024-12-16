@@ -50,17 +50,12 @@ pub fn setup_projectile_impact_particle_system(
     let lifetime = writer.lit(0.1); // literal value "10.0"
     let init_lifetime = SetAttributeModifier::new(Attribute::LIFETIME, lifetime.expr());
 
-    // Every frame, add a gravity-like acceleration downward
-    // let accel = module.lit(Vec3::new(0., -3., 0.));
-    // let update_accel = AccelModifier::new(accel);
-
     // Create the effect asset
     let effect = EffectAsset::new(
         // Maximum number of particles alive at a time
         32768,
         // Spawn at a rate of 5 particles per second
         spawner,
-        // Spawner::once(1000.0.into(), false),
         // Move the expression module into the asset
         writer.finish(),
     )
@@ -68,7 +63,6 @@ pub fn setup_projectile_impact_particle_system(
     .init(init_pos)
     .init(init_vel)
     .init(init_lifetime)
-    // .update(update_accel)
     // Render the particles with a color gradient over their
     // lifetime. This maps the gradient key 0 to the particle spawn
     // time, and the gradient key 1 to the particle death (10s).
@@ -81,30 +75,6 @@ pub fn setup_projectile_impact_particle_system(
         .spawn(ParticleEffectBundle::new(effect_asset))
         .insert(Name::new("projectile_impact_effect"));
 
-    // effect_handle.0 = Some(effect_asset);
-
-
-
-    // commands
-    //     .spawn(ParticleSystemBundle {
-    //         particle_system: ParticleSystem {
-    //             max_particles: 1_000,
-    //             texture: ParticleTexture::Sprite(asset_server.load("px.png")),
-    //             spawn_rate_per_second: 2500.0.into(),
-    //             initial_speed: JitteredValue::jittered(200.0, -50.0..50.0),
-    //             lifetime: JitteredValue::jittered(0.30, -0.2..0.2),
-    //             color: ColorOverTime::Gradient(Curve::new(vec![
-    //                 CurvePoint::new(Color::from(RED), 0.0),
-    //                 CurvePoint::new(Color::rgba(1.0, 0.0, 0.0, 0.0), 1.0),
-    //             ])),
-    //             looping: true,
-    //             system_duration_seconds: 10.0,
-    //             ..ParticleSystem::default()
-    //         },
-    //         ..ParticleSystemBundle::default()
-    //     })
-    //     .insert(LaserImpactParticleSystem)
-    //     .insert(Transform::default());
 }
 
 pub fn setup_player_ship_trail_particle_system(
