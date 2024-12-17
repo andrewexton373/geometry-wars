@@ -1,8 +1,6 @@
 use avian2d::prelude::PhysicsSet;
 use bevy::{
-    app::{App, Plugin, PostUpdate, Startup},
-    ecs::schedule::IntoSystemConfigs,
-    transform::TransformSystem,
+    app::{App, Plugin, PostUpdate, Startup}, color::{palettes::css::BLACK, Color}, ecs::schedule::IntoSystemConfigs, prelude::ClearColor, transform::TransformSystem
 };
 
 use super::systems::{camera_follows_target, setup_camera};
@@ -16,6 +14,7 @@ impl Plugin for GameCameraPlugin {
             camera_follows_target
                 .after(PhysicsSet::Sync)
                 .before(TransformSystem::TransformPropagate),
-        );
+        )
+        .insert_resource(ClearColor(Color::from(BLACK)));
     }
 }
