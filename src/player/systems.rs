@@ -32,7 +32,6 @@ pub fn spawn_player(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-
     let player_poly = RegularPolygon::new(20.0, 3);
 
     let player = commands
@@ -78,7 +77,6 @@ pub fn spawn_player(
         player,
     );
 }
-
 
 pub fn trickle_charge(
     battery_q: Query<(Entity, &Battery), With<Player>>,
@@ -161,8 +159,13 @@ pub fn ship_rotate_towards_mouse(
 
     const SPIN_ACCELERATION: f64 = 500.0;
 
-    let player_to_mouse = (cursor_pos - player_trans.translation.truncate()).normalize().as_dvec2();
-    let player_ship_rotation = (player_trans.rotation * Vec3::Y).truncate().normalize().as_dvec2();
+    let player_to_mouse = (cursor_pos - player_trans.translation.truncate())
+        .normalize()
+        .as_dvec2();
+    let player_ship_rotation = (player_trans.rotation * Vec3::Y)
+        .truncate()
+        .normalize()
+        .as_dvec2();
 
     let ship_angle_difference_percent = player_to_mouse.angle_to(player_ship_rotation) / PI;
 

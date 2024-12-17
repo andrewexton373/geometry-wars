@@ -82,8 +82,7 @@ pub fn ui_ship_hover_context(
                                         factory.remaining_processing_time
                                     ));
                                     ui.label(progress_string(
-                                        (recipe.time_required
-                                            - factory.remaining_processing_time)
+                                        (recipe.time_required - factory.remaining_processing_time)
                                             / recipe.time_required,
                                     ));
                                 });
@@ -134,8 +133,7 @@ pub fn ui_ship_hover_context(
                                         refinery.remaining_processing_time
                                     ));
                                     ui.label(progress_string(
-                                        (recipe.time_required
-                                            - refinery.remaining_processing_time)
+                                        (recipe.time_required - refinery.remaining_processing_time)
                                             / recipe.time_required,
                                     ));
                                 });

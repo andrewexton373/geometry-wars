@@ -17,8 +17,7 @@ pub fn ui_build_mode(
     if let Some(selected) = selected.entity {
         if let Ok(gt) = entity_g_t_q.get(selected) {
             if let Ok((camera, camera_gt)) = camera.get_single() {
-                if let Ok(computed_pos) = camera.world_to_viewport(camera_gt, gt.translation())
-                {
+                if let Ok(computed_pos) = camera.world_to_viewport(camera_gt, gt.translation()) {
                     let pos = Pos2 {
                         x: computed_pos.x,
                         y: computed_pos.y,

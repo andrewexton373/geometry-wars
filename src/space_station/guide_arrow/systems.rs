@@ -28,10 +28,7 @@ fn guide_arrow_color(opacity: f32) -> ColorMaterial {
 
 pub fn guide_player_to_space_station(
     mut dir_indicator_query: Query<
-        (
-        &mut Transform,
-        &mut MeshMaterial2d<ColorMaterial>
-        ),
+        (&mut Transform, &mut MeshMaterial2d<ColorMaterial>),
         (
             With<SpaceStationDirectionIndicator>,
             Without<SpaceStation>,

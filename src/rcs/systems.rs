@@ -1,5 +1,9 @@
 use avian2d::prelude::ExternalForce;
-use bevy::{ecs::{event::EventReader, system::Query}, log::info, prelude::{Transform, With, Without}};
+use bevy::{
+    ecs::{event::EventReader, system::Query},
+    log::info,
+    prelude::{Transform, With, Without},
+};
 use bevy_hanabi::prelude::*;
 
 use crate::{particles::components::PlayerShipTrailParticles, player::components::Player};
@@ -23,14 +27,17 @@ pub fn handle_set_thrust_power_events(
 
 pub fn handle_thrust_events(
     mut thrust_vector_events: EventReader<RCSThrustVectorEvent>,
-    mut entity_query: Query<(&RCSBooster, &Transform, &mut ExternalForce), (With<RCSBooster>, Without<PlayerShipTrailParticles>)>,
+    mut entity_query: Query<
+        (&RCSBooster, &Transform, &mut ExternalForce),
+        (With<RCSBooster>, Without<PlayerShipTrailParticles>),
+    >,
     mut engine_effect: Query<
         (
             &mut EffectProperties,
             &mut EffectInitializers,
             &mut Transform,
         ),
-        With<PlayerShipTrailParticles>
+        With<PlayerShipTrailParticles>,
     >,
 ) {
     for evt in thrust_vector_events.read() {
@@ -42,7 +49,8 @@ pub fn handle_thrust_events(
 
             // Note: On first frame where the effect spawns, EffectSpawner is spawned during
             // PostUpdate, so will not be available yet. Ignore for a frame if so.
-            let Ok((mut properties, mut initializers, mut effect_transform)) = engine_effect.get_single_mut()
+            let Ok((mut properties, mut initializers, mut effect_transform)) =
+                engine_effect.get_single_mut()
             else {
                 return;
             };
@@ -58,7 +66,6 @@ pub fn handle_thrust_events(
 
             // Spawn the particles
             initializers.reset();
-
         }
     }
 }

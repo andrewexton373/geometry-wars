@@ -47,7 +47,7 @@ impl ItemProducer for Factory {
     }
 
     fn remaining_processing_time(&self) -> Option<f32> {
-        self.currently_processing.as_ref()?;;
+        self.currently_processing.as_ref()?;
         Some(self.remaining_processing_time)
     }
 

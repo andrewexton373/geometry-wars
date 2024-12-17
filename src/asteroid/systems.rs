@@ -278,8 +278,7 @@ pub fn split_asteroid_events(
 ) {
     for evt in split_astroid_events.read() {
         let asteroid_ent = evt.0;
-        if let Ok((asteroid, transform, linear_velocity)) = asteroid_q.get_mut(asteroid_ent)
-        {
+        if let Ok((asteroid, transform, linear_velocity)) = asteroid_q.get_mut(asteroid_ent) {
             let right_velocity = Vec2::ZERO;
             let left_velocity = Vec2::ZERO;
 

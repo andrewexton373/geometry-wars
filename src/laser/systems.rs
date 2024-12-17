@@ -1,8 +1,8 @@
 use avian2d::prelude::{SpatialQuery, SpatialQueryFilter};
 use bevy::color::palettes::css::RED;
 use bevy::ecs::entity::EntityHash;
-use bevy::utils::hashbrown::HashSet;
 use bevy::prelude::*;
+use bevy::utils::hashbrown::HashSet;
 use bevy_hanabi::{EffectInitializers, EffectProperties, ParticleEffect, ParticleEffectBundle};
 // use bevy_particle_systems::Playing;
 
@@ -40,12 +40,12 @@ pub fn fire_laser_raycasting(
     mut damage_events: EventWriter<DamageEvent>,
     mut gizmos: Gizmos,
     mut effect: Query<
-        (   
+        (
             &mut EffectProperties,
             &mut EffectInitializers,
             &mut Transform,
         ),
-        With<ProjectileImpactParticles>
+        With<ProjectileImpactParticles>,
     >,
     // laser_particles: Res<LaserImpactParticleEffectHandle>
 ) {
@@ -68,7 +68,6 @@ pub fn fire_laser_raycasting(
 
         // If laser is active
         if laser_active {
-
             if let Some(first_hit) = spatial_query.cast_ray(
                 ray_pos.as_dvec2(),
                 Dir2::new(ray_dir).unwrap(),
@@ -83,9 +82,6 @@ pub fn fire_laser_raycasting(
                 let hit_normal = first_hit.normal;
                 let hit_ent = first_hit.entity;
 
-                
-
-
                 //     commands.entity(ent).with_child(ParticleEffectBundle {
                 //         effect: ParticleEffect::new(laser_particles.0.unwrap().clone_weak()),
                 //         transform: Transform::from_translation(Vec3::Y),
@@ -94,10 +90,8 @@ pub fn fire_laser_raycasting(
 
                 // for (ent, _, mut t) in laser_impact_particles_query.iter_mut() {
 
-                    
                 //     // commands.entity(ent).insert(Playing);
                 //     t.translation = hit_point.extend(0.0).as_vec3();
-
 
                 // }
 
@@ -115,7 +109,8 @@ pub fn fire_laser_raycasting(
 
                 // Note: On first frame where the effect spawns, EffectSpawner is spawned during
                 // PostUpdate, so will not be available yet. Ignore for a frame if so.
-                let Ok((mut properties, mut initializers, mut effect_transform)) = effect.get_single_mut()
+                let Ok((mut properties, mut initializers, mut effect_transform)) =
+                    effect.get_single_mut()
                 else {
                     return;
                 };
@@ -129,7 +124,6 @@ pub fn fire_laser_raycasting(
 
                 // Spawn the particles
                 initializers.reset();
-
             } else {
                 // Laser Hit Nothing
                 gizmos.line_2d(ray_pos, ray_pos + ray_dir * 10000.0, Color::from(RED));
