@@ -18,13 +18,12 @@ pub fn crosshair_gizmo_config(
 
 const POINTER_SIZE: f32 = 20.0;
 
-
 pub fn draw_crosshair(
     mouse_position: Res<MouseWorldPosition>,
-    player_query: Query<(&Player, &Transform), Without<Crosshair>>,
+    player_query: Query<&Transform, With<Player>>,
     mut gizmos: Gizmos<CrosshairGizmos>,
 ) {
-    let (_player, player_trans) = player_query.single();
+    let player_trans = player_query.single();
 
     // Player to Mouse Line Segment
     gizmos.line_2d(
