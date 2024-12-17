@@ -29,12 +29,6 @@ pub fn fire_laser_raycasting(
     commands: Commands,
     mut laser_event_reader: EventReader<LaserEvent>,
     mut ablate_event_writer: EventWriter<AblateEvent>,
-    // rapier_context: Res<RapierContext>,
-    // mut laser_query: Query<&mut Shape, With<Laser>>,
-    // mut laser_impact_particles_query: Query<
-    //     (Entity, &LaserImpactParticleSystem, &mut Transform),
-    //     Without<Laser>,
-    // >,
     player_q: Query<Entity, With<Player>>,
     spatial_query: SpatialQuery,
     mut damage_events: EventWriter<DamageEvent>,
@@ -47,14 +41,8 @@ pub fn fire_laser_raycasting(
         ),
         With<ProjectileImpactParticles>,
     >,
-    // laser_particles: Res<LaserImpactParticleEffectHandle>
 ) {
-    // TODO: Change Laser State To Off On Player Left Unclick
-    // for (ent, _, mut _t) in laser_impact_particles_query.iter_mut() {
-    //     // commands.entity(ent).remove::<Playing>();
-    // }
 
-    // let mut laser_path = laser_query.single_mut();
     let player_ent = player_q.single();
 
     // Exclude Player from Raycasting
@@ -81,19 +69,6 @@ pub fn fire_laser_raycasting(
                 let hit_point = ray_pos.as_dvec2() + ray_dir.as_dvec2() * first_hit.distance;
                 let hit_normal = first_hit.normal;
                 let hit_ent = first_hit.entity;
-
-                //     commands.entity(ent).with_child(ParticleEffectBundle {
-                //         effect: ParticleEffect::new(laser_particles.0.unwrap().clone_weak()),
-                //         transform: Transform::from_translation(Vec3::Y),
-                //         ..Default::default()
-                //     });
-
-                // for (ent, _, mut t) in laser_impact_particles_query.iter_mut() {
-
-                //     // commands.entity(ent).insert(Playing);
-                //     t.translation = hit_point.extend(0.0).as_vec3();
-
-                // }
 
                 gizmos.line_2d(ray_pos, hit_point.as_vec2(), Color::from(RED));
 
