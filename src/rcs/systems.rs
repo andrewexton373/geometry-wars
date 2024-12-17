@@ -1,7 +1,6 @@
 use avian2d::prelude::ExternalForce;
 use bevy::{
     ecs::{event::EventReader, system::Query},
-    log::info,
     prelude::{Transform, With, Without},
 };
 use bevy_hanabi::prelude::*;

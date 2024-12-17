@@ -3,13 +3,13 @@ use bevy::color::palettes::css::RED;
 use bevy::ecs::entity::EntityHash;
 use bevy::prelude::*;
 use bevy::utils::hashbrown::HashSet;
-use bevy_hanabi::{EffectInitializers, EffectProperties, ParticleEffect, ParticleEffectBundle};
+use bevy_hanabi::{EffectInitializers, EffectProperties};
 // use bevy_particle_systems::Playing;
 
 use super::components::Laser;
 use super::events::LaserEvent;
 
-use crate::particles::components::{LaserImpactParticleSystem, ProjectileImpactParticles};
+use crate::particles::components::ProjectileImpactParticles;
 use crate::player::components::Player;
 use crate::{asteroid::events::AblateEvent, health::events::DamageEvent};
 
