@@ -17,7 +17,7 @@ use crate::player_input::resources::MouseWorldPosition;
 use crate::space_station::components::SpaceStation;
 use crate::ui::context_clue::resources::{ContextClue, ContextClues};
 use crate::upgrades::{components::UpgradesComponent, events::UpgradeEvent};
-use crate::PIXELS_PER_METER;
+use crate::{battery, PIXELS_PER_METER};
 use crate::{
     battery::{
         components::Battery,
@@ -94,14 +94,11 @@ pub fn player_movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut player_query: Query<(
         Entity,
-        &Player,
         &Battery,
-        &mut Transform,
-        &mut ExternalForce,
-    )>,
+    ), With<Player>>,
     mut battery_events: EventWriter<DrainBatteryEvent>,
 ) {
-    let (entity, player, battery, transform, ext_force) = player_query.single_mut();
+    let (entity, battery) = player_query.single_mut();
 
     let mut thrust: Vec2 = Vec2::ZERO;
 
