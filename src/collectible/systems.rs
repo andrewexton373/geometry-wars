@@ -11,6 +11,7 @@ pub fn gravitate_collectibles_towards_player_ship(
 ) {
     const MAX_GRAVITATION_DISTANCE: f64 = 30.0 * crate::PIXELS_PER_METER;
     let (_player_ent, _player, player_transform) = player_query.single();
+    info!("GRAVITATE COLLECTIBLE");
 
     for (_ent, _collectible, collectible_tranform, mut velocity) in collectible_query.iter_mut() {
         let distance_to_player_from_collectible = player_transform

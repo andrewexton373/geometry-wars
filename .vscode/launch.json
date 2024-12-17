@@ -13,7 +13,7 @@
                     "build",
                     "--bin=geometry-wars",
                     "--package=geometry-wars",
-                    "--features=bevy/dynamic_linking",
+                    // "--features=bevy/dynamic_linking",
                 ],
                 "filter": {
                     "name": "geometry-wars",

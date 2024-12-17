@@ -6,8 +6,7 @@ use crate::{
     ui::damage_indicator::events::DamageIndicatorEvent,
 };
 use bevy::{
-    color::palettes::css::{GOLD, GRAY, LIMEGREEN, SILVER},
-    prelude::*,
+    color::palettes::css::{GOLD, GRAY, LIMEGREEN, SILVER}, ecs::entity, prelude::*
 };
 // use bevy_particle_systems::Playing;
 use avian2d::{
@@ -82,16 +81,24 @@ pub fn spawn_asteroids_aimed_at_ship(
 const THRESHOLD_COLLECTIBLE_MASS: f32 = 2500.0;
 
 pub fn tag_small_asteroids_as_collectible(
+    trigger: Trigger<OnAdd, Asteroid>,
     mut commands: Commands,
-    mut asteroid_query: Query<(Entity, &Mass), With<Asteroid>>,
+    asteroid_query: Query<(Entity, &Mass), With<Asteroid>>,
 ) {
-    for (ent, mass) in asteroid_query.iter_mut() {
+
+    let asteroid_ent = trigger.entity();
+
+    if let Ok((_, mass)) = asteroid_query.get(asteroid_ent) {
+        info!("{:?} THRESHOLD HIT -> COLLECTIBLE", mass.0);
+
         if mass.0 <= THRESHOLD_COLLECTIBLE_MASS {
-            if let Some(mut ent_commands) = commands.get_entity(ent) {
+            info!("{:?} THRESHOLD HIT -> COLLECTIBLE", mass.0);
+            if let Some(mut ent_commands) = commands.get_entity(asteroid_ent) {
                 ent_commands.insert(Collectible);
             }
         }
     }
+
 }
 
 // TODO: Verify this is working...
@@ -108,9 +115,11 @@ pub fn update_collectible_material_color(
             _ => LIMEGREEN,
         };
 
-        commands.entity(ent).insert(MeshMaterial2d(
-            materials.add(ColorMaterial::from_color(color)),
-        ));
+        if let Some(mut collectible) = commands.get_entity(ent) {
+            collectible.insert(MeshMaterial2d(
+                materials.add(ColorMaterial::from_color(color)),
+            ));
+        }
     }
 }
 
@@ -337,10 +346,13 @@ pub fn handle_spawn_asteroid_events(
         find_free_space(&spatial, &query, target_transform, &collider, 0.1, 10)
     {
         commands
-            .spawn(asteroid.clone())
-            .insert((
+            .spawn((
+                asteroid.clone(),
                 RigidBody::Dynamic,
                 collider,
+                Mass(health_pool),
+                // ComputedMass::default(),
+                // ColliderDensity::default(),
                 linear_velocity,
                 splittable,
                 Name::new("Asteroid"),

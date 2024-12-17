@@ -17,7 +17,7 @@ impl Plugin for AsteroidPlugin {
         .add_event::<AblateEvent>()
         .add_event::<SpawnAsteroidEvent>()
         .add_event::<SplitAsteroidEvent>()
-        .add_systems(PreUpdate, (tag_small_asteroids_as_collectible,))
+        // .add_systems(PreUpdate, (tag_small_asteroids_as_collectible,))
         .add_systems(
             Update,
             (
@@ -35,7 +35,8 @@ impl Plugin for AsteroidPlugin {
         )
         .add_observer(handle_spawn_asteroid_events)
         .add_observer(ablate_asteroids_events)
-        .add_observer(split_asteroid_events);
+        .add_observer(split_asteroid_events)
+        .add_observer(tag_small_asteroids_as_collectible);
 
         
     }
