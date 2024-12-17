@@ -45,13 +45,13 @@ pub fn draw_crosshair(
 
     // Crosshair
     gizmos.line_2d(
-        Vec2::new(-100.0, 0.0) + mouse_position.0,
-        Vec2::new(100.0, 0.0) + mouse_position.0,
+        Vec2::new(-20.0, 0.0) + mouse_position.0,
+        Vec2::new(20.0, 0.0) + mouse_position.0,
         Color::from(WHITE),
     );
     gizmos.line_2d(
-        Vec2::new(-0.0, -100.0) + mouse_position.0,
-        Vec2::new(0.0, 100.0) + mouse_position.0,
+        Vec2::new(-0.0, -20.0) + mouse_position.0,
+        Vec2::new(0.0, 20.0) + mouse_position.0,
         Color::from(WHITE),
     );
 }

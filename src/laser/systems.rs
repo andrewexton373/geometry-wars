@@ -9,7 +9,7 @@ use bevy_hanabi::{EffectInitializers, EffectProperties, ParticleEffect, Particle
 use super::components::Laser;
 use super::events::LaserEvent;
 
-use crate::particles::components::LaserImpactParticleSystem;
+use crate::particles::components::{LaserImpactParticleSystem, ProjectileImpactParticles};
 use crate::player::components::Player;
 use crate::{asteroid::events::AblateEvent, health::events::DamageEvent};
 
@@ -40,11 +40,12 @@ pub fn fire_laser_raycasting(
     mut damage_events: EventWriter<DamageEvent>,
     mut gizmos: Gizmos,
     mut effect: Query<
-        (
+        (   
             &mut EffectProperties,
             &mut EffectInitializers,
             &mut Transform,
         ),
+        With<ProjectileImpactParticles>
     >,
     // laser_particles: Res<LaserImpactParticleEffectHandle>
 ) {
@@ -120,13 +121,6 @@ pub fn fire_laser_raycasting(
                 };
 
                 effect_transform.translation = hit_point.extend(0.0).as_vec3();
-
-                // Pick a random particle color
-                let r = rand::random::<u8>();
-                let g = rand::random::<u8>();
-                let b = rand::random::<u8>();
-                let color = 0xFF000000u32 | (b as u32) << 16 | (g as u32) << 8 | (r as u32);
-                properties.set("spawn_color", color.into());
 
                 // Set the collision normal
                 let normal = hit_normal.as_vec2().normalize();
