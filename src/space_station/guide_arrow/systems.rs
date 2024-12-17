@@ -21,7 +21,7 @@ pub fn spawn_player_base_guide_arrow(
         .spawn((
             SpaceStationDirectionIndicator,
             Mesh2d(meshes.add(direction_indicator_shape)),
-            MeshMaterial2d(materials.add(ColorMaterial::from_color(Color::from(RED)))),
+            MeshMaterial2d(materials.add(guide_arrow_color(0.0))),
             // generate_guide_arrow(0.0),
             Transform::from_xyz(0.0, 0.0, 1.0),
             Name::new("SpaceStationDirectionIndicator"),
@@ -29,9 +29,16 @@ pub fn spawn_player_base_guide_arrow(
         .id();
 }
 
+fn guide_arrow_color(opacity: f32) -> ColorMaterial {
+    ColorMaterial::from_color(Color::srgba(1.0, 0.0, 0.0, opacity))
+}
+
 pub fn guide_player_to_space_station(
     mut dir_indicator_query: Query<
+        (
         &mut Transform,
+        &mut MeshMaterial2d<ColorMaterial>
+        ),
         (
             With<SpaceStationDirectionIndicator>,
             Without<SpaceStation>,
@@ -40,10 +47,11 @@ pub fn guide_player_to_space_station(
     >,
     player_query: Query<(&Player, &GlobalTransform), (With<Player>, Without<SpaceStation>)>,
     base_query: Query<(&SpaceStation, &GlobalTransform), (With<SpaceStation>, Without<Player>)>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     const FADE_DISTANCE: f32 = 500.0;
 
-    let mut dir_indicator_transform = dir_indicator_query.single_mut();
+    let (mut dir_indicator_transform, mut material) = dir_indicator_query.single_mut();
     let (_player, player_trans) = player_query.single();
     let (_base_station, base_station_trans) = base_query.single();
 
@@ -56,11 +64,15 @@ pub fn guide_player_to_space_station(
 
     dir_indicator_transform.rotation = Quat::from_rotation_z(rotation);
     dir_indicator_transform.translation =
-        (player_trans.translation().truncate() + direction_to_base * 100.0).extend(0.0);
+        (player_trans.translation().truncate() + direction_to_base * 100.0).extend(100.0);
 
     dir_indicator_transform.scale = Vec3::new(0.3, 1.0, 1.0);
 
     let opacity = (distance_to_base / FADE_DISTANCE).powi(2).clamp(0.0, 1.0);
+
+    *material = MeshMaterial2d(materials.add(guide_arrow_color(opacity)));
+
+
 
     // *shape = generate_guide_arrow(opacity);
 }
