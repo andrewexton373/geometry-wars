@@ -9,7 +9,6 @@ use super::components::Player;
 use super::resources::EmptyInventoryDepositTimer;
 
 use crate::camera::components::CameraTarget;
-use crate::crosshair::components::Crosshair;
 use crate::health::components::Health;
 use crate::inventory::components::{Capacity, Inventory};
 use crate::inventory::systems::attach_inventory_to_entity;
@@ -151,7 +150,6 @@ pub fn ship_rotate_towards_mouse(
     mouse_position: Res<MouseWorldPosition>,
     mut player_query: Query<
         (&mut Player, &mut Transform, &mut AngularVelocity),
-        Without<Crosshair>,
     >,
 ) {
     let cursor_pos = mouse_position.0;

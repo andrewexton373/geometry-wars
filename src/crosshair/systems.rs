@@ -4,8 +4,6 @@ use bevy::prelude::*;
 use crate::player::components::Player;
 use crate::player_input::resources::MouseWorldPosition;
 
-use super::components::Crosshair;
-
 #[derive(Default, Reflect, GizmoConfigGroup)]
 pub struct CrosshairGizmos;
 
