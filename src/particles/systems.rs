@@ -2,29 +2,22 @@ use bevy::prelude::*;
 use bevy_hanabi::prelude::*;
 // use bevy_particle_systems::*;
 
-use crate::player::components::Player;
-
-
+use crate::{laser::components::Laser, player::components::Player};
 
 pub fn setup_projectile_impact_particle_system(
+    _trigger: Trigger<OnAdd, Laser>,
     mut commands: Commands,
-    // asset_server: Res<AssetServer>,
     mut effects: ResMut<Assets<EffectAsset>>,
-    // mut effect_handle: ResMut<LaserImpactParticleEffectHandle>
 ) {
 
      // Set `spawn_immediately` to false to spawn on command with Spawner::reset()
      let spawner = Spawner::once(100.0.into(), false);
-
      let writer = ExprWriter::new();
 
     // Define a color gradient from red to transparent black
     let mut gradient = Gradient::new();
     gradient.add_key(0.0, Vec4::new(1., 0., 0., 1.));
     gradient.add_key(1.0, Vec4::ZERO);
-
-    // Create a new expression module
-    // let mut module = Module::default();
 
     // On spawn, randomly initialize the position of the particle
     // to be over the surface of a sphere of radius 2 units.
