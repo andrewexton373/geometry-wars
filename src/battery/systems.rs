@@ -10,9 +10,9 @@ pub fn handle_drain_battery_events(
 ) {
     let evt = trigger.event();
     // for evt in events.read() {
-        if let Ok(mut battery) = battery_q.get_mut(evt.entity) {
-            battery.drain_battery(evt.drain);
-        }
+    if let Ok(mut battery) = battery_q.get_mut(evt.entity) {
+        battery.drain_battery(evt.drain);
+    }
     // }
 }
 

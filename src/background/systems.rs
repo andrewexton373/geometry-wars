@@ -11,7 +11,7 @@ use super::components::{Layer, Sector, StarfieldBackground};
 pub fn init_starfield(mut commands: Commands) {
     // Spawn 3 Layers
     for layer in 1..4 {
-        commands.spawn((Layer(layer), Transform::default(), Visibility::default()));
+        commands.spawn((Layer(layer), Transform::default(), Visibility::Inherited));
     }
 }
 
@@ -115,6 +115,7 @@ fn generate_sector(commands: &mut Commands, layer_entity: Entity, layer: &Layer,
                 sector.j as f32 * SECTOR_SIZE,
                 -10.0,
             ),
+            Visibility::Inherited
         ))
         .with_children(|parent| {
             // Generate Foreground Stars
@@ -138,6 +139,7 @@ fn generate_sector(commands: &mut Commands, layer_entity: Entity, layer: &Layer,
                         scale,
                         ..default()
                     },
+                    Visibility::Inherited,
                     StarfieldBackground,
                 ));
             }

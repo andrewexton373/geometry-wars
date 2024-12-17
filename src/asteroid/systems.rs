@@ -271,36 +271,34 @@ pub fn split_asteroids_over_split_ratio(
 }
 
 pub fn split_asteroid_events(
+    trigger: Trigger<SplitAsteroidEvent>,
     mut commands: Commands,
     mut asteroid_q: Query<(&Asteroid, &Transform, &LinearVelocity)>,
-    mut split_astroid_events: EventReader<SplitAsteroidEvent>,
-    mut spawn_asteroid_events: EventWriter<SpawnAsteroidEvent>,
 ) {
-    for evt in split_astroid_events.read() {
-        let asteroid_ent = evt.0;
-        if let Ok((asteroid, transform, linear_velocity)) = asteroid_q.get_mut(asteroid_ent) {
-            let right_velocity = Vec2::ZERO;
-            let left_velocity = Vec2::ZERO;
+    let evt = trigger.event();
+    let asteroid_ent = evt.0;
+    if let Ok((asteroid, transform, linear_velocity)) = asteroid_q.get_mut(asteroid_ent) {
+        let right_velocity = Vec2::ZERO;
+        let left_velocity = Vec2::ZERO;
 
-            let half_radius = asteroid.radius / 2.0;
+        let half_radius = asteroid.radius / 2.0;
 
-            let left_asteroid = Asteroid::new_with(half_radius, asteroid.composition.jitter());
-            let right_asteroid = Asteroid::new_with(half_radius, asteroid.composition.jitter());
+        let left_asteroid = Asteroid::new_with(half_radius, asteroid.composition.jitter());
+        let right_asteroid = Asteroid::new_with(half_radius, asteroid.composition.jitter());
 
-            spawn_asteroid_events.send(SpawnAsteroidEvent(
-                left_asteroid,
-                *transform,
-                LinearVelocity::ZERO,
-            ));
+        commands.trigger(SpawnAsteroidEvent(
+            left_asteroid,
+            *transform,
+            LinearVelocity::ZERO,
+        ));
 
-            spawn_asteroid_events.send(SpawnAsteroidEvent(
-                right_asteroid,
-                *transform,
-                LinearVelocity::ZERO,
-            ));
+        commands.trigger(SpawnAsteroidEvent(
+            right_asteroid,
+            *transform,
+            LinearVelocity::ZERO,
+        ));
 
-            commands.entity(asteroid_ent).despawn_recursive();
-        }
+        commands.entity(asteroid_ent).despawn_recursive();
     }
 }
 
@@ -315,7 +313,6 @@ pub fn handle_spawn_asteroid_events(
 
     let evt = trigger.event();
 
-    // for evt in spawn_asteroid_events.read() {
     let asteroid = evt.0.clone();
     let target_transform = evt.1;
     let linear_velocity = evt.2;
@@ -339,7 +336,7 @@ pub fn handle_spawn_asteroid_events(
     if let Some(transform) =
         find_free_space(&spatial, &query, target_transform, &collider, 0.1, 10)
     {
-        let asteroid_ent = commands
+        commands
             .spawn(asteroid.clone())
             .insert((
                 RigidBody::Dynamic,
@@ -353,10 +350,9 @@ pub fn handle_spawn_asteroid_events(
                 Health::with_maximum(Asteroid::polygon_area(
                     asteroid.polygon().vertices.iter().as_slice(),
                 )),
-            ))
-            .id();
+            ));
+
     }
-    // }
 }
 
 fn find_free_space(
