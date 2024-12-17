@@ -1,10 +1,10 @@
 use avian2d::prelude::ExternalForce;
 use bevy::{
-    ecs::{event::EventReader, system::Query}, log::info, prelude::{Transform, Trigger, With, Without}
+    ecs::{event::EventReader, system::Query}, log::info, prelude::{Commands, Transform, Trigger, With, Without}
 };
 use bevy_hanabi::prelude::*;
 
-use crate::{particles::components::PlayerShipTrailParticles, player::components::Player};
+use crate::{battery::events::DrainBatteryEvent, particles::components::PlayerShipTrailParticles, player::components::Player};
 
 use super::{
     components::RCSBooster,
@@ -25,6 +25,7 @@ pub fn handle_set_thrust_power_events(
 
 pub fn handle_thrust_events(
     trigger: Trigger<RCSThrustVectorEvent>,
+    mut commands: Commands,
     mut entity_query: Query<
         (&RCSBooster, &Transform, &mut ExternalForce),
         (With<RCSBooster>, Without<PlayerShipTrailParticles>),
@@ -39,34 +40,39 @@ pub fn handle_thrust_events(
     >,
 ) {
 
-        let evt = trigger.event();
-        // info!("THRUST VECTOR EVENT: {:?}", evt.thrust_vector);
-    // for evt in thrust_vector_events.read() {
-        // dbg!("EVENT: {} {}", evt.entity, evt.thrust_vector);
-        if let Ok((booster, transform, mut external_force)) = entity_query.get_mut(evt.entity) {
-            let thrust_vector = evt.thrust_vector * booster.power_level;
-            external_force.set_force(thrust_vector.as_dvec2());
-            external_force.persistent = false;
+    let evt = trigger.event();
+    // info!("THRUST VECTOR EVENT: {:?}", evt.thrust_vector);
 
-            // Note: On first frame where the effect spawns, EffectSpawner is spawned during
-            // PostUpdate, so will not be available yet. Ignore for a frame if so.
-            let Ok((mut properties, mut initializers, mut effect_transform)) =
-                engine_effect.get_single_mut()
-            else {
-                return;
-            };
+    if let Ok((booster, transform, mut external_force)) = entity_query.get_mut(evt.entity) {
+        let thrust_vector = evt.thrust_vector * booster.power_level;
+        external_force.set_force(thrust_vector.as_dvec2());
+        external_force.persistent = false;
 
-            // This isn't the most accurate place to spawn the particle effect,
-            // but this is just for demonstration, so whatever.
-            effect_transform.translation = transform.translation;
+        let energy_spent = thrust_vector.length() / 5000000.0; // TODO: magic number
 
-            // Set the collision normal
-            let normal = -thrust_vector.normalize();
-            // info!("Thrust: n={:?}", thrust_vector);
-            properties.set("thrust_vector", normal.extend(0.).into());
+        commands.trigger(DrainBatteryEvent {
+            entity: evt.entity,
+            drain: energy_spent,
+        });
 
-            // Spawn the particles
-            initializers.reset();
-        }
-    // }
+        // Note: On first frame where the effect spawns, EffectSpawner is spawned during
+        // PostUpdate, so will not be available yet. Ignore for a frame if so.
+        let Ok((mut properties, mut initializers, mut effect_transform)) =
+            engine_effect.get_single_mut()
+        else {
+            return;
+        };
+
+        // This isn't the most accurate place to spawn the particle effect,
+        // but this is just for demonstration, so whatever.
+        effect_transform.translation = transform.translation;
+
+        // Set the collision normal
+        let normal = -thrust_vector.normalize();
+        // info!("Thrust: n={:?}", thrust_vector);
+        properties.set("thrust_vector", normal.extend(0.).into());
+
+        // Spawn the particles
+        initializers.reset();
+    }
 }

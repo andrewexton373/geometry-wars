@@ -78,11 +78,11 @@ pub fn spawn_player(
 }
 
 pub fn trickle_charge(
+    mut commands: Commands,
     battery_q: Query<(Entity, &Battery), With<Player>>,
-    mut battery_events: EventWriter<ChargeBatteryEvent>,
 ) {
     if let Ok((entity, battery)) = battery_q.get_single() {
-        battery_events.send(ChargeBatteryEvent {
+        commands.trigger(ChargeBatteryEvent {
             entity,
             charge: 0.01,
         });
@@ -126,16 +126,10 @@ pub fn player_movement(
     const ACCELERATION: f64 = 1000.0 * PIXELS_PER_METER;
 
     let force = thrust.normalize_or_zero().as_dvec2() * ACCELERATION;
-    let energy_spent = force.length() / 5000000.0; // TODO: magic number
 
     if force == DVec2::ZERO {
         return;
     }
-
-    battery_events.send(DrainBatteryEvent {
-        entity,
-        drain: energy_spent as f32,
-    });
 
     commands.trigger(RCSThrustVectorEvent {
         entity,
