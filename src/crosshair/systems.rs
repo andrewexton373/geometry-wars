@@ -28,11 +28,21 @@ use super::components::Crosshair;
 //         .id();
 // }
 
+#[derive(Default, Reflect, GizmoConfigGroup)]
+pub struct CrosshairGizmos;
+
+pub fn crosshair_gizmo_config(
+    mut config_store: ResMut<GizmoConfigStore>,
+) {
+    let (config, _) = config_store.config_mut::<CrosshairGizmos>();
+    config.line_width = 0.5;
+}
+
 pub fn draw_crosshair(
     mouse_position: Res<MouseWorldPosition>,
     player_query: Query<(&Player, &Transform), Without<Crosshair>>,
     // mut crosshair_query: Query<&mut Shape, With<Crosshair>>,
-    mut gizmos: Gizmos,
+    mut gizmos: Gizmos<CrosshairGizmos>,
 ) {
     let (_player, player_trans) = player_query.single();
 
