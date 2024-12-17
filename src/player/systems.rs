@@ -90,6 +90,7 @@ pub fn trickle_charge(
 }
 
 pub fn player_movement(
+    mut commands: Commands,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut player_query: Query<(
         Entity,
@@ -99,7 +100,6 @@ pub fn player_movement(
         &mut ExternalForce,
     )>,
     mut battery_events: EventWriter<DrainBatteryEvent>,
-    mut thrust_vector_events: EventWriter<RCSThrustVectorEvent>,
 ) {
     let (entity, player, battery, transform, ext_force) = player_query.single_mut();
 
@@ -140,10 +140,11 @@ pub fn player_movement(
         drain: energy_spent as f32,
     });
 
-    thrust_vector_events.send(RCSThrustVectorEvent {
+    commands.trigger(RCSThrustVectorEvent {
         entity,
         thrust_vector: force.as_vec2(),
     });
+
 }
 
 pub fn ship_rotate_towards_mouse(

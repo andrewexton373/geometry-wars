@@ -110,14 +110,11 @@ fn generate_sector(commands: &mut Commands, layer_entity: Entity, layer: &Layer,
     let sector_id = commands
         .spawn((
             sector,
-            SpatialBundle {
-                transform: Transform::from_xyz(
-                    sector.i as f32 * SECTOR_SIZE,
-                    sector.j as f32 * SECTOR_SIZE,
-                    -10.0,
-                ),
-                ..default()
-            },
+            Transform::from_xyz(
+                sector.i as f32 * SECTOR_SIZE,
+                sector.j as f32 * SECTOR_SIZE,
+                -10.0,
+            ),
         ))
         .with_children(|parent| {
             // Generate Foreground Stars

@@ -13,7 +13,8 @@ impl Plugin for RCSPlugin {
             .add_event::<RCSThrustVectorEvent>()
             .add_systems(
                 Update,
-                (handle_set_thrust_power_events, handle_thrust_events),
-            );
+                (handle_set_thrust_power_events),
+            )
+            .add_observer(handle_thrust_events);
     }
 }

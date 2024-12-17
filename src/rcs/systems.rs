@@ -1,7 +1,6 @@
 use avian2d::prelude::ExternalForce;
 use bevy::{
-    ecs::{event::EventReader, system::Query},
-    prelude::{Transform, With, Without},
+    ecs::{event::EventReader, system::Query}, log::info, prelude::{Transform, Trigger, With, Without}
 };
 use bevy_hanabi::prelude::*;
 
@@ -25,7 +24,8 @@ pub fn handle_set_thrust_power_events(
 }
 
 pub fn handle_thrust_events(
-    mut thrust_vector_events: EventReader<RCSThrustVectorEvent>,
+    trigger: Trigger<RCSThrustVectorEvent>,
+    // mut thrust_vector_events: EventReader<RCSThrustVectorEvent>,
     mut entity_query: Query<
         (&RCSBooster, &Transform, &mut ExternalForce),
         (With<RCSBooster>, Without<PlayerShipTrailParticles>),
@@ -39,7 +39,10 @@ pub fn handle_thrust_events(
         With<PlayerShipTrailParticles>,
     >,
 ) {
-    for evt in thrust_vector_events.read() {
+
+        let evt = trigger.event();
+        info!("THRUST VECTOR EVENT: {:?}", evt.thrust_vector);
+    // for evt in thrust_vector_events.read() {
         // dbg!("EVENT: {} {}", evt.entity, evt.thrust_vector);
         if let Ok((booster, transform, mut external_force)) = entity_query.get_mut(evt.entity) {
             let thrust_vector = evt.thrust_vector * booster.power_level;
@@ -66,5 +69,5 @@ pub fn handle_thrust_events(
             // Spawn the particles
             initializers.reset();
         }
-    }
+    // }
 }
