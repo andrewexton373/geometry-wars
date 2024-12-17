@@ -29,14 +29,15 @@ impl Plugin for AsteroidPlugin {
                 split_asteroids_over_split_ratio,
                 // split_asteroid_events,
                 display_inventory_full_context_clue,
-                update_collectible_material_color,
+                // update_collectible_material_color,
                 handle_collectible_collision_event,
             ),
         )
         .add_observer(handle_spawn_asteroid_events)
         .add_observer(ablate_asteroids_events)
         .add_observer(split_asteroid_events)
-        .add_observer(tag_small_asteroids_as_collectible);
+        .add_observer(tag_small_asteroids_as_collectible)
+        .add_observer(update_collectible_material_color);
 
         
     }
