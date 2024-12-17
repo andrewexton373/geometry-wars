@@ -124,7 +124,7 @@ pub fn fire_laser_raycasting(
 
                 // Set the collision normal
                 let normal = hit_normal.as_vec2().normalize();
-                info!("Collision: n={:?}", normal);
+                // info!("Collision: n={:?}", normal);
                 properties.set("normal", normal.extend(0.).into());
 
                 // Spawn the particles

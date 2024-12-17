@@ -32,22 +32,8 @@ pub fn spawn_player(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    let player_poly: Polygon<3> = Polygon::new(vec![
-        Vec2 {
-            x: 0.0,
-            y: 4.0 * crate::PIXELS_PER_METER as f32,
-        },
-        Vec2 {
-            x: 2.0 * crate::PIXELS_PER_METER as f32,
-            y: -2.0 * crate::PIXELS_PER_METER as f32,
-        },
-        Vec2 {
-            x: -2.0 * crate::PIXELS_PER_METER as f32,
-            y: -2.0 * crate::PIXELS_PER_METER as f32,
-        },
-    ]);
 
-    let player_poly = RegularPolygon::new(6.0, 3);
+    let player_poly = RegularPolygon::new(20.0, 3);
 
     let player = commands
         .spawn(Player::new())

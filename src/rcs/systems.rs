@@ -53,7 +53,7 @@ pub fn handle_thrust_events(
 
             // Set the collision normal
             let normal = -thrust_vector.normalize();
-            info!("Thrust: n={:?}", thrust_vector);
+            // info!("Thrust: n={:?}", thrust_vector);
             properties.set("thrust_vector", normal.extend(0.).into());
 
             // Spawn the particles
