@@ -89,7 +89,6 @@ pub fn tag_small_asteroids_as_collectible(
     let asteroid_ent = trigger.entity();
 
     if let Ok((_, mass)) = asteroid_query.get(asteroid_ent) {
-        info!("{:?} THRESHOLD HIT -> COLLECTIBLE", mass.0);
 
         if mass.0 <= THRESHOLD_COLLECTIBLE_MASS {
             info!("{:?} THRESHOLD HIT -> COLLECTIBLE", mass.0);
