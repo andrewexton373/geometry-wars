@@ -34,7 +34,7 @@ use super::{
 // System to spawn asteroids at some distance away from the ship in random directions,
 // each asteroid with an initial velocity aimed towards the players ship
 pub fn spawn_asteroids_aimed_at_ship(
-    mut spawn_asteroid_events: EventWriter<SpawnAsteroidEvent>,
+    mut commands: Commands,
     player_query: Query<(&Player, &GlobalTransform)>,
     base_station_query: Query<(&SpaceStation, &GlobalTransform)>,
     mut asteroid_spawner: ResMut<AsteroidSpawner>,
@@ -70,11 +70,12 @@ pub fn spawn_asteroids_aimed_at_ship(
         let asteroid_transform = Transform::from_translation(random_spawn_position.extend(0.0));
         let asteroid_linear_velocity = LinearVelocity(direction_to_player.as_dvec2());
 
-        spawn_asteroid_events.send(SpawnAsteroidEvent(
+        commands.trigger(SpawnAsteroidEvent(
             asteroid,
             asteroid_transform,
             asteroid_linear_velocity,
         ));
+
     }
 }
 
@@ -205,57 +206,56 @@ pub fn display_inventory_full_context_clue(
 }
 
 pub fn ablate_asteroids_events(
+    trigger: Trigger<AblateEvent>,
     mut commands: Commands,
     mut asteroids_query: Query<
         (Entity, &mut Asteroid, &mut Health, &GlobalTransform),
         With<Asteroid>,
     >,
-    mut ablate_event_reader: EventReader<AblateEvent>,
-    mut spawn_asteroid_events: EventWriter<SpawnAsteroidEvent>,
     mut damage_indicator_events: EventWriter<DamageIndicatorEvent>,
 ) {
-    for ablate_event in ablate_event_reader.read() {
-        let mut rng = rand::thread_rng();
-        // let split_angle = rng.gen_range(0.0..PI / 4.0); TODO: Might keep splititng asteroids
+    let ablate_event = trigger.event();
+    let mut rng = rand::thread_rng();
+    // let split_angle = rng.gen_range(0.0..PI / 4.0); TODO: Might keep splititng asteroids
 
-        if let Ok((ent, asteroid_to_ablate, mut asteroid_health, _g_trans)) =
-            asteroids_query.get_mut(ablate_event.0)
-        {
-            let damaged_health = asteroid_health.current() - LASER_DAMAGE;
-            asteroid_health.set_current(damaged_health);
+    if let Ok((ent, asteroid_to_ablate, mut asteroid_health, _g_trans)) =
+        asteroids_query.get_mut(ablate_event.0)
+    {
+        let damaged_health = asteroid_health.current() - LASER_DAMAGE;
+        asteroid_health.set_current(damaged_health);
 
-            if damaged_health < 0.0 {
-                commands.entity(ent).despawn_recursive();
-            }
-
-            let n: u8 = rng.gen();
-            if n > 25 {
-                return;
-            }
-
-            // Send Damage Indicator Event
-            let translation = Transform {
-                translation: (ablate_event.1 + ablate_event.2.normalize() * 100.0).extend(999.0),
-                ..default()
-            };
-
-            damage_indicator_events.send(DamageIndicatorEvent {
-                damage: 1.0,
-                traslation: translation,
-            });
-
-            // TODO: The new comp distance shouldn't be constant it should update based on player distance from base
-            let asteroid = Asteroid::new_with(
-                AsteroidSize::OreChunk.radius(),
-                AsteroidComposition::new_with_distance(100.0),
-            );
-
-            spawn_asteroid_events.send(SpawnAsteroidEvent(
-                asteroid.clone(),
-                Transform::from_translation(ablate_event.1.extend(0.0)),
-                LinearVelocity(ablate_event.2.as_dvec2()),
-            ));
+        if damaged_health < 0.0 {
+            commands.entity(ent).despawn_recursive();
         }
+
+        let n: u8 = rng.gen();
+        if n > 25 {
+            return;
+        }
+
+        // Send Damage Indicator Event
+        let translation = Transform {
+            translation: (ablate_event.1 + ablate_event.2.normalize() * 100.0).extend(999.0),
+            ..default()
+        };
+
+        damage_indicator_events.send(DamageIndicatorEvent {
+            damage: 1.0,
+            traslation: translation,
+        });
+
+        // TODO: The new comp distance shouldn't be constant it should update based on player distance from base
+        let asteroid = Asteroid::new_with(
+            AsteroidSize::OreChunk.radius(),
+            AsteroidComposition::new_with_distance(100.0),
+        );
+
+        commands.trigger(SpawnAsteroidEvent(
+            asteroid.clone(),
+            Transform::from_translation(ablate_event.1.extend(0.0)),
+            LinearVelocity(ablate_event.2.as_dvec2()),
+        ));
+
     }
 }
 
@@ -304,56 +304,59 @@ pub fn split_asteroid_events(
     }
 }
 
-pub fn spawn_asteroid_events(
+pub fn handle_spawn_asteroid_events(
+    trigger: Trigger<SpawnAsteroidEvent>,
     mut commands: Commands,
-    mut spawn_asteroid_events: EventReader<SpawnAsteroidEvent>,
     spatial: SpatialQuery,
     query: Query<(&Collider, &Transform)>,
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    for evt in spawn_asteroid_events.read() {
-        let asteroid = evt.0.clone();
-        let target_transform = evt.1;
-        let linear_velocity = evt.2;
-        let collider = Collider::convex_hull(
-            asteroid
-                .polygon()
-                .vertices
-                .iter()
-                .map(|point| Vector {
-                    x: point.x as f64,
-                    y: point.y as f64,
-                })
-                .collect(),
-        )
-        .unwrap();
-        let health_pool = collider.mass_properties(1.0).mass; // Set Healthpool to mass?
 
-        let mut rng = rand::thread_rng();
-        let splittable = Splittable(rng.gen_range(0.4..0.8));
+    let evt = trigger.event();
 
-        if let Some(transform) =
-            find_free_space(&spatial, &query, target_transform, &collider, 0.1, 10)
-        {
-            let asteroid_ent = commands
-                .spawn(asteroid.clone())
-                .insert((
-                    RigidBody::Dynamic,
-                    collider,
-                    linear_velocity,
-                    splittable,
-                    Name::new("Asteroid"),
-                    // Mesh2d(meshes.add(BoxedPolyline2d::new(asteroid.polygon().vertices)).into()),
-                    // MeshMaterial2d(materials.add(ColorMaterial::from_color(DARK_GRAY))),
-                    transform,
-                    Health::with_maximum(Asteroid::polygon_area(
-                        asteroid.polygon().vertices.iter().as_slice(),
-                    )),
-                ))
-                .id();
-        }
+    // for evt in spawn_asteroid_events.read() {
+    let asteroid = evt.0.clone();
+    let target_transform = evt.1;
+    let linear_velocity = evt.2;
+    let collider = Collider::convex_hull(
+        asteroid
+            .polygon()
+            .vertices
+            .iter()
+            .map(|point| Vector {
+                x: point.x as f64,
+                y: point.y as f64,
+            })
+            .collect(),
+    )
+    .unwrap();
+    let health_pool = collider.mass_properties(1.0).mass; // Set Healthpool to mass?
+
+    let mut rng = rand::thread_rng();
+    let splittable = Splittable(rng.gen_range(0.4..0.8));
+
+    if let Some(transform) =
+        find_free_space(&spatial, &query, target_transform, &collider, 0.1, 10)
+    {
+        let asteroid_ent = commands
+            .spawn(asteroid.clone())
+            .insert((
+                RigidBody::Dynamic,
+                collider,
+                linear_velocity,
+                splittable,
+                Name::new("Asteroid"),
+                // Mesh2d(meshes.add(BoxedPolyline2d::new(asteroid.polygon().vertices)).into()),
+                // MeshMaterial2d(materials.add(ColorMaterial::from_color(DARK_GRAY))),
+                transform,
+                Health::with_maximum(Asteroid::polygon_area(
+                    asteroid.polygon().vertices.iter().as_slice(),
+                )),
+            ))
+            .id();
     }
+    // }
 }
 
 fn find_free_space(

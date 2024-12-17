@@ -25,7 +25,6 @@ pub fn handle_set_thrust_power_events(
 
 pub fn handle_thrust_events(
     trigger: Trigger<RCSThrustVectorEvent>,
-    // mut thrust_vector_events: EventReader<RCSThrustVectorEvent>,
     mut entity_query: Query<
         (&RCSBooster, &Transform, &mut ExternalForce),
         (With<RCSBooster>, Without<PlayerShipTrailParticles>),
@@ -41,7 +40,7 @@ pub fn handle_thrust_events(
 ) {
 
         let evt = trigger.event();
-        info!("THRUST VECTOR EVENT: {:?}", evt.thrust_vector);
+        // info!("THRUST VECTOR EVENT: {:?}", evt.thrust_vector);
     // for evt in thrust_vector_events.read() {
         // dbg!("EVENT: {} {}", evt.entity, evt.thrust_vector);
         if let Ok((booster, transform, mut external_force)) = entity_query.get_mut(evt.entity) {

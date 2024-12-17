@@ -26,7 +26,7 @@ pub fn setup_laser(mut commands: Commands, mut laser_query: Query<&mut Laser>) {
 }
 
 pub fn fire_laser_raycasting(
-    commands: Commands,
+    mut commands: Commands,
     mut laser_event_reader: EventReader<LaserEvent>,
     mut ablate_event_writer: EventWriter<AblateEvent>,
     player_q: Query<Entity, With<Player>>,
@@ -72,11 +72,12 @@ pub fn fire_laser_raycasting(
 
                 gizmos.line_2d(ray_pos, hit_point.as_vec2(), Color::from(RED));
 
-                ablate_event_writer.send(AblateEvent(
+                commands.trigger(AblateEvent(
                     hit_ent,
                     hit_point.as_vec2(),
                     hit_normal.as_vec2(),
                 ));
+                
                 damage_events.send(DamageEvent {
                     entity: hit_ent,
                     damage: 5.0,

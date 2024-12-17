@@ -22,16 +22,20 @@ impl Plugin for AsteroidPlugin {
             Update,
             (
                 spawn_asteroids_aimed_at_ship,
-                spawn_asteroid_events,
+                // spawn_asteroid_events,
                 despawn_far_asteroids,
                 handle_asteroid_collision_event,
-                ablate_asteroids_events,
+                // ablate_asteroids_events,
                 split_asteroids_over_split_ratio,
                 split_asteroid_events,
                 display_inventory_full_context_clue,
                 update_collectible_material_color,
                 handle_collectible_collision_event,
             ),
-        );
+        )
+        .add_observer(handle_spawn_asteroid_events)
+        .add_observer(ablate_asteroids_events);
+
+        
     }
 }
