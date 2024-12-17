@@ -125,13 +125,13 @@ pub fn player_camera_control(
 // Mark InventoryItems with Deposit Component on Event
 // Use this system to deposit marked inventory items in Base Station
 pub fn player_deposit_control(
+    mut commands: Commands,
     kb: Res<ButtonInput<KeyCode>>,
     can_deposit: Res<CanDeposit>,
-    mut deposit_events: EventWriter<DepositInventoryEvent>,
 ) {
     // If player pressed space and they're in depositing range
     if kb.just_pressed(KeyCode::Space) && can_deposit.0 {
-        deposit_events.send(DepositInventoryEvent);
+        commands.trigger(DepositInventoryEvent);
     }
 }
 
