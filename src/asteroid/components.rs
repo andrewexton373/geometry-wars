@@ -1,5 +1,7 @@
-use bevy::prelude::*;
+use bevy::asset::RenderAssetUsages;
+use bevy::render::mesh::Indices;
 use bevy::utils::HashMap;
+use bevy::{prelude::*, render::mesh::PrimitiveTopology};
 use rand::{distributions::Distribution, seq::SliceRandom};
 use rand_distr::Normal;
 use std::{cmp::Ordering, fmt};
@@ -54,6 +56,36 @@ impl Asteroid {
 
     pub fn polygon(&self) -> BoxedPolygon {
         self.polygon.clone()
+    }
+
+    pub fn generate_mesh(&self) -> Mesh {
+        let verticies: Vec<Vec3> = self
+            .polygon()
+            .vertices
+            .to_vec()
+            .iter()
+            .map(|v| v.extend(0.0))
+            .collect();
+        let indicies = Self::create_triangles_for_mesh(&self.polygon().vertices);
+
+        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::all());
+        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, verticies);
+        mesh.insert_indices(Indices::U32(indicies));
+
+        mesh
+    }
+
+    fn create_triangles_for_mesh(verticies: &[Vec2]) -> Vec<u32> {
+        let mut indicies = vec![];
+        let n = verticies.len();
+
+        for i in 1..n - 1 {
+            indicies.push(0);
+            indicies.push(i as u32);
+            indicies.push((i + 1) as u32);
+        }
+
+        indicies
     }
 
     fn generate_shape_from_size(radius: f32) -> BoxedPolygon {

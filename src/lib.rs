@@ -28,10 +28,7 @@ use avian2d::{
     prelude::{Gravity, PhysicsDebugPlugin},
     PhysicsPlugins,
 };
-use bevy::{
-    diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
-    prelude::*,
-};
+use bevy::prelude::*;
 use bevy_hanabi::HanabiPlugin;
 
 use ai::plugin::AiPlugin;
@@ -58,12 +55,7 @@ use refinery::RefineryPlugin;
 use space_station::plugin::SpaceStationPlugin;
 use upgrades::plugin::UpgradesPlugin;
 
-// Defines the amount of time that should elapse between each physics step.
-// const TIME_STEP: f32 = 1.0 / 60.0;
-
 pub const PIXELS_PER_METER: f64 = 10.0;
-
-// const BACKGROUND_COLOR: Color = Color::rgb(0.0, 0.0, 0.0);
 
 pub const RESOLUTION: f32 = 16.0 / 9.0;
 pub const HEIGHT: f32 = 800.0;
@@ -91,7 +83,6 @@ impl Plugin for GamePlugin {
                     ..default()
                 })
                 .set(ImagePlugin::default_nearest()),
-            // ParticleSystemPlugin,
             HanabiPlugin,
             PhysicsPlugins::default(),
             PhysicsDebugPlugin::default(),
@@ -122,13 +113,5 @@ impl Plugin for GamePlugin {
         ))
         .insert_resource(Gravity::ZERO)
         .init_state::<AppState>();
-    }
-}
-
-fn screen_print_debug_text(diagnostics: Res<DiagnosticsStore>) {
-    if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
-        if let Some(average) = fps.average() {
-            // screen_print!(col: bevy_render::color::Color::WHITE, "fps: {average}");
-        }
     }
 }

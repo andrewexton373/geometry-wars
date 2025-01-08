@@ -6,7 +6,9 @@ use crate::{
     ui::damage_indicator::events::DamageIndicatorEvent,
 };
 use bevy::{
-    color::palettes::css::{GOLD, GRAY, LIMEGREEN, SILVER}, ecs::entity, prelude::*
+    color::palettes::css::{DARK_GRAY, GOLD, GRAY, LIMEGREEN, RED, SILVER},
+    ecs::entity,
+    prelude::*,
 };
 // use bevy_particle_systems::Playing;
 use avian2d::{
@@ -37,6 +39,7 @@ pub fn spawn_asteroids_aimed_at_ship(
     player_query: Query<(&Player, &GlobalTransform)>,
     base_station_query: Query<(&SpaceStation, &GlobalTransform)>,
     mut asteroid_spawner: ResMut<AsteroidSpawner>,
+    mut spawn_events: EventWriter<SpawnAsteroidEvent>,
     time: Res<Time>,
 ) {
     const SPAWN_DISTANCE: f32 = 350.0;
@@ -69,12 +72,16 @@ pub fn spawn_asteroids_aimed_at_ship(
         let asteroid_transform = Transform::from_translation(random_spawn_position.extend(0.0));
         let asteroid_linear_velocity = LinearVelocity(direction_to_player.as_dvec2());
 
-        commands.trigger(SpawnAsteroidEvent(
+        spawn_events.send(SpawnAsteroidEvent(
             asteroid,
             asteroid_transform,
             asteroid_linear_velocity,
         ));
 
+        //     asteroid,
+        //     asteroid_transform,
+        //     asteroid_linear_velocity,
+        // ));
     }
 }
 
@@ -85,11 +92,9 @@ pub fn tag_small_asteroids_as_collectible(
     mut commands: Commands,
     asteroid_query: Query<(Entity, &Mass), With<Asteroid>>,
 ) {
-
     let asteroid_ent = trigger.entity();
 
     if let Ok((_, mass)) = asteroid_query.get(asteroid_ent) {
-
         if mass.0 <= THRESHOLD_COLLECTIBLE_MASS {
             info!("{:?} THRESHOLD HIT -> COLLECTIBLE", mass.0);
             if let Some(mut ent_commands) = commands.get_entity(asteroid_ent) {
@@ -97,7 +102,6 @@ pub fn tag_small_asteroids_as_collectible(
             }
         }
     }
-
 }
 
 // TODO: Verify this is working... it's definitely not (12/17/2024)
@@ -113,7 +117,6 @@ pub fn update_collectible_material_color(
     info!("{:?}", asteroid_query.iter().count());
 
     if let Ok((ent, asteroid)) = asteroid_query.get(ent) {
-
         info!("ASTEROID: {:?}", asteroid);
 
         let color = match asteroid.primary_composition() {
@@ -124,16 +127,12 @@ pub fn update_collectible_material_color(
         };
 
         commands.entity(ent).try_insert((
-            MeshMaterial2d(
-                materials.add(ColorMaterial::from_color(color)),
-            ),
-            DebugRender::default().with_collider_color(Color::from(LIMEGREEN))    
+            MeshMaterial2d(materials.add(ColorMaterial::from_color(color))),
+            DebugRender::default().with_collider_color(Color::from(LIMEGREEN)),
         ));
-        
     } else {
         info!("ASTROID NOT IN QUERY!");
     }
-
 }
 
 pub fn despawn_far_asteroids(
@@ -180,18 +179,12 @@ pub fn handle_collectible_collision_event(
 }
 
 pub fn handle_asteroid_collision_event(
-    commands: Commands,
     collisions: Res<Collisions>,
     mut asteroid_query: Query<(Entity, &Asteroid, &Mass), Without<Collectible>>,
     mut player_query: Query<(Entity, &mut Player), With<Player>>,
-    // mut player_damage_particle_query: Query<(Entity, &ShipDamageParticleSystem, &mut Transform)>,
     mut damage_events: EventWriter<DamageEvent>,
 ) {
     let (player_ent, player) = player_query.single_mut();
-
-    // let (damage_particles_ent, _, mut damage_particles_t) =
-    //     player_damage_particle_query.single_mut();
-    // commands.entity(damage_particles_ent).remove::<Playing>();
 
     for (asteroid_entity, asteroid, mass) in asteroid_query.iter_mut() {
         if let Some(collision) = collisions.get(player_ent, asteroid_entity) {
@@ -201,10 +194,6 @@ pub fn handle_asteroid_collision_event(
                 entity: player_ent,
                 damage: damage as f32,
             });
-
-            // damage_particles_t.translation =
-            //     (collision.manifolds[0].contacts[0].point1.as_vec2() * crate::PIXELS_PER_METER as f32).extend(999.0);
-            // commands.entity(damage_particles_ent).insert(Playing);
         }
     }
 }
@@ -277,7 +266,6 @@ pub fn ablate_asteroids_events(
             Transform::from_translation(ablate_event.1.extend(0.0)),
             LinearVelocity(ablate_event.2.as_dvec2()),
         ));
-
     }
 }
 
@@ -325,41 +313,39 @@ pub fn split_asteroid_events(
 }
 
 pub fn handle_spawn_asteroid_events(
-    trigger: Trigger<SpawnAsteroidEvent>,
+    mut spawn_events: EventReader<SpawnAsteroidEvent>,
+    // trigger: Trigger<SpawnAsteroidEvent>,
     mut commands: Commands,
     spatial: SpatialQuery,
     query: Query<(&Collider, &Transform)>,
-    meshes: ResMut<Assets<Mesh>>,
-    materials: ResMut<Assets<ColorMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
+    for evt in spawn_events.read() {
+        let asteroid = evt.0.clone();
+        let target_transform = evt.1;
+        let linear_velocity = evt.2;
+        let collider = Collider::convex_hull(
+            asteroid
+                .polygon()
+                .vertices
+                .iter()
+                .map(|point| Vector {
+                    x: point.x as f64,
+                    y: point.y as f64,
+                })
+                .collect(),
+        )
+        .unwrap();
+        let health_pool = collider.mass_properties(1.0).mass; // Set Healthpool to mass?
 
-    let evt = trigger.event();
+        let mut rng = rand::thread_rng();
+        let splittable = Splittable(rng.gen_range(0.4..0.8));
 
-    let asteroid = evt.0.clone();
-    let target_transform = evt.1;
-    let linear_velocity = evt.2;
-    let collider = Collider::convex_hull(
-        asteroid
-            .polygon()
-            .vertices
-            .iter()
-            .map(|point| Vector {
-                x: point.x as f64,
-                y: point.y as f64,
-            })
-            .collect(),
-    )
-    .unwrap();
-    let health_pool = collider.mass_properties(1.0).mass; // Set Healthpool to mass?
-
-    let mut rng = rand::thread_rng();
-    let splittable = Splittable(rng.gen_range(0.4..0.8));
-
-    if let Some(transform) =
-        find_free_space(&spatial, &query, target_transform, &collider, 0.1, 10)
-    {
-        commands
-            .spawn((
+        if let Some(transform) =
+            find_free_space(&spatial, &query, target_transform, &collider, 0.1, 10)
+        {
+            commands.spawn((
                 asteroid.clone(),
                 RigidBody::Dynamic,
                 collider,
@@ -369,14 +355,14 @@ pub fn handle_spawn_asteroid_events(
                 linear_velocity,
                 splittable,
                 Name::new("Asteroid"),
-                // Mesh2d(meshes.add(BoxedPolyline2d::new(asteroid.polygon().vertices)).into()),
-                // MeshMaterial2d(materials.add(ColorMaterial::from_color(DARK_GRAY))),
+                Mesh2d(meshes.add(asteroid.generate_mesh())),
+                MeshMaterial2d(materials.add(ColorMaterial::from_color(DARK_GRAY))),
                 transform,
                 Health::with_maximum(Asteroid::polygon_area(
                     asteroid.polygon().vertices.iter().as_slice(),
                 )),
             ));
-
+        }
     }
 }
 
