@@ -78,11 +78,6 @@ pub fn spawn_asteroids_aimed_at_ship(
             asteroid_transform,
             asteroid_linear_velocity,
         ));
-
-        //     asteroid,
-        //     asteroid_transform,
-        //     asteroid_linear_velocity,
-        // ));
     }
 }
 
@@ -230,9 +225,7 @@ pub fn ablate_asteroids_events(
     mut damage_indicator_events: EventWriter<DamageIndicatorEvent>,
 ) {
     for ablate_event in events.read() {
-        // let ablate_event = trigger.event();
         let mut rng = rand::thread_rng();
-        // let split_angle = rng.gen_range(0.0..PI / 4.0); TODO: Might keep splititng asteroids
 
         if let Ok((ent, asteroid_to_ablate, mut asteroid_health, _g_trans)) =
             asteroids_query.get_mut(ablate_event.entity)
@@ -277,7 +270,7 @@ pub fn ablate_asteroids_events(
             let rotated_y = rotation_matrix.y_axis.dot(ablate_event.normal);
             let jitter_normal = DVec2::new(rotated_x as f64, rotated_y as f64);
 
-            let jitter_velocity = rng.gen_range(400.0..800.0);
+            let jitter_velocity = rng.gen_range(200.0..400.0);
 
             commands.send_event(SpawnAsteroidEvent(
                 asteroid.clone(),

@@ -38,6 +38,7 @@ use background::plugin::BackgroundPlugin;
 
 // use bevy_particle_systems::ParticleSystemPlugin;
 use camera::plugin::GameCameraPlugin;
+use collectible::plugin::CollectiblesPlugin;
 use factory::FactoryPlugin;
 use inventory::plugin::InventoryPlugin;
 use particles::plugin::ParticlePlugin;
@@ -53,6 +54,7 @@ use asteroid::plugin::AsteroidPlugin;
 use battery::plugin::BatteryPlugin;
 use health::plugin::HealthPlugin;
 use hexgrid::plugin::HexBasePlugin;
+use iyes_perf_ui::prelude::*;
 use refinery::RefineryPlugin;
 use space_station::plugin::SpaceStationPlugin;
 use upgrades::plugin::UpgradesPlugin;
@@ -95,6 +97,7 @@ impl Plugin for GamePlugin {
             HanabiPlugin,
             PhysicsPlugins::default(),
             PhysicsDebugPlugin::default(),
+            PerfUiPlugin,
         ))
         .add_plugins((
             HexBasePlugin,
@@ -116,11 +119,20 @@ impl Plugin for GamePlugin {
         .add_plugins((
             HealthPlugin,
             BatteryPlugin,
+            CollectiblesPlugin,
             AiPlugin,
             ProjectilePlugin,
             BackgroundPlugin,
         ))
+        .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
+        .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin)
+        .add_plugins(bevy::diagnostic::SystemInformationDiagnosticsPlugin)
+        .add_systems(Startup, setup)
         .insert_resource(Gravity::ZERO)
         .init_state::<AppState>();
     }
+}
+
+fn setup(mut commands: Commands) {
+    commands.spawn(PerfUiAllEntries::default());
 }

@@ -73,7 +73,8 @@ pub fn fire_laser_raycasting(
                 commands.send_event(AblateEvent {
                     entity: hit_ent,
                     position: hit_point.as_vec2(),
-                    normal: hit_normal.as_vec2(),
+                    // normal: hit_normal.as_vec2(),
+                    normal: -ray_dir,
                 });
 
                 damage_events.send(DamageEvent {

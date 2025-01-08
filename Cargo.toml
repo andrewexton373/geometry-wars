@@ -9,7 +9,12 @@ num = "0.4.3"
 bevy = { version = "0.15", features = ["bevy_sprite", "wayland"] }
 bevy_egui = "0.31.1"
 #egui_dnd = "0.7.0"
-avian2d = { git = "https://github.com/Jondolf/avian.git", branch = "main", default-features = false, features = ["2d", "f64", "parry-f64", "debug-plugin"] }
+avian2d = { git = "https://github.com/Jondolf/avian.git", branch = "main", default-features = false, features = [
+  "2d",
+  "f64",
+  "parry-f64",
+  "debug-plugin",
+] }
 #bevy_prototype_lyon = { git="https://github.com/Nilirad/bevy_prototype_lyon.git", branch="master"}
 #bevy_particle_systems = { version = "0.13.0" }
 bevy_hanabi = { version = "0.14", default-features = false, features = ["2d"] }
@@ -19,6 +24,7 @@ strum_macros = "0.26.4"
 rand = "0.8.5"
 rand_distr = "0.4.3"
 # bevy-debug-text-overlay = "8.1"
+iyes_perf_ui = { git = "https://github.com/IyesGames/iyes_perf_ui.git", branch = "main" }
 geo = "0.29.3"
 bevy-inspector-egui = "0.28.0"
 bevy-trait-query = "0.7"
