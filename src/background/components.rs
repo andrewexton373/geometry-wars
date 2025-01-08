@@ -7,7 +7,6 @@ pub struct StarfieldBackground;
 pub struct Sector {
     pub i: i32,
     pub j: i32,
-    pub sector_size: f32,
 }
 
 #[derive(Component, Debug, Copy, Clone)]

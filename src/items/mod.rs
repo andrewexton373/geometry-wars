@@ -8,9 +8,9 @@ use ordered_float::OrderedFloat;
 #[derive(Default, Debug, Clone, Copy, PartialEq, Hash)]
 pub enum MetalIngot {
     #[default]
-    IronIngot,
-    SilverIngot,
-    GoldIngot,
+    Iron,
+    Silver,
+    Gold,
 }
 
 #[derive(Default, Clone, PartialEq, PartialOrd, Hash)]

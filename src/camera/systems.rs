@@ -1,18 +1,18 @@
 use bevy::{
-    color::{palettes::css::BLACK, Color}, core::Name, core_pipeline::core_2d::Camera2dBundle, ecs::{
+    core::Name,
+    ecs::{
         query::{With, Without},
         system::{Commands, Query},
-    }, prelude::Camera2d, render::camera::{Camera, CameraOutputMode, ClearColorConfig}, transform::components::Transform, utils::default
+    },
+    prelude::Camera2d,
+    render::camera::Camera,
+    transform::components::Transform,
 };
 
 use super::components::{CameraTarget, GameCamera};
 
 pub fn setup_camera(mut commands: Commands) {
-    commands.spawn((
-        Name::new("GameCamera"),
-        GameCamera,
-        Camera2d,
-    ));
+    commands.spawn((Name::new("GameCamera"), GameCamera, Camera2d));
 }
 
 pub fn camera_follows_target(

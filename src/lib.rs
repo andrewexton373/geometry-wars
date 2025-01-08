@@ -24,8 +24,6 @@ pub(crate) mod space_station;
 pub(crate) mod ui;
 pub(crate) mod upgrades;
 
-use std::default;
-
 use avian2d::{
     prelude::{Gravity, PhysicsDebugPlugin, PhysicsLayer},
     PhysicsPlugins,
@@ -36,27 +34,25 @@ use bevy_hanabi::HanabiPlugin;
 use ai::plugin::AiPlugin;
 use background::plugin::BackgroundPlugin;
 
-// use bevy_particle_systems::ParticleSystemPlugin;
+use crate::crosshair::plugin::CrosshairPlugin;
+use crate::laser::plugin::LaserPlugin;
+use asteroid::plugin::AsteroidPlugin;
+use battery::plugin::BatteryPlugin;
 use camera::plugin::GameCameraPlugin;
 use collectible::plugin::CollectiblesPlugin;
 use factory::FactoryPlugin;
+use health::plugin::HealthPlugin;
+use hexgrid::plugin::HexBasePlugin;
 use inventory::plugin::InventoryPlugin;
+use iyes_perf_ui::prelude::*;
 use particles::plugin::ParticlePlugin;
 use player::plugin::PlayerPlugin;
 use player_input::plugin::PlayerInputPlugin;
 use projectile::plugin::ProjectilePlugin;
 use rcs::plugin::RCSPlugin;
-use ui::plugin::GameUIPlugin;
-// use projectile::ProjectilePlugin;
-use crate::crosshair::plugin::CrosshairPlugin;
-use crate::laser::plugin::LaserPlugin;
-use asteroid::plugin::AsteroidPlugin;
-use battery::plugin::BatteryPlugin;
-use health::plugin::HealthPlugin;
-use hexgrid::plugin::HexBasePlugin;
-use iyes_perf_ui::prelude::*;
 use refinery::RefineryPlugin;
 use space_station::plugin::SpaceStationPlugin;
+use ui::plugin::GameUIPlugin;
 use upgrades::plugin::UpgradesPlugin;
 
 pub const PIXELS_PER_METER: f64 = 10.0;

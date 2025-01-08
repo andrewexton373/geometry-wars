@@ -1,10 +1,11 @@
 use bevy::input::mouse::MouseWheel;
+use bevy::math::DVec2;
 use bevy::prelude::*;
 use bevy::window::{CursorGrabMode, PrimaryWindow};
 
 use crate::camera::components::{CameraTarget, GameCamera};
 use crate::player::components::Player;
-use crate::rcs::events::RCSThrustPowerEvent;
+use crate::rcs::events::{RCSThrustPowerEvent, RCSThrustVectorEvent};
 use crate::space_station::resources::CanDeposit;
 use crate::ui::mouse_hover_context::resources::MouseHoverContext;
 
@@ -121,6 +122,39 @@ pub fn player_camera_control(
     }
 }
 
+pub fn player_movement_input_handling(
+    mut commands: Commands,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut player_query: Query<Entity, With<Player>>,
+) {
+    let entity = player_query.single_mut();
+
+    let mut thrust_vector: Vec2 = Vec2::ZERO;
+
+    if keyboard_input.pressed(KeyCode::ArrowLeft) || keyboard_input.pressed(KeyCode::KeyA) {
+        thrust_vector += -Vec2::X;
+    }
+
+    if keyboard_input.pressed(KeyCode::ArrowRight) || keyboard_input.pressed(KeyCode::KeyD) {
+        thrust_vector += Vec2::X;
+    }
+
+    if keyboard_input.pressed(KeyCode::ArrowUp) || keyboard_input.pressed(KeyCode::KeyW) {
+        thrust_vector += Vec2::Y;
+    }
+
+    if keyboard_input.pressed(KeyCode::ArrowDown) || keyboard_input.pressed(KeyCode::KeyS) {
+        thrust_vector += -Vec2::Y;
+    }
+
+    if thrust_vector != Vec2::ZERO {
+        commands.send_event(RCSThrustVectorEvent {
+            entity,
+            thrust_vector,
+        });
+    }
+}
+
 // TODO: Idea?
 // Mark InventoryItems with Deposit Component on Event
 // Use this system to deposit marked inventory items in Base Station
@@ -131,7 +165,7 @@ pub fn player_deposit_control(
 ) {
     // If player pressed space and they're in depositing range
     if kb.just_pressed(KeyCode::Space) && can_deposit.0 {
-        commands.trigger(DepositInventoryEvent);
+        commands.send_event(DepositInventoryEvent);
     }
 }
 

@@ -44,7 +44,7 @@ pub fn ui_ship_information(
                     );
                     ui.label(format!("Speed: {:.2}", velocity.0.length()));
 
-                    let direction_radians = velocity.0.angle_between(hexx::Vec2::X.as_dvec2());
+                    let direction_radians = velocity.0.angle_to(bevy::math::Vec2::X.as_dvec2());
 
                     // TODO: procedure to convert direction_radians to cardinal directions (nice to have)
                     ui.label(format!("Direction: {:.2}", direction_radians));

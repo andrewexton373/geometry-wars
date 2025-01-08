@@ -7,8 +7,7 @@ use crate::{
     GameLayer,
 };
 use bevy::{
-    color::palettes::css::{DARK_GRAY, GOLD, GRAY, LIMEGREEN, RED, SILVER},
-    ecs::entity,
+    color::palettes::css::{DARK_GRAY, GOLD, GRAY, LIMEGREEN, SILVER},
     math::DVec2,
     prelude::*,
 };
@@ -179,13 +178,13 @@ pub fn handle_collectible_collision_event(
 
 pub fn handle_asteroid_collision_event(
     collisions: Res<Collisions>,
-    mut asteroid_query: Query<(Entity, &Asteroid, &Mass), Without<Collectible>>,
-    mut player_query: Query<(Entity, &mut Player), With<Player>>,
+    mut asteroid_query: Query<Entity, Without<Collectible>>,
+    mut player_query: Query<Entity, With<Player>>,
     mut damage_events: EventWriter<DamageEvent>,
 ) {
-    let (player_ent, player) = player_query.single_mut();
+    let player_ent = player_query.single_mut();
 
-    for (asteroid_entity, asteroid, mass) in asteroid_query.iter_mut() {
+    for asteroid_entity in asteroid_query.iter_mut() {
         if let Some(collision) = collisions.get(player_ent, asteroid_entity) {
             let damage = -collision.manifolds[0].contacts[0].penetration;
 
@@ -218,16 +217,13 @@ pub fn display_inventory_full_context_clue(
 pub fn ablate_asteroids_events(
     mut events: EventReader<AblateEvent>,
     mut commands: Commands,
-    mut asteroids_query: Query<
-        (Entity, &mut Asteroid, &mut Health, &GlobalTransform),
-        With<Asteroid>,
-    >,
+    mut asteroids_query: Query<(Entity, &mut Health, &GlobalTransform), With<Asteroid>>,
     mut damage_indicator_events: EventWriter<DamageIndicatorEvent>,
 ) {
     for ablate_event in events.read() {
         let mut rng = rand::thread_rng();
 
-        if let Ok((ent, asteroid_to_ablate, mut asteroid_health, _g_trans)) =
+        if let Ok((ent, mut asteroid_health, _g_trans)) =
             asteroids_query.get_mut(ablate_event.entity)
         {
             let damaged_health = asteroid_health.current() - LASER_DAMAGE;
@@ -282,10 +278,10 @@ pub fn ablate_asteroids_events(
 }
 
 pub fn split_asteroids_over_split_ratio(
-    mut asteroid_query: Query<(Entity, &mut Asteroid, &Health, &Splittable)>,
+    mut asteroid_query: Query<(Entity, &Health, &Splittable), With<Asteroid>>,
     mut split_astroid_events: EventWriter<SplitAsteroidEvent>,
 ) {
-    for (ent, asteroid, asteroid_health, split) in asteroid_query.iter_mut() {
+    for (ent, asteroid_health, split) in asteroid_query.iter_mut() {
         if asteroid_health.current_percent() < split.0 {
             split_astroid_events.send(SplitAsteroidEvent(ent));
         }
@@ -313,7 +309,7 @@ pub fn split_asteroid_events(
         if let Ok((asteroid, transform, linear_velocity)) = asteroid_q.get_mut(asteroid_ent) {
             let speed_scale = 1000.0;
 
-            let right_velocity = random_normalized_vec2() * speed_scale;
+            let right_velocity = linear_velocity.0 + random_normalized_vec2() * speed_scale;
             let left_velocity = -random_normalized_vec2();
 
             let half_radius = asteroid.radius / 2.0;

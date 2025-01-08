@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use bevy::prelude::Component;
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, FromRepr};
@@ -80,27 +82,26 @@ pub enum UpgradeType {
     ShipCargoBay(UpgradeLevel),
 }
 
-impl ToString for UpgradeType {
-    fn to_string(&self) -> String {
-        match self {
-            UpgradeType::Health(_) => "Health",
-            UpgradeType::ShipCargoBay(_) => "Ship Cargo Bay",
-            UpgradeType::None => "NONE UPGRADE.",
-        }
-        .to_string()
+impl Display for UpgradeType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                UpgradeType::Health(_) => "Health",
+                UpgradeType::ShipCargoBay(_) => "Ship Cargo Bay",
+                UpgradeType::None => "NONE UPGRADE.",
+            }
+        )
     }
 }
 
 impl UpgradeType {
     pub fn requirements(&self) -> Option<UpgradeRequirements> {
-        let requirements;
-
         match self {
-            UpgradeType::None => {
-                return None;
-            }
+            UpgradeType::None => None,
             UpgradeType::Health(level) => {
-                requirements = match level {
+                let requirements = match level {
                     UpgradeLevel::Level0 => vec![],
                     UpgradeLevel::Level1 => vec![
                         InventoryItem::Component(UpgradeComponent::Cog, Amount::Quantity(1)),
@@ -136,10 +137,11 @@ impl UpgradeType {
                         ),
                         InventoryItem::Component(UpgradeComponent::GoldLeaf, Amount::Quantity(3)),
                     ],
-                }
+                };
+                Some(UpgradeRequirements { requirements })
             }
             UpgradeType::ShipCargoBay(level) => {
-                requirements = match level {
+                let requirements = match level {
                     UpgradeLevel::Level0 => vec![],
                     UpgradeLevel::Level1 => vec![
                         InventoryItem::Component(UpgradeComponent::Cog, Amount::Quantity(2)),
@@ -149,11 +151,11 @@ impl UpgradeType {
                     UpgradeLevel::Level3 => todo!(),
                     UpgradeLevel::Level4 => todo!(),
                     UpgradeLevel::MaxLevel => todo!(),
-                }
+                };
+
+                Some(UpgradeRequirements { requirements })
             }
         }
-
-        Some(UpgradeRequirements { requirements })
     }
 
     pub fn next(&self) -> Self {

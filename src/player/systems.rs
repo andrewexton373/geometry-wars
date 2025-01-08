@@ -17,12 +17,9 @@ use crate::player_input::resources::MouseWorldPosition;
 use crate::space_station::components::SpaceStation;
 use crate::ui::context_clue::resources::{ContextClue, ContextClues};
 use crate::upgrades::{components::UpgradesComponent, events::UpgradeEvent};
-use crate::{battery, PIXELS_PER_METER};
+use crate::PIXELS_PER_METER;
 use crate::{
-    battery::{
-        components::Battery,
-        events::{ChargeBatteryEvent, DrainBatteryEvent},
-    },
+    battery::{components::Battery, events::DrainBatteryEvent},
     rcs::{components::RCSBooster, events::RCSThrustVectorEvent},
 };
 
@@ -40,7 +37,6 @@ pub fn spawn_player(
         .insert((
             RigidBody::Dynamic,
             Mass(1.0),
-            // Inertia(1.0),
             AngularDamping(0.99),
             ExternalForce::ZERO,
             AngularVelocity::ZERO,
@@ -77,72 +73,9 @@ pub fn spawn_player(
     );
 }
 
-pub fn trickle_charge(
-    mut commands: Commands,
-    battery_q: Query<(Entity, &Battery), With<Player>>,
-) {
-    if let Ok((entity, battery)) = battery_q.get_single() {
-        commands.trigger(ChargeBatteryEvent {
-            entity,
-            charge: 0.01,
-        });
-    }
-}
-
-pub fn player_movement(
-    mut commands: Commands,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut player_query: Query<(
-        Entity,
-        &Battery,
-    ), With<Player>>,
-    mut battery_events: EventWriter<DrainBatteryEvent>,
-) {
-    let (entity, battery) = player_query.single_mut();
-
-    let mut thrust: Vec2 = Vec2::ZERO;
-
-    if keyboard_input.pressed(KeyCode::ArrowLeft) || keyboard_input.pressed(KeyCode::KeyA) {
-        thrust += -Vec2::X;
-    }
-
-    if keyboard_input.pressed(KeyCode::ArrowRight) || keyboard_input.pressed(KeyCode::KeyD) {
-        thrust += Vec2::X;
-    }
-
-    if keyboard_input.pressed(KeyCode::ArrowUp) || keyboard_input.pressed(KeyCode::KeyW) {
-        thrust += Vec2::Y;
-    }
-
-    if keyboard_input.pressed(KeyCode::ArrowDown) || keyboard_input.pressed(KeyCode::KeyS) {
-        thrust += -Vec2::Y;
-    }
-
-    // If the players ship has no remaining battery capacity, end early.
-    if battery.current() <= 0.0 {
-        return;
-    };
-
-    const ACCELERATION: f64 = 1000.0 * PIXELS_PER_METER;
-
-    let force = thrust.normalize_or_zero().as_dvec2() * ACCELERATION;
-
-    if force == DVec2::ZERO {
-        return;
-    }
-
-    commands.trigger(RCSThrustVectorEvent {
-        entity,
-        thrust_vector: force.as_vec2(),
-    });
-
-}
-
 pub fn ship_rotate_towards_mouse(
     mouse_position: Res<MouseWorldPosition>,
-    mut player_query: Query<
-        (&mut Player, &mut Transform, &mut AngularVelocity),
-    >,
+    mut player_query: Query<(&mut Player, &mut Transform, &mut AngularVelocity)>,
 ) {
     let cursor_pos = mouse_position.0;
     let (_player, player_trans, mut ang_velocity) = player_query.single_mut();
@@ -171,18 +104,11 @@ pub fn ship_rotate_towards_mouse(
 
 pub fn player_fire_laser(
     keyboard_input: Res<ButtonInput<MouseButton>>,
-    mut player_query: Query<(
-        Entity,
-        &mut Player,
-        &Battery,
-        &mut Transform,
-        &GlobalTransform,
-    )>,
+    mut player: Query<(Entity, &Battery, &mut Transform, &GlobalTransform), With<Player>>,
     mut laser_event_writer: EventWriter<LaserEvent>,
     mut battery_events: EventWriter<DrainBatteryEvent>,
 ) {
-    let (entity, player, battery, player_transform, player_global_trans) =
-        player_query.single_mut();
+    let (entity, battery, player_transform, player_global_trans) = player.single_mut();
     let player_direction = (player_transform.rotation * Vec3::Y).truncate().normalize();
 
     // Update Line and Opacity When Fired
@@ -226,19 +152,6 @@ pub fn update_player_mass(mut player_query: Query<(&Player, &Inventory, &mut Mas
     for (_player, inventory, mut mass) in player_query.iter_mut() {
         let inventory_weight = inventory.gross_material_weight();
         mass.0 = (inventory_weight + PLAYER_MASS).0;
-    }
-}
-
-pub fn ship_battery_is_empty_context_clue(
-    mut context_clues_res: ResMut<ContextClues>,
-    mut battery_q: Query<&Battery, With<Player>>,
-) {
-    if let Ok(battery) = battery_q.get_single_mut() {
-        if battery.is_empty() {
-            context_clues_res.0.insert(ContextClue::ShipFuelEmpty);
-        } else {
-            context_clues_res.0.remove(&ContextClue::ShipFuelEmpty);
-        }
     }
 }
 

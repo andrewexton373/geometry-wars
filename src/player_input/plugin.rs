@@ -6,8 +6,9 @@ use super::resources::{MouseScreenPosition, MouseWorldPosition};
 use super::events::DepositInventoryEvent;
 
 use super::systems::{
-    cancel_player_targeting, player_camera_control, player_deposit_control, player_targeting,
-    scroll_events, update_mouse_screen_position_resource, update_mouse_world_position_resource,
+    cancel_player_targeting, player_camera_control, player_deposit_control,
+    player_movement_input_handling, player_targeting, scroll_events,
+    update_mouse_screen_position_resource, update_mouse_world_position_resource,
 };
 
 pub struct PlayerInputPlugin;
@@ -28,6 +29,7 @@ impl Plugin for PlayerInputPlugin {
                     player_deposit_control,
                     player_targeting,
                     cancel_player_targeting,
+                    player_movement_input_handling,
                 ),
             );
     }

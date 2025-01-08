@@ -70,16 +70,7 @@ pub fn generate_visible_sectors(
                     continue;
                 }
 
-                generate_sector(
-                    commands.borrow_mut(),
-                    layer_entity,
-                    layer,
-                    Sector {
-                        i,
-                        j,
-                        sector_size: SECTOR_SIZE,
-                    },
-                );
+                generate_sector(commands.borrow_mut(), layer_entity, layer, Sector { i, j });
             }
         }
 

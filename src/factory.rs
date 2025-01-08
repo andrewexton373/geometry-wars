@@ -54,10 +54,7 @@ impl ItemProducer for Factory {
     fn new() -> Self {
         let mut recipes = Vec::new();
 
-        let items_required = vec![InventoryItem::Ingot(
-            MetalIngot::IronIngot,
-            Amount::Quantity(2),
-        )];
+        let items_required = vec![InventoryItem::Ingot(MetalIngot::Iron, Amount::Quantity(2))];
 
         let cog_recipe = Recipe {
             items_required,
@@ -65,10 +62,7 @@ impl ItemProducer for Factory {
             time_required: 4.0,
         };
 
-        let items_required = vec![InventoryItem::Ingot(
-            MetalIngot::IronIngot,
-            Amount::Quantity(5),
-        )];
+        let items_required = vec![InventoryItem::Ingot(MetalIngot::Iron, Amount::Quantity(5))];
 
         let iron_plate_recipe = Recipe {
             items_required,
@@ -80,7 +74,7 @@ impl ItemProducer for Factory {
         };
 
         let items_required = vec![InventoryItem::Ingot(
-            MetalIngot::SilverIngot,
+            MetalIngot::Silver,
             Amount::Quantity(1),
         )];
 
@@ -93,10 +87,7 @@ impl ItemProducer for Factory {
             time_required: 8.0,
         };
 
-        let items_required = vec![InventoryItem::Ingot(
-            MetalIngot::GoldIngot,
-            Amount::Quantity(1),
-        )];
+        let items_required = vec![InventoryItem::Ingot(MetalIngot::Gold, Amount::Quantity(1))];
 
         let gold_leaf_recipe = Recipe {
             items_required,
@@ -137,17 +128,16 @@ impl FactoryPlugin {
             // FIXME: this fells messy and error prone.. not even sure its right haha... maybe use the macro from discord
             match material_needed {
                 InventoryItem::Ingot(material_needed, quantity_needed) => {
-                    if let Some(inventory_material) =
-                        inventory.items.iter().find_map(|item| match item {
-                            InventoryItem::Ingot(m, _) if *m == *material_needed => Some(item),
-                            _ => None,
-                        })
-                    {
-                        if inventory_material.amount() < *quantity_needed {
-                            return false;
+                    match inventory.items.iter().find_map(|item| match item {
+                        InventoryItem::Ingot(m, _) if *m == *material_needed => Some(item),
+                        _ => None,
+                    }) {
+                        Some(inventory_material) => {
+                            if inventory_material.amount() < *quantity_needed {
+                                return false;
+                            }
                         }
-                    } else {
-                        return false;
+                        None => return false,
                     }
                 }
                 _ => return false,

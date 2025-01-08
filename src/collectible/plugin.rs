@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_tweening::TweeningPlugin;
 
 use super::systems::gravitate_collectibles_towards_player_ship;
 

@@ -48,10 +48,7 @@ pub fn spawn_enemy(
         .step(MoveTowardsPlayer {
             speed: 10000000000.0,
         })
-        .step(Attack {
-            until: 5.0,
-            per_second: 1.0,
-        });
+        .step(Attack { per_second: 1.0 });
 
     let thinker = Thinker::build()
         .label("Ai Thinker")
@@ -176,7 +173,7 @@ pub fn move_towards_player_action_system(
                     enemies.get_mut(actor.0).expect("actor has no position");
                 trace!("Actor position: {:?}", actor_position);
 
-                let (player_ent, player_position, player_linear_velocity) = player_q.single();
+                let (_, player_position, player_linear_velocity) = player_q.single();
                 let delta =
                     (player_position.translation() - actor_position.translation()).truncate();
                 let distance = delta.length();

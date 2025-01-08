@@ -21,18 +21,12 @@ impl Hostility {
 
 #[derive(Clone, Component, Debug, ActionBuilder)]
 pub struct Attack {
-    pub until: f32,
     pub per_second: f32,
 }
 
 #[derive(Clone, Component, Debug, ActionBuilder)]
 pub struct MoveTowardsPlayer {
     pub speed: f32,
-}
-
-#[derive(Component, Debug, Copy, Clone)]
-pub struct Position {
-    pub position: Vec2,
 }
 
 #[derive(Component)]

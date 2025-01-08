@@ -34,7 +34,7 @@ impl ItemProducer for Refinery {
 
         let iron_recipe = Recipe {
             items_required,
-            item_created: InventoryItem::Ingot(MetalIngot::IronIngot, Amount::Quantity(1)),
+            item_created: InventoryItem::Ingot(MetalIngot::Iron, Amount::Quantity(1)),
             time_required: 2.0,
         };
 
@@ -45,7 +45,7 @@ impl ItemProducer for Refinery {
 
         let silver_recipe = Recipe {
             items_required,
-            item_created: InventoryItem::Ingot(MetalIngot::SilverIngot, Amount::Quantity(1)),
+            item_created: InventoryItem::Ingot(MetalIngot::Silver, Amount::Quantity(1)),
             time_required: 5.0,
         };
 
@@ -56,7 +56,7 @@ impl ItemProducer for Refinery {
 
         let gold_recipe = Recipe {
             items_required,
-            item_created: InventoryItem::Ingot(MetalIngot::GoldIngot, Amount::Quantity(1)),
+            item_created: InventoryItem::Ingot(MetalIngot::Gold, Amount::Quantity(1)),
             time_required: 10.0,
         };
 
