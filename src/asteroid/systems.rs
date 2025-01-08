@@ -152,7 +152,7 @@ pub fn despawn_far_asteroids(
     for (entity, _asteroid, transform) in asteroid_query.iter() {
         let asteroid_position = transform.translation.truncate();
         if player_position.distance(asteroid_position) > DESPAWN_DISTANCE {
-            commands.entity(entity).despawn_recursive();
+            commands.entity(entity).try_despawn_recursive();
         }
     }
 }
@@ -178,7 +178,7 @@ pub fn handle_collectible_collision_event(
             }
 
             // FIXME: will despawn even if there's no room in inventory to collect.
-            commands.entity(asteroid_ent).despawn_recursive();
+            commands.entity(asteroid_ent).try_despawn_recursive();
         }
     }
 }
@@ -242,7 +242,7 @@ pub fn ablate_asteroids_events(
             asteroid_health.set_current(damaged_health);
 
             if damaged_health < 0.0 {
-                commands.entity(ent).despawn_recursive();
+                commands.entity(ent).try_despawn_recursive();
             }
 
             let n: u8 = rng.gen();
@@ -341,7 +341,7 @@ pub fn split_asteroid_events(
                 LinearVelocity(right_velocity),
             ));
 
-            commands.entity(asteroid_ent).despawn_recursive();
+            commands.entity(asteroid_ent).try_despawn_recursive();
         }
     }
 }

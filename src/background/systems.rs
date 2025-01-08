@@ -93,7 +93,7 @@ pub fn generate_visible_sectors(
 
         // Despawn each invalid sector
         for (entity, _) in invalid_sectors {
-            commands.entity(entity).despawn_recursive();
+            commands.entity(entity).try_despawn_recursive();
         }
     }
 }
@@ -115,7 +115,7 @@ fn generate_sector(commands: &mut Commands, layer_entity: Entity, layer: &Layer,
                 sector.j as f32 * SECTOR_SIZE,
                 -10.0,
             ),
-            Visibility::Inherited
+            Visibility::Inherited,
         ))
         .with_children(|parent| {
             // Generate Foreground Stars
