@@ -65,8 +65,11 @@ pub fn spawn_asteroids_aimed_at_ship(
             player_position + (rand_direction * SPAWN_DISTANCE * crate::PIXELS_PER_METER as f32);
         let direction_to_player = (player_position - random_spawn_position).normalize() * 200.0; // maybe?
 
+        let rand_radius = rand::thread_rng().gen_range(20.0..200.0);
+
         let asteroid = Asteroid::new_with(
-            AsteroidSize::Large.radius(),
+            rand_radius,
+            // AsteroidSize::Large.radius(),
             AsteroidComposition::new_with_distance(distance_to_base_station),
         );
         let asteroid_transform = Transform::from_translation(random_spawn_position.extend(0.0));

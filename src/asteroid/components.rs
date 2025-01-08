@@ -3,6 +3,7 @@ use bevy::render::mesh::Indices;
 use bevy::utils::HashMap;
 use bevy::{prelude::*, render::mesh::PrimitiveTopology};
 use rand::{distributions::Distribution, seq::SliceRandom};
+use rand::{thread_rng, Rng};
 use rand_distr::Normal;
 use std::{cmp::Ordering, fmt};
 
@@ -68,8 +69,10 @@ impl Asteroid {
     }
 
     fn generate_shape_from_size(radius: f32) -> BoxedPolygon {
+        let rand_side_count = thread_rng().gen_range(6..20);
+
         BoxedPolygon {
-            vertices: Self::make_valtr_convex_polygon_coords(6, radius).into(),
+            vertices: Self::make_valtr_convex_polygon_coords(rand_side_count, radius).into(),
         }
     }
 

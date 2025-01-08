@@ -1,3 +1,4 @@
+use avian2d::prelude::{LinearVelocity, RigidBody, Sensor};
 use bevy::{
     core::Name,
     ecs::{
@@ -12,16 +13,26 @@ use bevy::{
 use super::components::{CameraTarget, GameCamera};
 
 pub fn setup_camera(mut commands: Commands) {
-    commands.spawn((Name::new("GameCamera"), GameCamera, Camera2d));
+    commands.spawn((
+        Name::new("GameCamera"),
+        GameCamera,
+        RigidBody::Dynamic,
+        Sensor,
+        LinearVelocity::default(),
+        Camera2d,
+    ));
 }
 
 pub fn camera_follows_target(
-    mut camera_query: Query<(&Camera, &mut Transform), With<GameCamera>>,
+    mut camera_query: Query<(&Camera, &mut Transform, &mut LinearVelocity), With<GameCamera>>,
     target_query: Query<&Transform, (With<CameraTarget>, Without<GameCamera>)>,
 ) {
-    let (_camera, mut camera_trans) = camera_query.single_mut();
+    let (_camera, mut camera_trans, mut lin_vel) = camera_query.single_mut();
     for target_t in target_query.iter() {
-        camera_trans.translation.x = target_t.translation.x;
-        camera_trans.translation.y = target_t.translation.y;
+        let vec_to_target = target_t.translation.truncate() - camera_trans.translation.truncate();
+        *lin_vel = LinearVelocity(vec_to_target.as_dvec2() * vec_to_target.length() as f64);
+
+        // camera_trans.translation.x = target_t.translation.x;
+        // camera_trans.translation.y = target_t.translation.y;
     }
 }

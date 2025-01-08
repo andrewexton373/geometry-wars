@@ -17,9 +17,9 @@ pub fn init_starfield(mut commands: Commands) {
 
 pub fn parallax_layers(
     mut layers: Query<(&Layer, &mut Transform)>,
-    player_velocity: Query<&LinearVelocity, With<Player>>,
+    camera_velocity: Query<&LinearVelocity, With<GameCamera>>,
 ) {
-    let velocity = player_velocity.single();
+    let velocity = camera_velocity.single();
 
     for (layer, mut transform) in layers.iter_mut() {
         // Transform Each Layer Correlated to Player Linear Velocity
@@ -52,10 +52,10 @@ pub fn generate_visible_sectors(
         .unwrap();
 
     // Get sector indicies min, and max for x and y values
-    let i_min = ((bottom_left.x / SECTOR_SIZE) as i32) - 1;
-    let i_max = ((top_right.x / SECTOR_SIZE) as i32) + 1;
-    let j_min = ((bottom_left.y / SECTOR_SIZE) as i32) - 1;
-    let j_max = ((top_right.y / SECTOR_SIZE) as i32) + 1;
+    let i_min = ((bottom_left.x / SECTOR_SIZE) as i128) - 1;
+    let i_max = ((top_right.x / SECTOR_SIZE) as i128) + 1;
+    let j_min = ((bottom_left.y / SECTOR_SIZE) as i128) - 1;
+    let j_max = ((top_right.y / SECTOR_SIZE) as i128) + 1;
 
     for (layer_entity, layer) in layers.iter() {
         // For each sector that's visible in the viewport plusminus one additional sector
