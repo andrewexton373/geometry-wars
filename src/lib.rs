@@ -24,8 +24,10 @@ pub(crate) mod space_station;
 pub(crate) mod ui;
 pub(crate) mod upgrades;
 
+use std::default;
+
 use avian2d::{
-    prelude::{Gravity, PhysicsDebugPlugin},
+    prelude::{Gravity, PhysicsDebugPlugin, PhysicsLayer},
     PhysicsPlugins,
 };
 use bevy::prelude::*;
@@ -67,6 +69,13 @@ pub enum AppState {
     InGame,
     Paused,
     BuildMode,
+}
+
+#[derive(Default, PhysicsLayer)]
+pub enum GameLayer {
+    #[default]
+    Default,
+    Collectible,
 }
 
 pub struct GamePlugin;

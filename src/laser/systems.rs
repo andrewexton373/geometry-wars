@@ -1,4 +1,4 @@
-use avian2d::prelude::{SpatialQuery, SpatialQueryFilter};
+use avian2d::prelude::{LayerMask, PhysicsLayer, SpatialQuery, SpatialQueryFilter};
 use bevy::color::palettes::css::RED;
 use bevy::ecs::entity::EntityHash;
 use bevy::prelude::*;
@@ -11,6 +11,7 @@ use super::events::LaserEvent;
 
 use crate::particles::components::ProjectileImpactParticles;
 use crate::player::components::Player;
+use crate::GameLayer;
 use crate::{asteroid::events::AblateEvent, health::events::DamageEvent};
 
 pub fn setup_laser(mut commands: Commands, mut laser_query: Query<&mut Laser>) {
@@ -60,7 +61,7 @@ pub fn fire_laser_raycasting(
                 false,
                 &SpatialQueryFilter {
                     excluded_entities: excluded_entities.clone(),
-                    ..default()
+                    mask: LayerMask(GameLayer::Default.to_bits()),
                 },
             ) {
                 let hit_point = ray_pos.as_dvec2() + ray_dir.as_dvec2() * first_hit.distance;

@@ -4,6 +4,7 @@ use crate::{
     items::Amount,
     player::components::Player,
     ui::damage_indicator::events::DamageIndicatorEvent,
+    GameLayer,
 };
 use bevy::{
     color::palettes::css::{DARK_GRAY, GOLD, GRAY, LIMEGREEN, RED, SILVER},
@@ -99,6 +100,10 @@ pub fn tag_small_asteroids_as_collectible(
             info!("{:?} THRESHOLD HIT -> COLLECTIBLE", mass.0);
             if let Some(mut ent_commands) = commands.get_entity(asteroid_ent) {
                 ent_commands.insert(Collectible);
+                ent_commands.insert(CollisionLayers::new(
+                    [GameLayer::Collectible],
+                    [GameLayer::Default],
+                ));
             }
         }
     }
@@ -294,7 +299,18 @@ pub fn split_asteroids_over_split_ratio(
         }
     }
 }
+fn random_normalized_vec2() -> DVec2 {
+    // Generate random components for x and y
+    let mut rng = rand::thread_rng();
+    let x: f64 = rng.gen_range(-1.0..1.0); // Random x between -1 and 1
+    let y: f64 = rng.gen_range(-1.0..1.0); // Random y between -1 and 1
 
+    // Create a random vector
+    let random_vec = DVec2::new(x, y);
+
+    // Normalize the vector
+    random_vec.normalize()
+}
 pub fn split_asteroid_events(
     mut events: EventReader<SplitAsteroidEvent>,
     mut commands: Commands,
@@ -303,8 +319,10 @@ pub fn split_asteroid_events(
     for evt in events.read() {
         let asteroid_ent = evt.0;
         if let Ok((asteroid, transform, linear_velocity)) = asteroid_q.get_mut(asteroid_ent) {
-            let right_velocity = Vec2::ZERO;
-            let left_velocity = Vec2::ZERO;
+            let speed_scale = 1000.0;
+
+            let right_velocity = random_normalized_vec2() * speed_scale;
+            let left_velocity = -random_normalized_vec2();
 
             let half_radius = asteroid.radius / 2.0;
 
@@ -314,13 +332,13 @@ pub fn split_asteroid_events(
             commands.send_event(SpawnAsteroidEvent(
                 left_asteroid,
                 *transform,
-                LinearVelocity::ZERO,
+                LinearVelocity(left_velocity),
             ));
 
             commands.send_event(SpawnAsteroidEvent(
                 right_asteroid,
                 *transform,
-                LinearVelocity::ZERO,
+                LinearVelocity(right_velocity),
             ));
 
             commands.entity(asteroid_ent).despawn_recursive();
