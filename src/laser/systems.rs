@@ -52,7 +52,6 @@ pub fn fire_laser_raycasting(
         let laser_active = fire_laser_event.0;
         let ray_pos = fire_laser_event.1;
         let ray_dir = fire_laser_event.2;
-        let ray_dir_2d = Dir2::new(ray_dir).unwrap();
 
         // If laser is active
         if laser_active {

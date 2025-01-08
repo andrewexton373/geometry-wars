@@ -100,9 +100,9 @@ pub fn tag_small_asteroids_as_collectible(
 
 }
 
-// TODO: Verify this is working...
+// TODO: Verify this is working... it's definitely not (12/17/2024)
 pub fn update_collectible_material_color(
-    trigger: Trigger<OnInsert, Asteroid>,
+    trigger: Trigger<OnReplace, Asteroid>,
     mut commands: Commands,
     mut asteroid_query: Query<(Entity, &Asteroid), With<Collectible>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
@@ -112,7 +112,7 @@ pub fn update_collectible_material_color(
 
     info!("{:?}", asteroid_query.iter().count());
 
-    if let Ok((_, asteroid)) = asteroid_query.get(ent) {
+    if let Ok((ent, asteroid)) = asteroid_query.get(ent) {
 
         info!("ASTEROID: {:?}", asteroid);
 
@@ -123,40 +123,17 @@ pub fn update_collectible_material_color(
             _ => LIMEGREEN,
         };
 
-        if let Some(mut ent_commands) = commands.get_entity(ent) {
-            ent_commands.try_insert((
-                MeshMaterial2d(
-                    materials.add(ColorMaterial::from_color(color)),
-                ),
-                DebugRender::default().with_collider_color(Color::from(LIMEGREEN))    
-            ));
-    
-            ent_commands.log_components();
-
-        } else {
-            info!("CRAP");
-        }
-
-
+        commands.entity(ent).try_insert((
+            MeshMaterial2d(
+                materials.add(ColorMaterial::from_color(color)),
+            ),
+            DebugRender::default().with_collider_color(Color::from(LIMEGREEN))    
+        ));
         
+    } else {
         info!("ASTROID NOT IN QUERY!");
     }
 
-    // for (ent, asteroid) in asteroid_query.iter_mut() {
-        
-
-    // if let Some(ent)commands.get_entity(ent)
-
-        // // world.get_entity(ent)
-
-        // // if let Ok(mut collectible) = world.get_entity(ent) {
-        //     world.commands().entity(ent).insert(MeshMaterial2d(
-        //         materials.add(ColorMaterial::from_color(color)),
-        //     ));
-
-        //     world.commands().entity(ent).insert(DebugRender::default().with_collider_color(Color::from(LIMEGREEN)));
-        // }
-    // }
 }
 
 pub fn despawn_far_asteroids(
