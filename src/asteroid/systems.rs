@@ -111,15 +111,14 @@ pub fn tag_small_asteroids_as_collectible(
 
 // TODO: Verify this is working... it's definitely not (12/17/2024)
 pub fn update_collectible_material_color(
-    trigger: Trigger<OnReplace, Asteroid>,
+    trigger: Trigger<OnAdd, Collectible>,
     mut commands: Commands,
-    mut asteroid_query: Query<(Entity, &Asteroid), With<Collectible>>,
+    asteroid_query: Query<(Entity, &Asteroid), With<Collectible>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let ent = trigger.entity();
-    info!("{:?}", ent);
-
-    info!("{:?}", asteroid_query.iter().count());
+    // info!("UPDATE COLLECTIBLE FOR: {:?}", ent);
+    // info!("{:?}", asteroid_query.iter().count());
 
     if let Ok((ent, asteroid)) = asteroid_query.get(ent) {
         info!("ASTEROID: {:?}", asteroid);
