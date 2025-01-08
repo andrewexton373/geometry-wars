@@ -8,7 +8,11 @@ use bevy::{
 use super::components::Asteroid;
 
 #[derive(Event)]
-pub struct AblateEvent(pub Entity, pub Vec2, pub Vec2);
+pub struct AblateEvent {
+    pub entity: Entity,
+    pub position: Vec2,
+    pub normal: Vec2,
+}
 
 #[derive(Event)]
 pub struct SpawnAsteroidEvent(pub Asteroid, pub Transform, pub LinearVelocity);

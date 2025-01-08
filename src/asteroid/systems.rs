@@ -8,6 +8,7 @@ use crate::{
 use bevy::{
     color::palettes::css::{DARK_GRAY, GOLD, GRAY, LIMEGREEN, RED, SILVER},
     ecs::entity,
+    math::DVec2,
     prelude::*,
 };
 // use bevy_particle_systems::Playing;
@@ -39,7 +40,6 @@ pub fn spawn_asteroids_aimed_at_ship(
     player_query: Query<(&Player, &GlobalTransform)>,
     base_station_query: Query<(&SpaceStation, &GlobalTransform)>,
     mut asteroid_spawner: ResMut<AsteroidSpawner>,
-    mut spawn_events: EventWriter<SpawnAsteroidEvent>,
     time: Res<Time>,
 ) {
     const SPAWN_DISTANCE: f32 = 350.0;
@@ -72,7 +72,7 @@ pub fn spawn_asteroids_aimed_at_ship(
         let asteroid_transform = Transform::from_translation(random_spawn_position.extend(0.0));
         let asteroid_linear_velocity = LinearVelocity(direction_to_player.as_dvec2());
 
-        spawn_events.send(SpawnAsteroidEvent(
+        commands.send_event(SpawnAsteroidEvent(
             asteroid,
             asteroid_transform,
             asteroid_linear_velocity,
@@ -217,7 +217,7 @@ pub fn display_inventory_full_context_clue(
 }
 
 pub fn ablate_asteroids_events(
-    trigger: Trigger<AblateEvent>,
+    mut events: EventReader<AblateEvent>,
     mut commands: Commands,
     mut asteroids_query: Query<
         (Entity, &mut Asteroid, &mut Health, &GlobalTransform),
@@ -225,47 +225,62 @@ pub fn ablate_asteroids_events(
     >,
     mut damage_indicator_events: EventWriter<DamageIndicatorEvent>,
 ) {
-    let ablate_event = trigger.event();
-    let mut rng = rand::thread_rng();
-    // let split_angle = rng.gen_range(0.0..PI / 4.0); TODO: Might keep splititng asteroids
+    for ablate_event in events.read() {
+        // let ablate_event = trigger.event();
+        let mut rng = rand::thread_rng();
+        // let split_angle = rng.gen_range(0.0..PI / 4.0); TODO: Might keep splititng asteroids
 
-    if let Ok((ent, asteroid_to_ablate, mut asteroid_health, _g_trans)) =
-        asteroids_query.get_mut(ablate_event.0)
-    {
-        let damaged_health = asteroid_health.current() - LASER_DAMAGE;
-        asteroid_health.set_current(damaged_health);
+        if let Ok((ent, asteroid_to_ablate, mut asteroid_health, _g_trans)) =
+            asteroids_query.get_mut(ablate_event.entity)
+        {
+            let damaged_health = asteroid_health.current() - LASER_DAMAGE;
+            asteroid_health.set_current(damaged_health);
 
-        if damaged_health < 0.0 {
-            commands.entity(ent).despawn_recursive();
+            if damaged_health < 0.0 {
+                commands.entity(ent).despawn_recursive();
+            }
+
+            let n: u8 = rng.gen();
+            if n > 25 {
+                return;
+            }
+
+            // Send Damage Indicator Event
+            let translation = Transform {
+                translation: (ablate_event.position + ablate_event.normal.normalize() * 100.0)
+                    .extend(999.0),
+                ..default()
+            };
+
+            damage_indicator_events.send(DamageIndicatorEvent {
+                damage: 1.0,
+                traslation: translation,
+            });
+
+            // TODO: The new comp distance shouldn't be constant it should update based on player distance from base
+            let asteroid = Asteroid::new_with(
+                AsteroidSize::OreChunk.radius(),
+                AsteroidComposition::new_with_distance(100.0),
+            );
+
+            let max_jitter_angle = 60.0;
+
+            let mut rng = rand::thread_rng();
+            let jitter_angle =
+                rng.gen_range(-max_jitter_angle..max_jitter_angle) * (PI / 180.0) as f32;
+            let rotation_matrix = bevy::math::Mat2::from_angle(jitter_angle);
+            let rotated_x = rotation_matrix.x_axis.dot(ablate_event.normal);
+            let rotated_y = rotation_matrix.y_axis.dot(ablate_event.normal);
+            let jitter_normal = DVec2::new(rotated_x as f64, rotated_y as f64);
+
+            let jitter_velocity = rng.gen_range(400.0..800.0);
+
+            commands.send_event(SpawnAsteroidEvent(
+                asteroid.clone(),
+                Transform::from_translation(ablate_event.position.extend(0.0)),
+                LinearVelocity(jitter_normal * jitter_velocity),
+            ));
         }
-
-        let n: u8 = rng.gen();
-        if n > 25 {
-            return;
-        }
-
-        // Send Damage Indicator Event
-        let translation = Transform {
-            translation: (ablate_event.1 + ablate_event.2.normalize() * 100.0).extend(999.0),
-            ..default()
-        };
-
-        damage_indicator_events.send(DamageIndicatorEvent {
-            damage: 1.0,
-            traslation: translation,
-        });
-
-        // TODO: The new comp distance shouldn't be constant it should update based on player distance from base
-        let asteroid = Asteroid::new_with(
-            AsteroidSize::OreChunk.radius(),
-            AsteroidComposition::new_with_distance(100.0),
-        );
-
-        commands.trigger(SpawnAsteroidEvent(
-            asteroid.clone(),
-            Transform::from_translation(ablate_event.1.extend(0.0)),
-            LinearVelocity(ablate_event.2.as_dvec2()),
-        ));
     }
 }
 
@@ -281,40 +296,40 @@ pub fn split_asteroids_over_split_ratio(
 }
 
 pub fn split_asteroid_events(
-    trigger: Trigger<SplitAsteroidEvent>,
+    mut events: EventReader<SplitAsteroidEvent>,
     mut commands: Commands,
     mut asteroid_q: Query<(&Asteroid, &Transform, &LinearVelocity)>,
 ) {
-    let evt = trigger.event();
-    let asteroid_ent = evt.0;
-    if let Ok((asteroid, transform, linear_velocity)) = asteroid_q.get_mut(asteroid_ent) {
-        let right_velocity = Vec2::ZERO;
-        let left_velocity = Vec2::ZERO;
+    for evt in events.read() {
+        let asteroid_ent = evt.0;
+        if let Ok((asteroid, transform, linear_velocity)) = asteroid_q.get_mut(asteroid_ent) {
+            let right_velocity = Vec2::ZERO;
+            let left_velocity = Vec2::ZERO;
 
-        let half_radius = asteroid.radius / 2.0;
+            let half_radius = asteroid.radius / 2.0;
 
-        let left_asteroid = Asteroid::new_with(half_radius, asteroid.composition.jitter());
-        let right_asteroid = Asteroid::new_with(half_radius, asteroid.composition.jitter());
+            let left_asteroid = Asteroid::new_with(half_radius, asteroid.composition.jitter());
+            let right_asteroid = Asteroid::new_with(half_radius, asteroid.composition.jitter());
 
-        commands.trigger(SpawnAsteroidEvent(
-            left_asteroid,
-            *transform,
-            LinearVelocity::ZERO,
-        ));
+            commands.send_event(SpawnAsteroidEvent(
+                left_asteroid,
+                *transform,
+                LinearVelocity::ZERO,
+            ));
 
-        commands.trigger(SpawnAsteroidEvent(
-            right_asteroid,
-            *transform,
-            LinearVelocity::ZERO,
-        ));
+            commands.send_event(SpawnAsteroidEvent(
+                right_asteroid,
+                *transform,
+                LinearVelocity::ZERO,
+            ));
 
-        commands.entity(asteroid_ent).despawn_recursive();
+            commands.entity(asteroid_ent).despawn_recursive();
+        }
     }
 }
 
 pub fn handle_spawn_asteroid_events(
     mut spawn_events: EventReader<SpawnAsteroidEvent>,
-    // trigger: Trigger<SpawnAsteroidEvent>,
     mut commands: Commands,
     spatial: SpatialQuery,
     query: Query<(&Collider, &Transform)>,
@@ -350,17 +365,13 @@ pub fn handle_spawn_asteroid_events(
                 RigidBody::Dynamic,
                 collider,
                 Mass(health_pool),
-                // ComputedMass::default(),
-                // ColliderDensity::default(),
                 linear_velocity,
                 splittable,
                 Name::new("Asteroid"),
                 Mesh2d(meshes.add(asteroid.generate_mesh())),
                 MeshMaterial2d(materials.add(ColorMaterial::from_color(DARK_GRAY))),
                 transform,
-                Health::with_maximum(Asteroid::polygon_area(
-                    asteroid.polygon().vertices.iter().as_slice(),
-                )),
+                Health::with_maximum(health_pool),
             ));
         }
     }

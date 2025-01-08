@@ -25,9 +25,9 @@ impl Plugin for AsteroidPlugin {
                 // spawn_asteroid_events,
                 despawn_far_asteroids,
                 handle_asteroid_collision_event,
-                // ablate_asteroids_events,
+                ablate_asteroids_events,
                 split_asteroids_over_split_ratio,
-                // split_asteroid_events,
+                split_asteroid_events,
                 display_inventory_full_context_clue,
                 // update_collectible_material_color,
                 handle_collectible_collision_event,
@@ -35,8 +35,8 @@ impl Plugin for AsteroidPlugin {
             ),
         )
         // .add_observer(handle_spawn_asteroid_events)
-        .add_observer(ablate_asteroids_events)
-        .add_observer(split_asteroid_events)
+        // .add_observer(ablate_asteroids_events)
+        // .add_observer(split_asteroid_events)
         .add_observer(tag_small_asteroids_as_collectible)
         .add_observer(update_collectible_material_color);
     }
