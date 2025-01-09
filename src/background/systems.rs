@@ -1,10 +1,10 @@
 use std::borrow::BorrowMut;
 
 use avian2d::prelude::LinearVelocity;
-use bevy::{prelude::*, state::commands};
+use bevy::prelude::*;
 use rand::Rng;
 
-use crate::{camera::components::GameCamera, player::components::Player, sector::Sector};
+use crate::{camera::components::GameCamera, sector::Sector};
 
 use super::components::{Layer, StarfieldBackground};
 
@@ -43,6 +43,7 @@ pub fn generate_background_on_sector_add(
     layers: Query<(Entity, &Layer), With<Layer>>,
 ) {
     let sector = sectors.get(trigger.entity()).unwrap();
+    info!("GENERATE BACKGROUND SECTOR");
 
     for (layer_ent, layer) in layers.iter() {
         generate_sector(commands.borrow_mut(), layer_ent, layer, sector);
@@ -55,15 +56,15 @@ pub fn destroy_background_on_sector_remove(
     sectors: Query<&Sector>,
     background_sectors: Query<(Entity, &BackgroundSector)>,
 ) {
-    // info!("BG SECTOR COUNT: {}", background_sectors.iter().count());
     let sector = sectors.get(trigger.entity()).unwrap();
 
-    if let Some((entity, _bg_sector_to_remove)) = background_sectors
+    for (entity, _bg_sector_to_remove) in background_sectors
         .into_iter()
-        .find(|(_, bs)| bs.0 == *sector)
+        .filter(|(_, bs)| bs.0 == *sector)
+        .collect::<Vec<(Entity, &BackgroundSector)>>()
     {
         info!("DESTROYING BACKROUND SECTOR: {}", entity);
-        commands.entity(entity).try_despawn_recursive();
+        commands.entity(entity).despawn_recursive();
     }
 }
 
