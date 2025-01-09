@@ -184,7 +184,7 @@ pub fn handle_collectible_collision_event(
 
 pub fn handle_asteroid_collision_event(
     collisions: Res<Collisions>,
-    mut asteroid_query: Query<Entity, Without<Collectible>>,
+    mut asteroid_query: Query<Entity, (With<Asteroid>, Without<Collectible>)>,
     mut player_query: Query<Entity, With<Player>>,
     mut damage_events: EventWriter<DamageEvent>,
 ) {
