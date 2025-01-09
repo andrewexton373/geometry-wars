@@ -302,20 +302,6 @@ impl fmt::Debug for AsteroidComposition {
     }
 }
 
-pub fn init_asteroid_field(mut commands: Commands) {
-    commands.spawn(AsteroidField);
-}
-
-pub fn generate_asteroid_field_sectors(commands: Commands) {}
-
-pub fn generate_asteroids_in_sector(trigger: Trigger<OnAdd, AsteroidFieldSector>) {}
-
-#[derive(Component)]
-pub struct AsteroidField;
-
-#[derive(Component)]
-pub struct AsteroidFieldSector {}
-
 #[test]
 fn test_most_abundant() {
     assert_eq!(

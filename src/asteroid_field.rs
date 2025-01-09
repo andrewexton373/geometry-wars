@@ -1,11 +1,15 @@
-use avian2d::prelude::LinearVelocity;
+use avian2d::prelude::{LinearVelocity, Position};
 use bevy::{prelude::*, utils::HashSet};
+use rand::{thread_rng, Rng};
+use rand_pcg::Pcg64;
+use rand_seeder::Seeder;
 
 use crate::{
     asteroid::{
         components::{Asteroid, AsteroidComposition},
         events::SpawnAsteroidEvent,
     },
+    background::systems::SECTOR_SIZE,
     sector::Sector,
 };
 
@@ -31,11 +35,27 @@ pub fn generate_asteroids_in_sector(
     let (sector, transform) = sectors.get(trigger.entity()).unwrap();
 
     if !visited_sectors.contains(sector) {
-        spawn_events.send(SpawnAsteroidEvent(
-            Asteroid::new_with(100.0, AsteroidComposition::new_with_distance(0.0)),
-            *transform,
-            LinearVelocity::ZERO,
-        ));
+        let mut rng: Pcg64 = Seeder::from(sector).make_rng();
+        let asteroid_count = rng.gen_range(0..5);
+
+        for _ in 0..asteroid_count {
+            let radius = rng.gen_range(30.0..100.0);
+            let offset_x = rng.gen_range(-0.5..0.5) * SECTOR_SIZE;
+            let offset_y = rng.gen_range(-0.5..0.5) * SECTOR_SIZE;
+
+            let asteroid_t = Transform::from_xyz(
+                transform.translation.x + offset_x,
+                transform.translation.y + offset_y,
+                0.0,
+            );
+
+            spawn_events.send(SpawnAsteroidEvent(
+                Asteroid::new_with(radius, AsteroidComposition::new_with_distance(0.0)),
+                asteroid_t,
+                LinearVelocity::ZERO,
+            ));
+        }
+
         visited_sectors.insert(*sector);
     }
 }

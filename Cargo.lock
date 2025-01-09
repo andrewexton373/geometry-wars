@@ -2504,6 +2504,8 @@ dependencies = [
  "ordered-float",
  "rand",
  "rand_distr",
+ "rand_pcg",
+ "rand_seeder",
  "strum",
  "strum_macros",
 ]
@@ -4101,6 +4103,15 @@ name = "rand_pcg"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59cad018caf63deb318e5a4586d99a24424a364f40f1e5778c29aca23f4fc73e"
+dependencies = [
+ "rand_core",
+]
+
+[[package]]
+name = "rand_seeder"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a9febe641d2842ffc76ee962668a17578767c4e01735e4802b21ed9a24b2e4e"
 dependencies = [
  "rand_core",
 ]

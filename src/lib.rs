@@ -120,7 +120,7 @@ impl Plugin for GamePlugin {
             HealthPlugin,
             BatteryPlugin,
             CollectiblesPlugin,
-            AiPlugin,
+            // AiPlugin,
             ProjectilePlugin,
             BackgroundPlugin,
             SectorPlugin,
