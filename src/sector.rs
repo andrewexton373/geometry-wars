@@ -22,7 +22,7 @@ impl Plugin for SectorPlugin {
 #[derive(Component)]
 pub struct Sectors;
 
-#[derive(Component, Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Component, Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Sector {
     pub i: i128,
     pub j: i128,
@@ -116,10 +116,10 @@ pub fn generate_visible_sectors(
                     sector.j as f32 * SECTOR_SIZE,
                     -10.0,
                 ),
-                RigidBody::Static,
-                Sensor,
-                Collider::rectangle(SECTOR_SIZE as f64, SECTOR_SIZE as f64),
-                DebugRender::default().with_collider_color(BLUE.into()),
+                // RigidBody::Static,
+                // Sensor,
+                // Collider::rectangle(SECTOR_SIZE as f64, SECTOR_SIZE as f64),
+                // DebugRender::default().with_collider_color(BLUE.into()),
                 Visibility::Inherited,
             ));
         }

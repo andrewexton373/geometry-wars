@@ -43,7 +43,6 @@ pub fn generate_background_on_sector_add(
     layers: Query<(Entity, &Layer), With<Layer>>,
 ) {
     let sector = sectors.get(trigger.entity()).unwrap();
-    info!("GENERATE BACKGROUND SECTOR");
 
     for (layer_ent, layer) in layers.iter() {
         generate_sector(commands.borrow_mut(), layer_ent, layer, sector);
@@ -63,7 +62,6 @@ pub fn destroy_background_on_sector_remove(
         .filter(|(_, bs)| bs.0 == *sector)
         .collect::<Vec<(Entity, &BackgroundSector)>>()
     {
-        info!("DESTROYING BACKROUND SECTOR: {}", entity);
         commands.entity(entity).despawn_recursive();
     }
 }

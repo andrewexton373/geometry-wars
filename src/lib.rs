@@ -1,5 +1,6 @@
 pub(crate) mod ai;
 pub(crate) mod asteroid;
+pub(crate) mod asteroid_field;
 pub(crate) mod background;
 pub(crate) mod battery;
 pub(crate) mod camera;
@@ -25,6 +26,7 @@ pub(crate) mod space_station;
 pub(crate) mod ui;
 pub(crate) mod upgrades;
 
+use asteroid_field::AsteroidFieldPlugin;
 use avian2d::{
     prelude::{Gravity, PhysicsDebugPlugin, PhysicsLayer},
     PhysicsPlugins,
@@ -122,6 +124,7 @@ impl Plugin for GamePlugin {
             ProjectilePlugin,
             BackgroundPlugin,
             SectorPlugin,
+            AsteroidFieldPlugin,
         ))
         .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
         .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin)

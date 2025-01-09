@@ -138,16 +138,19 @@ pub fn update_collectible_material_color(
 
 pub fn despawn_far_asteroids(
     mut commands: Commands,
-    asteroid_query: Query<(Entity, &mut Asteroid, &mut Transform), With<Asteroid>>,
+    asteroid_query: Query<
+        (Entity, &mut Asteroid, &mut Transform, Option<&Sleeping>),
+        With<Asteroid>,
+    >,
     player_query: Query<(&Player, &Transform), (With<Player>, Without<Asteroid>)>,
 ) {
     const DESPAWN_DISTANCE: f32 = 1000.0 * PIXELS_PER_METER as f32;
     let (_player, transform) = player_query.single();
     let player_position = transform.translation.truncate();
 
-    for (entity, _asteroid, transform) in asteroid_query.iter() {
+    for (entity, _asteroid, transform, sleeping) in asteroid_query.iter() {
         let asteroid_position = transform.translation.truncate();
-        if player_position.distance(asteroid_position) > DESPAWN_DISTANCE {
+        if player_position.distance(asteroid_position) > DESPAWN_DISTANCE && sleeping.is_some() {
             commands.entity(entity).try_despawn_recursive();
         }
     }

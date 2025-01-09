@@ -21,7 +21,7 @@ impl Plugin for AsteroidPlugin {
         .add_systems(
             Update,
             (
-                spawn_asteroids_aimed_at_ship,
+                // spawn_asteroids_aimed_at_ship,
                 // spawn_asteroid_events,
                 despawn_far_asteroids,
                 handle_asteroid_collision_event,
