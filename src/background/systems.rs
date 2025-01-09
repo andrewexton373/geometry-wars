@@ -1,12 +1,15 @@
 use std::borrow::BorrowMut;
 
 use avian2d::prelude::LinearVelocity;
-use bevy::prelude::*;
+use bevy::{prelude::*, state::commands};
 use rand::Rng;
 
-use crate::{camera::components::GameCamera, player::components::Player};
+use crate::{camera::components::GameCamera, player::components::Player, sector::Sector};
 
-use super::components::{Layer, Sector, StarfieldBackground};
+use super::components::{Layer, StarfieldBackground};
+
+#[derive(Component)]
+pub struct BackgroundSector(pub Sector);
 
 pub fn init_starfield(mut commands: Commands) {
     // Spawn 3 Layers
@@ -33,63 +36,40 @@ pub fn parallax_layers(
     }
 }
 
-pub const SECTOR_SIZE: f32 = 1280.0;
-
-pub fn generate_visible_sectors(
+pub fn generate_background_on_sector_add(
+    trigger: Trigger<OnAdd, Sector>,
+    sectors: Query<&Sector>,
     mut commands: Commands,
-    camera_viewport: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
-    sectors: Query<(Entity, &Sector)>,
     layers: Query<(Entity, &Layer), With<Layer>>,
 ) {
-    let (camera, camera_gt) = camera_viewport.single();
+    let sector = sectors.get(trigger.entity()).unwrap();
 
-    // Get viewport bounds in worldspace
-    let bottom_left = camera
-        .ndc_to_world(camera_gt, Vec3::new(-1.0, -1.0, 0.0))
-        .unwrap();
-    let top_right = camera
-        .ndc_to_world(camera_gt, Vec3::new(1.0, 1.0, 0.0))
-        .unwrap();
-
-    // Get sector indicies min, and max for x and y values
-    let i_min = ((bottom_left.x / SECTOR_SIZE) as i128) - 1;
-    let i_max = ((top_right.x / SECTOR_SIZE) as i128) + 1;
-    let j_min = ((bottom_left.y / SECTOR_SIZE) as i128) - 1;
-    let j_max = ((top_right.y / SECTOR_SIZE) as i128) + 1;
-
-    for (layer_entity, layer) in layers.iter() {
-        // For each sector that's visible in the viewport plusminus one additional sector
-        for i in i_min..=i_max {
-            for j in j_min..=j_max {
-                // If a sector already exists
-                let valid_sector = sectors
-                    .iter()
-                    .find(|(_, sector)| sector.i == i && sector.j == j);
-
-                if valid_sector.is_some() {
-                    continue;
-                }
-
-                generate_sector(commands.borrow_mut(), layer_entity, layer, Sector { i, j });
-            }
-        }
-
-        // Filter Invalid sectors to despawn
-        let invalid_sectors: Vec<(Entity, &Sector)> = sectors
-            .iter()
-            .filter(|(_, sector)| {
-                sector.i < i_min || sector.i > i_max || sector.j < j_min || sector.j > j_max
-            })
-            .collect();
-
-        // Despawn each invalid sector
-        for (entity, _) in invalid_sectors {
-            commands.entity(entity).try_despawn_recursive();
-        }
+    for (layer_ent, layer) in layers.iter() {
+        generate_sector(commands.borrow_mut(), layer_ent, layer, sector);
     }
 }
 
-fn generate_sector(commands: &mut Commands, layer_entity: Entity, layer: &Layer, sector: Sector) {
+pub fn destroy_background_on_sector_remove(
+    trigger: Trigger<OnRemove, Sector>,
+    mut commands: Commands,
+    sectors: Query<&Sector>,
+    background_sectors: Query<(Entity, &BackgroundSector)>,
+) {
+    // info!("BG SECTOR COUNT: {}", background_sectors.iter().count());
+    let sector = sectors.get(trigger.entity()).unwrap();
+
+    if let Some((entity, _bg_sector_to_remove)) = background_sectors
+        .into_iter()
+        .find(|(_, bs)| bs.0 == *sector)
+    {
+        info!("DESTROYING BACKROUND SECTOR: {}", entity);
+        commands.entity(entity).try_despawn_recursive();
+    }
+}
+
+pub const SECTOR_SIZE: f32 = 1280.0;
+
+fn generate_sector(commands: &mut Commands, layer_entity: Entity, layer: &Layer, sector: &Sector) {
     let mut rng: rand::prelude::ThreadRng = rand::thread_rng();
     let layer_scale = match layer.0 {
         1 => 0.5,
@@ -100,7 +80,7 @@ fn generate_sector(commands: &mut Commands, layer_entity: Entity, layer: &Layer,
 
     let sector_id = commands
         .spawn((
-            sector,
+            BackgroundSector(*sector),
             Transform::from_xyz(
                 sector.i as f32 * SECTOR_SIZE,
                 sector.j as f32 * SECTOR_SIZE,

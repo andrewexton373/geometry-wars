@@ -20,6 +20,7 @@ pub(crate) mod projectile;
 pub(crate) mod rcs;
 pub(crate) mod recipe;
 pub(crate) mod refinery;
+pub(crate) mod sector;
 pub(crate) mod space_station;
 pub(crate) mod ui;
 pub(crate) mod upgrades;
@@ -33,6 +34,7 @@ use bevy_hanabi::HanabiPlugin;
 
 use ai::plugin::AiPlugin;
 use background::plugin::BackgroundPlugin;
+use sector::SectorPlugin;
 
 use crate::crosshair::plugin::CrosshairPlugin;
 use crate::laser::plugin::LaserPlugin;
@@ -119,6 +121,7 @@ impl Plugin for GamePlugin {
             AiPlugin,
             ProjectilePlugin,
             BackgroundPlugin,
+            SectorPlugin,
         ))
         .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
         .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin)
