@@ -29,6 +29,7 @@ pub fn camera_follows_target(
 ) {
     let (_camera, mut camera_trans, mut lin_vel) = camera_query.single_mut();
     for target_t in target_query.iter() {
+        // TODO: I'd like to do it this way, but it introduces a bug.
         let vec_to_target = target_t.translation.truncate() - camera_trans.translation.truncate();
         *lin_vel = LinearVelocity(vec_to_target.as_dvec2() * vec_to_target.length() as f64);
 

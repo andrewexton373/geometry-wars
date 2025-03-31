@@ -192,7 +192,8 @@ pub fn handle_asteroid_collision_event(
 
     for asteroid_entity in asteroid_query.iter_mut() {
         if let Some(collision) = collisions.get(player_ent, asteroid_entity) {
-            let damage = -collision.manifolds[0].contacts[0].penetration;
+            let damage_scale = 0.01;
+            let damage = -((collision.manifolds[0].contacts[0].penetration * damage_scale) - 0.1);
 
             damage_events.send(DamageEvent {
                 entity: player_ent,
