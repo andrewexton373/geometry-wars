@@ -1,5 +1,5 @@
 use avian2d::prelude::{LinearVelocity, Position};
-use bevy::{prelude::*, utils::HashSet};
+use bevy::{platform::collections::HashSet, prelude::*};
 use rand::{thread_rng, Rng};
 use rand_pcg::Pcg64;
 use rand_seeder::Seeder;
@@ -32,16 +32,16 @@ pub fn generate_asteroids_in_sector(
     sectors: Query<(&Sector, &Transform)>,
     mut visited_sectors: Local<HashSet<Sector>>,
 ) {
-    let (sector, transform) = sectors.get(trigger.entity()).unwrap();
+    let (sector, transform) = sectors.get(trigger.target()).unwrap();
 
     if !visited_sectors.contains(sector) {
-        let mut rng: Pcg64 = Seeder::from(sector).make_rng();
-        let asteroid_count = rng.gen_range(0..5);
+        let mut rng: Pcg64 = Seeder::from(sector).into_rng();
+        let asteroid_count = rng.random_range(0..5);
 
         for _ in 0..asteroid_count {
-            let radius = rng.gen_range(30.0..100.0);
-            let offset_x = rng.gen_range(-0.5..0.5) * SECTOR_SIZE;
-            let offset_y = rng.gen_range(-0.5..0.5) * SECTOR_SIZE;
+            let radius = rng.random_range(30.0..100.0);
+            let offset_x = rng.random_range(-0.5..0.5) * SECTOR_SIZE;
+            let offset_y = rng.random_range(-0.5..0.5) * SECTOR_SIZE;
 
             let asteroid_t = Transform::from_xyz(
                 transform.translation.x + offset_x,
@@ -49,7 +49,7 @@ pub fn generate_asteroids_in_sector(
                 0.0,
             );
 
-            spawn_events.send(SpawnAsteroidEvent(
+            spawn_events.write(SpawnAsteroidEvent(
                 Asteroid::new_with(radius, AsteroidComposition::new_with_distance(0.0)),
                 asteroid_t,
                 LinearVelocity::ZERO,

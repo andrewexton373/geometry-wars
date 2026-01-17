@@ -17,27 +17,28 @@ pub struct GameUIPlugin;
 
 impl Plugin for GameUIPlugin {
     fn build(&self, app: &mut bevy::app::App) {
-        app.add_plugins(EguiPlugin)
-            .add_plugins(
-                WorldInspectorPlugin::default().run_if(input_toggle_active(true, KeyCode::Escape)),
-            )
-            .add_plugins((
-                ContextCluePlugin,
-                ShipInventoryPlugin,
-                ShipInformationPlugin,
-                SpaceStationMenu,
-                MouseHoverContextPlugin,
-                MouseCoordinatesPlugin,
-                DamageIndicatorPlugin,
-                // ShipHoverContext
-                BuildModeUIPlugin,
-            ))
-            .add_systems(
-                PreUpdate,
-                (absorb_egui_inputs)
-                    // .after(bevy_egui::systems::process_input_system)
-                    .after(update_selected_hex)
-                    .before(bevy_egui::EguiSet::BeginPass),
-            );
+        app.add_plugins(EguiPlugin {
+            ..Default::default()
+        })
+        .add_plugins(
+            WorldInspectorPlugin::default().run_if(input_toggle_active(true, KeyCode::Escape)),
+        )
+        .add_plugins((
+            ContextCluePlugin,
+            ShipInventoryPlugin,
+            ShipInformationPlugin,
+            SpaceStationMenu,
+            MouseHoverContextPlugin,
+            MouseCoordinatesPlugin,
+            DamageIndicatorPlugin,
+            // ShipHoverContext
+            BuildModeUIPlugin,
+        ))
+        .add_systems(
+            PreUpdate,
+            (absorb_egui_inputs)
+                // .after(bevy_egui::systems::process_input_system)
+                .after(update_selected_hex), // .before(bevy_egui::BeginPass),
+        );
     }
 }

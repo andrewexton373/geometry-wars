@@ -1,8 +1,8 @@
 use avian2d::prelude::{Mass, SpatialQuery, SpatialQueryFilter};
 use bevy::{
-    core::Name,
     ecs::{
         entity::Entity,
+        name::Name,
         system::{Query, Res, ResMut},
     },
     math::Dir2,
@@ -71,7 +71,7 @@ pub fn ui_mouse_hover_context(
             .fixed_pos(screen_pos)
             .title_bar(false)
             .resizable(false)
-            .show(ctx.ctx_mut(), |ui| {
+            .show(ctx.ctx_mut().expect("No Context"), |ui| {
                 if let Ok((_ent, name, asteroid, health, mass, module_type)) =
                     ent_query.get(hover_context_ent)
                 {

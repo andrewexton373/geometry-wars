@@ -38,7 +38,7 @@ pub fn handle_thrust_events(
     mut engine_effect: Query<
         (
             &mut EffectProperties,
-            &mut EffectInitializers,
+            // &mut Effect,
             &mut Transform,
         ),
         With<PlayerShipTrailParticles>,
@@ -60,8 +60,11 @@ pub fn handle_thrust_events(
 
             // Note: On first frame where the effect spawns, EffectSpawner is spawned during
             // PostUpdate, so will not be available yet. Ignore for a frame if so.
-            let Ok((mut properties, mut initializers, mut effect_transform)) =
-                engine_effect.get_single_mut()
+            let Ok((
+                mut properties,
+                //  mut initializers,
+                mut effect_transform,
+            )) = engine_effect.get_single_mut()
             else {
                 return;
             };
@@ -76,7 +79,7 @@ pub fn handle_thrust_events(
             properties.set("thrust_vector", normal.extend(0.).into());
 
             // Spawn the particles
-            initializers.reset();
+            // initializers.reset();
         }
     }
 }

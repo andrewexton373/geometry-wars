@@ -12,7 +12,7 @@ pub fn setup_projectile_impact_particle_system(
     mut effects: ResMut<Assets<EffectAsset>>,
 ) {
     // Set `spawn_immediately` to false to spawn on command with Spawner::reset()
-    let spawner = Spawner::once(100.0.into(), false);
+    let spawner = SpawnerSettings::once(100.0.into());
     let writer = ExprWriter::new();
 
     // Define a color gradient from red to transparent black
@@ -60,14 +60,14 @@ pub fn setup_projectile_impact_particle_system(
     // Render the particles with a color gradient over their
     // lifetime. This maps the gradient key 0 to the particle spawn
     // time, and the gradient key 1 to the particle death (10s).
-    .render(ColorOverLifetimeModifier { gradient });
+    .render(ColorOverLifetimeModifier::new(gradient));
 
     // Insert into the asset system
     let effect_asset = effects.add(effect);
 
     commands.spawn((
         ProjectileImpactParticles,
-        ParticleEffectBundle::new(effect_asset),
+        ParticleEffect::new(effect_asset),
         Name::new("projectile_impact_effect"),
     ));
 }
@@ -78,7 +78,7 @@ pub fn setup_player_ship_trail_particle_system(
     mut effects: ResMut<Assets<EffectAsset>>,
 ) {
     // Set `spawn_immediately` to false to spawn on command with Spawner::reset()
-    let spawner = Spawner::once(100.0.into(), false);
+    let spawner = SpawnerSettings::once(100.0.into());
     let writer = ExprWriter::new();
 
     // Define a color gradient from red to transparent black
@@ -126,14 +126,14 @@ pub fn setup_player_ship_trail_particle_system(
     // Render the particles with a color gradient over their
     // lifetime. This maps the gradient key 0 to the particle spawn
     // time, and the gradient key 1 to the particle death (10s).
-    .render(ColorOverLifetimeModifier { gradient });
+    .render(ColorOverLifetimeModifier::new(gradient));
 
     // Insert into the asset system
     let effect_asset = effects.add(effect);
 
     commands.spawn((
         PlayerShipTrailParticles,
-        ParticleEffectBundle::new(effect_asset),
+        ParticleEffect::new(effect_asset),
         Name::new("ship_trail_particle_system"),
     ));
 }

@@ -1,10 +1,10 @@
 use bevy::asset::RenderAssetUsages;
+use bevy::platform::collections::HashMap;
 use bevy::render::mesh::Indices;
-use bevy::utils::HashMap;
 use bevy::{prelude::*, render::mesh::PrimitiveTopology};
-use rand::{distributions::Distribution, seq::SliceRandom};
+use rand::seq::SliceRandom;
 use rand::{thread_rng, Rng};
-use rand_distr::Normal;
+use rand_distr::{Distribution, Normal};
 use std::{cmp::Ordering, fmt};
 
 #[derive(Component)]

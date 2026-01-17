@@ -1,6 +1,6 @@
 use bevy::{
     app::{App, Plugin, Startup, Update},
-    ecs::schedule::IntoSystemConfigs,
+    ecs::schedule::IntoScheduleConfigs,
     prelude::in_state,
 };
 

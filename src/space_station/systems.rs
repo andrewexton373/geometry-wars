@@ -42,7 +42,7 @@ pub fn init_space_station_module_material_map(
         fabrication_material: materials.add(Color::from(ORANGE_RED)),
         storage_material: materials.add(Color::from(TEAL)),
         turret_material: materials.add(Color::from(PINK)),
-        buildable_material: materials.add(Color::rgba(0.0, 0.0, 0.0, 0.0)),
+        buildable_material: materials.add(Color::srgba(0.0, 0.0, 0.0, 0.0)),
     });
 }
 
@@ -149,24 +149,24 @@ pub fn repel_asteroids_from_space_station(
     const REPEL_RADIUS: f64 = 120.0 * PIXELS_PER_METER;
     const REPEL_STRENGTH: f64 = 25.0;
 
-    let (_base_station, base_station_transform) = base_query.single();
+    if let Ok((_base_station, base_station_transform)) = base_query.single() {
+        for (_asteroid, asteroid_transform, mut asteroid_velocity) in asteroid_query.iter_mut() {
+            let base_station_pos = base_station_transform.translation().truncate();
+            let asteroid_pos = asteroid_transform.translation().truncate();
 
-    for (_asteroid, asteroid_transform, mut asteroid_velocity) in asteroid_query.iter_mut() {
-        let base_station_pos = base_station_transform.translation().truncate();
-        let asteroid_pos = asteroid_transform.translation().truncate();
+            let distance = base_station_pos.distance(asteroid_pos) as f64;
+            let distance_weight: f64 = 1.0 - (distance / REPEL_RADIUS);
 
-        let distance = base_station_pos.distance(asteroid_pos) as f64;
-        let distance_weight: f64 = 1.0 - (distance / REPEL_RADIUS);
-
-        if distance < REPEL_RADIUS {
-            let repel_vector = (asteroid_pos - base_station_pos).normalize();
-            asteroid_velocity.0 += repel_vector.as_dvec2() * distance_weight * REPEL_STRENGTH;
+            if distance < REPEL_RADIUS {
+                let repel_vector = (asteroid_pos - base_station_pos).normalize();
+                asteroid_velocity.0 += repel_vector.as_dvec2() * distance_weight * REPEL_STRENGTH;
+            }
         }
     }
 }
 
 pub fn handle_space_station_collision_event(
-    collisions: Res<Collisions>,
+    collisions: Collisions,
     mut player_query: Query<(Entity, &mut Player), With<Player>>,
     base_station_query: Query<(Entity, &SpaceStation), With<SpaceStation>>,
     mut can_deposit_res: ResMut<CanDeposit>,
@@ -175,8 +175,8 @@ pub fn handle_space_station_collision_event(
     mut charge_events: EventWriter<ChargeBatteryEvent>,
     time: Res<Time>,
 ) {
-    let (player_ent, player) = player_query.single_mut();
-    let (base_station_ent, _base_station) = base_station_query.single();
+    let (player_ent, player) = player_query.single_mut().expect("No Player");
+    let (base_station_ent, _base_station) = base_station_query.single().expect("No Base Station");
 
     if let Some(_collision) = collisions.get(player_ent, base_station_ent) {
         *can_deposit_res = CanDeposit(true);
@@ -201,9 +201,9 @@ pub fn update_space_station_module_context(
     mut space_station_module_context: ResMut<PlayerHoveringSpaceStationModule>,
     player_ship_q: Query<Entity, With<Player>>,
     space_station_module_q: Query<(Entity, &BuildingType), With<SpaceStationModule>>,
-    collisions: Res<Collisions>,
+    collisions: Collisions,
 ) {
-    let player_ent = player_ship_q.single();
+    let player_ent = player_ship_q.single().expect("No Player");
 
     for (module_ent, module_type) in space_station_module_q.iter() {
         if collisions.get(player_ent, module_ent).is_some() {

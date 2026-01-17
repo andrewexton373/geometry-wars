@@ -1,4 +1,4 @@
-use bevy::{ecs::system::Resource, utils::HashSet};
+use bevy::{ecs::resource::Resource, platform::collections::HashSet};
 
 #[derive(Default, Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum ContextClue {

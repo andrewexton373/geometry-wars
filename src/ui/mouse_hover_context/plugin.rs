@@ -1,6 +1,6 @@
 use bevy::{
     app::{App, Plugin, Update},
-    ecs::schedule::IntoSystemConfigs,
+    ecs::schedule::IntoScheduleConfigs,
 };
 
 use super::{

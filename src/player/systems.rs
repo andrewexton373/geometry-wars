@@ -78,7 +78,7 @@ pub fn ship_rotate_towards_mouse(
     mut player_query: Query<(&mut Player, &mut Transform, &mut AngularVelocity)>,
 ) {
     let cursor_pos = mouse_position.0;
-    let (_player, player_trans, mut ang_velocity) = player_query.single_mut();
+    let (_player, player_trans, mut ang_velocity) = player_query.single_mut().expect("No Player");
 
     const SPIN_ACCELERATION: f64 = 500.0;
 
@@ -108,7 +108,8 @@ pub fn player_fire_laser(
     mut laser_event_writer: EventWriter<LaserEvent>,
     mut battery_events: EventWriter<DrainBatteryEvent>,
 ) {
-    let (entity, battery, player_transform, player_global_trans) = player.single_mut();
+    let (entity, battery, player_transform, player_global_trans) =
+        player.single_mut().expect("No Player");
     let player_direction = (player_transform.rotation * Vec3::Y).truncate().normalize();
 
     // Update Line and Opacity When Fired
@@ -164,8 +165,9 @@ pub fn on_upgrade_event(
 ) {
     for event in reader.read() {
         println!("Upgrade Event Detected!");
-        let (_base_station, mut inventory) = base_station_query.single_mut();
-        let (mut player, mut upgrades) = player_query.single_mut();
+        let (_base_station, mut inventory) =
+            base_station_query.single_mut().expect("No Base Station");
+        let (mut player, mut upgrades) = player_query.single_mut().expect("No Player Updates");
 
         let upgrade = event.0;
         println!("{:?}", upgrade);

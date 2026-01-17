@@ -1,9 +1,9 @@
 use avian2d::prelude::*;
+use bevy::platform::collections::HashMap;
 use bevy::prelude::*;
 use bevy::render::mesh::Indices;
 use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::PrimitiveTopology;
-use bevy::utils::hashbrown::HashMap;
 use hexx::{shapes, Hex, HexLayout, PlaneMeshBuilder};
 
 use crate::hexgrid::components::Building;
@@ -24,7 +24,7 @@ pub fn setup_hex_grid(
     mut hex_grid_map: ResMut<HexGridMap>,
 ) {
     let layout = HexLayout {
-        hex_size: HEX_SIZE,
+        scale: HEX_SIZE,
         origin: hexx::Vec2::ZERO,
         ..default()
     };
@@ -173,7 +173,7 @@ pub fn handle_ship_hovering_context(
     player_query: Query<(Entity, &Player, &GlobalTransform)>,
 ) {
     *player_hovering_building = PlayerHoveringBuilding(None);
-    let (_, _, player_gt) = player_query.single();
+    let (_, _, player_gt) = player_query.single().expect("No Player");
 
     let player_pos = player_gt.translation().truncate();
 

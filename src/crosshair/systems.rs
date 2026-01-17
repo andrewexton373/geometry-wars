@@ -7,11 +7,9 @@ use crate::player_input::resources::MouseWorldPosition;
 #[derive(Default, Reflect, GizmoConfigGroup)]
 pub struct CrosshairGizmos;
 
-pub fn crosshair_gizmo_config(
-    mut config_store: ResMut<GizmoConfigStore>,
-) {
+pub fn crosshair_gizmo_config(mut config_store: ResMut<GizmoConfigStore>) {
     let (config, _) = config_store.config_mut::<CrosshairGizmos>();
-    config.line_width = 0.5;
+    config.line.width = 0.5;
 }
 
 const POINTER_SIZE: f32 = 20.0;
@@ -21,7 +19,7 @@ pub fn draw_crosshair(
     player_query: Query<&Transform, With<Player>>,
     mut gizmos: Gizmos<CrosshairGizmos>,
 ) {
-    let player_trans = player_query.single();
+    let player_trans = player_query.single().expect("No Player Transform");
 
     // Player to Mouse Line Segment
     gizmos.line_2d(
@@ -44,4 +42,3 @@ pub fn draw_crosshair(
         Color::from(WHITE),
     );
 }
-

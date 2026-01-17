@@ -126,7 +126,7 @@ impl Plugin for GamePlugin {
             SectorPlugin,
             AsteroidFieldPlugin,
         ))
-        .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
+        .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::new(100))
         .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin)
         .add_plugins(bevy::diagnostic::SystemInformationDiagnosticsPlugin)
         .add_systems(Startup, setup)

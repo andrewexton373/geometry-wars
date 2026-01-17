@@ -24,7 +24,7 @@ pub fn ui_build_mode(
                     };
 
                     Window::new("BUILD MODE").auto_sized().fixed_pos(pos).show(
-                        ctx.ctx_mut(),
+                        ctx.ctx_mut().unwrap(),
                         |ui| {
                             ui.label("BUILD MODE");
                             ui.label(format!("SELECTED HEX: {:?}", selected));

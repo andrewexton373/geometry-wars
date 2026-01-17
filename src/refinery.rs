@@ -169,7 +169,8 @@ impl RefineryPlugin {
         time: Res<Time>,
     ) {
         if let Some(timer) = timer.0.as_mut() {
-            let (_base_station, mut inventory, mut refinery) = base_station_query.single_mut();
+            let (_base_station, mut inventory, mut refinery) =
+                base_station_query.single_mut().expect("No Base Station");
 
             timer.tick(time.delta());
 
@@ -204,7 +205,8 @@ impl RefineryPlugin {
     ) {
         for event in reader.read() {
             println!("Smelt Event Detected!");
-            let (_base_station, inventory, refinery) = base_station_query.single_mut();
+            let (_base_station, inventory, refinery) =
+                base_station_query.single_mut().expect("No Base Station");
 
             let recipe = event.0.clone();
             println!("{:?}", recipe);

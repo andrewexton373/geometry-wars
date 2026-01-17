@@ -32,9 +32,9 @@ pub fn init_materials(
     mut assets: ResMut<Assets<ColorMaterial>>,
 ) {
     *materials = BuildModeMaterials {
-        buildable_hex_material: assets.add(Color::rgba(1.0, 1.0, 1.0, 0.5)),
-        mouse_hover_hex_material: assets.add(Color::rgba(1.0, 1.0, 1.0, 0.7)),
-        selected_hex_material: assets.add(Color::rgba(1.0, 1.0, 1.0, 0.9)),
+        buildable_hex_material: assets.add(Color::srgba(1.0, 1.0, 1.0, 0.5)),
+        mouse_hover_hex_material: assets.add(Color::srgba(1.0, 1.0, 1.0, 0.7)),
+        selected_hex_material: assets.add(Color::srgba(1.0, 1.0, 1.0, 0.9)),
     }
 }
 

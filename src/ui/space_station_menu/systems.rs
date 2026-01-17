@@ -17,9 +17,9 @@ pub fn ui_space_station_menu(
 ) {
     Window::new("Space Station Information")
         .anchor(Align2::RIGHT_BOTTOM, Vec2 { x: 0.0, y: 0.0 })
-        .show(ctx.ctx_mut(), |ui| {
+        .show(ctx.ctx_mut().expect("No Context"), |ui| {
             ui.group(|ui| {
-                let (_, upgrades) = player_query.single();
+                let (_, upgrades) = player_query.single().expect("No Player");
 
                 ui.heading("Ship Upgrades:");
 

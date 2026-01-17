@@ -1,9 +1,9 @@
 use avian2d::prelude::{LayerMask, PhysicsLayer, SpatialQuery, SpatialQueryFilter};
 use bevy::color::palettes::css::RED;
-use bevy::ecs::entity::EntityHash;
+use bevy::ecs::entity::{EntityHash, EntityHashSet};
+use bevy::platform::collections::HashSet;
 use bevy::prelude::*;
-use bevy::utils::hashbrown::HashSet;
-use bevy_hanabi::{EffectInitializers, EffectProperties};
+use bevy_hanabi::{EffectProperties, Value, VectorValue};
 // use bevy_particle_systems::Playing;
 
 use super::components::Laser;
@@ -33,19 +33,12 @@ pub fn fire_laser_raycasting(
     spatial_query: SpatialQuery,
     mut damage_events: EventWriter<DamageEvent>,
     mut gizmos: Gizmos,
-    mut effect: Query<
-        (
-            &mut EffectProperties,
-            &mut EffectInitializers,
-            &mut Transform,
-        ),
-        With<ProjectileImpactParticles>,
-    >,
+    mut effect: Query<(&mut EffectProperties, &mut Transform), With<ProjectileImpactParticles>>,
 ) {
-    let player_ent = player_q.single();
+    let player_ent = player_q.single().expect("No Player");
 
     // Exclude Player from Raycasting
-    let excluded_entities: HashSet<Entity, EntityHash> = vec![player_ent].into_iter().collect();
+    let excluded_entities: EntityHashSet = vec![player_ent].into_iter().collect();
 
     for fire_laser_event in laser_event_reader.read() {
         let laser_active = fire_laser_event.0;
@@ -77,16 +70,14 @@ pub fn fire_laser_raycasting(
                     normal: -ray_dir,
                 });
 
-                damage_events.send(DamageEvent {
+                damage_events.write(DamageEvent {
                     entity: hit_ent,
                     damage: 5.0,
                 });
 
                 // Note: On first frame where the effect spawns, EffectSpawner is spawned during
                 // PostUpdate, so will not be available yet. Ignore for a frame if so.
-                let Ok((mut properties, mut initializers, mut effect_transform)) =
-                    effect.get_single_mut()
-                else {
+                let Ok((mut properties, mut effect_transform)) = effect.get_single_mut() else {
                     return;
                 };
 
@@ -95,10 +86,13 @@ pub fn fire_laser_raycasting(
                 // Set the collision normal
                 let normal = hit_normal.as_vec2().normalize();
                 // info!("Collision: n={:?}", normal);
-                properties.set("normal", normal.extend(0.).into());
+                // properties.set(
+                //     "normal",
+                //     Value::Vector(VectorValue::new_vec3(normal.extend(0.))),
+                // );
 
                 // Spawn the particles
-                initializers.reset();
+                // initializers.reset();
             } else {
                 // Laser Hit Nothing
                 gizmos.line_2d(ray_pos, ray_pos + ray_dir * 10000.0, Color::from(RED));

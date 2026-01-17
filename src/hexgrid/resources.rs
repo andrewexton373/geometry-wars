@@ -1,6 +1,6 @@
 use bevy::{
-    ecs::{entity::Entity, system::Resource},
-    utils::HashMap,
+    ecs::{entity::Entity, resource::Resource},
+    platform::collections::HashMap,
 };
 use hexx::{Hex, HexLayout};
 

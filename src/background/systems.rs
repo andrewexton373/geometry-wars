@@ -22,17 +22,17 @@ pub fn parallax_layers(
     mut layers: Query<(&Layer, &mut Transform)>,
     camera_velocity: Query<&LinearVelocity, With<GameCamera>>,
 ) {
-    let velocity = camera_velocity.single();
-
-    for (layer, mut transform) in layers.iter_mut() {
-        // Transform Each Layer Correlated to Player Linear Velocity
-        *transform = Transform {
-            translation: (transform.translation.truncate()
-                + velocity.xy().as_vec2() / (600.0 * layer.0 as f32))
-                .extend(0.0),
-            rotation: transform.rotation,
-            scale: transform.scale,
-        };
+    if let Ok(velocity) = camera_velocity.single() {
+        for (layer, mut transform) in layers.iter_mut() {
+            // Transform Each Layer Correlated to Player Linear Velocity
+            *transform = Transform {
+                translation: (transform.translation.truncate()
+                    + velocity.xy().as_vec2() / (600.0 * layer.0 as f32))
+                    .extend(0.0),
+                rotation: transform.rotation,
+                scale: transform.scale,
+            };
+        }
     }
 }
 
@@ -42,7 +42,7 @@ pub fn generate_background_on_sector_add(
     mut commands: Commands,
     layers: Query<(Entity, &Layer), With<Layer>>,
 ) {
-    let sector = sectors.get(trigger.entity()).unwrap();
+    let sector = sectors.get(trigger.target()).unwrap();
 
     for (layer_ent, layer) in layers.iter() {
         generate_sector(commands.borrow_mut(), layer_ent, layer, sector);
@@ -55,7 +55,7 @@ pub fn destroy_background_on_sector_remove(
     sectors: Query<&Sector>,
     background_sectors: Query<(Entity, &BackgroundSector)>,
 ) {
-    let sector = sectors.get(trigger.entity()).unwrap();
+    let sector = sectors.get(trigger.target()).unwrap();
 
     for (entity, _bg_sector_to_remove) in background_sectors
         .into_iter()

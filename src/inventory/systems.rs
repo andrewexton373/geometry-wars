@@ -34,8 +34,10 @@ pub fn handle_deposit_inventory_event(
     mut empty_deposit_timer: ResMut<EmptyInventoryDepositTimer>,
 ) {
     for _ in events.read() {
-        let mut player_inventory = player_query.single_mut();
-        let mut base_station_inventory = base_station_query.single_mut();
+        let mut player_inventory = player_query.single_mut().expect("No Player Inventory");
+        let mut base_station_inventory = base_station_query
+            .single_mut()
+            .expect("No Base Station Inventory");
 
         if player_inventory.items.is_empty() {
             let timer = empty_deposit_timer.as_mut();

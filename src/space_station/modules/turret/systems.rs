@@ -1,6 +1,5 @@
 use bevy::{
-    ecs::{entity::Entity, query::With, system::Query},
-    hierarchy::Parent,
+    ecs::{entity::Entity, hierarchy::ChildOf, query::With, system::Query},
     math::{Quat, Vec2, Vec3},
     transform::components::{GlobalTransform, Transform},
 };
@@ -11,7 +10,7 @@ use super::components::Turret;
 
 pub fn update_turret_weapons(
     enemies: Query<(Entity, &GlobalTransform), With<Enemy>>,
-    mut turrets: Query<(&Parent, &mut Transform, &GlobalTransform), With<Turret>>,
+    mut turrets: Query<(&ChildOf, &mut Transform, &GlobalTransform), With<Turret>>,
 ) {
     for (_, mut turret_transform, gt) in turrets.iter_mut() {
         let mut nearest_enemy: Option<(Entity, f32, Vec2)> = None;

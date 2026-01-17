@@ -63,7 +63,7 @@ pub fn update_valid_sector_bounds(
     camera_viewport: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
     mut bounds: ResMut<ValidSectorBounds>,
 ) {
-    let (camera, camera_gt) = camera_viewport.single();
+    let (camera, camera_gt) = camera_viewport.single().expect("No Camera");
 
     // Get viewport bounds in worldspace
     let bottom_left = camera
@@ -109,19 +109,21 @@ pub fn generate_visible_sectors(
             let sector = Sector { i, j };
             // info!("GENERATING SECTOR: {:?}", sector);
 
-            commands.entity(parent.single()).with_child((
-                sector,
-                Transform::from_xyz(
-                    sector.i as f32 * SECTOR_SIZE,
-                    sector.j as f32 * SECTOR_SIZE,
-                    -10.0,
-                ),
-                // RigidBody::Static,
-                // Sensor,
-                // Collider::rectangle(SECTOR_SIZE as f64, SECTOR_SIZE as f64),
-                // DebugRender::default().with_collider_color(BLUE.into()),
-                Visibility::Inherited,
-            ));
+            commands
+                .entity(parent.single().expect("No Parent for Sector"))
+                .with_child((
+                    sector,
+                    Transform::from_xyz(
+                        sector.i as f32 * SECTOR_SIZE,
+                        sector.j as f32 * SECTOR_SIZE,
+                        -10.0,
+                    ),
+                    // RigidBody::Static,
+                    // Sensor,
+                    // Collider::rectangle(SECTOR_SIZE as f64, SECTOR_SIZE as f64),
+                    // DebugRender::default().with_collider_color(BLUE.into()),
+                    Visibility::Inherited,
+                ));
         }
     }
 }
@@ -145,6 +147,6 @@ fn destroy_invalid_sectors(
     // Despawn each invalid sector
     for (entity, sector) in invalid_sectors {
         // info!("DESTROYING SECTOR: {:?}", sector);
-        commands.entity(entity).try_despawn_recursive();
+        commands.entity(entity).despawn();
     }
 }

@@ -181,7 +181,8 @@ impl FactoryPlugin {
         time: Res<Time>,
     ) {
         if let Some(timer) = timer.0.as_mut() {
-            let (_base_station, mut inventory, mut factory) = base_station_query.single_mut();
+            let (_base_station, mut inventory, mut factory) =
+                base_station_query.single_mut().expect("No Base Station");
 
             timer.tick(time.delta());
 
@@ -216,7 +217,8 @@ impl FactoryPlugin {
     ) {
         for event in reader.read() {
             println!("Craft Event Detected!");
-            let (_base_station, inventory, factory) = base_station_query.single_mut();
+            let (_base_station, inventory, factory) =
+                base_station_query.single_mut().expect("No Base Station");
 
             let recipe = event.0.clone();
             println!("{:?}", recipe);

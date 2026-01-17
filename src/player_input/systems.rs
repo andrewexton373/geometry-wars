@@ -18,9 +18,9 @@ pub fn update_mouse_world_position_resource(
     _cursor_event: EventReader<CursorMoved>,
     q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
 ) {
-    let window = window_query.single();
+    let window = window_query.single().expect("No Window");
 
-    let (camera, camera_transform) = q_camera.single();
+    let (camera, camera_transform) = q_camera.single().expect("No Camera");
 
     if let Some(world_position) = window
         .cursor_position()
@@ -36,7 +36,7 @@ pub fn update_mouse_screen_position_resource(
     window_query: Query<&Window, With<PrimaryWindow>>,
     _cursor_event: EventReader<CursorMoved>,
 ) {
-    let window = window_query.single();
+    let window = window_query.single().expect("No Window");
     if let Some(pos) = window.cursor_position() {
         *mouse_position = MouseScreenPosition(pos);
     }
@@ -104,11 +104,11 @@ pub fn scroll_events(
 pub fn player_camera_control(
     kb: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
-    mut query: Query<&mut OrthographicProjection, With<Camera2d>>,
+    mut projection: Single<&mut Projection, With<Camera2d>>,
 ) {
     let dist = 0.75 * time.delta().as_secs_f32();
 
-    for mut projection in query.iter_mut() {
+    if let Projection::Orthographic(projection) = &mut **projection {
         let mut log_scale = projection.scale.ln();
 
         if kb.pressed(KeyCode::Period) {
@@ -119,7 +119,22 @@ pub fn player_camera_control(
         }
 
         projection.scale = log_scale.exp();
+    } else {
+        return;
     }
+
+    // for mut projection in query.iter_mut() {
+    //     let mut log_scale = projection.scale.ln();
+
+    //     if kb.pressed(KeyCode::Period) {
+    //         log_scale -= dist;
+    //     }
+    //     if kb.pressed(KeyCode::Comma) {
+    //         log_scale += dist;
+    //     }
+
+    //     projection.scale = log_scale.exp();
+    // }
 }
 
 pub fn player_movement_input_handling(
@@ -127,7 +142,7 @@ pub fn player_movement_input_handling(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut player_query: Query<Entity, With<Player>>,
 ) {
-    let entity = player_query.single_mut();
+    let entity = player_query.single_mut().expect("No Player");
 
     let mut thrust_vector: Vec2 = Vec2::ZERO;
 
@@ -176,7 +191,7 @@ pub fn grab_mouse(
     mouse: Res<ButtonInput<MouseButton>>,
     key: Res<ButtonInput<KeyCode>>,
 ) {
-    let mut window = windows.single_mut();
+    let mut window = windows.single_mut().expect("No Window");
 
     if mouse.just_pressed(MouseButton::Left) {
         window.cursor_options.visible = false;

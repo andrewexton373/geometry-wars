@@ -41,10 +41,10 @@ pub fn ui_ship_hover_context(
             Align2::RIGHT_BOTTOM,
             bevy_egui::egui::Vec2 { x: 0.0, y: 0.0 },
         )
-        .show(ctx.ctx_mut(), |ui| {
+        .show(ctx.ctx_mut().expect("Context Not Okay"), |ui| {
             ui.group(|ui| {
                 ui.heading(format!("Ship Hovering Over {:?}", building));
-                let inventory = inventory_query.single();
+                let inventory = inventory_query.single().expect("No Inventory");
 
                 match building {
                     &BuildingType::None => {
@@ -58,7 +58,7 @@ pub fn ui_ship_hover_context(
                             for button in buttons {
                                 if ui.button(button.0).clicked() {
                                     println!("SEND EVENT");
-                                    build_event.send(BuildHexBuildingEvent(
+                                    build_event.write(BuildHexBuildingEvent(
                                         player_hovering_building.0.unwrap().0,
                                         button.1,
                                     ));
@@ -68,7 +68,7 @@ pub fn ui_ship_hover_context(
                     }
                     BuildingType::Factory => {
                         ui.group(|ui| {
-                            let factory = factory_query.single();
+                            let factory = factory_query.single().expect("No Factory");
 
                             if let Some(recipe) = &factory.currently_processing {
                                 ui.group(|ui| {
@@ -111,7 +111,7 @@ pub fn ui_ship_hover_context(
                                             ));
 
                                             if ui.button("Craft").clicked() {
-                                                craft_events.send(CraftEvent(recipe.clone()));
+                                                craft_events.write(CraftEvent(recipe.clone()));
                                             }
                                         })
                                     });
@@ -121,7 +121,7 @@ pub fn ui_ship_hover_context(
                     }
                     BuildingType::Refinery => {
                         ui.group(|ui| {
-                            let refinery = refinery_query.single();
+                            let refinery = refinery_query.single().expect("No Refinery");
 
                             if let Some(recipe) = &refinery.currently_processing {
                                 ui.group(|ui| {
@@ -162,7 +162,7 @@ pub fn ui_ship_hover_context(
                                             ));
 
                                             if ui.button("Smelt").clicked() {
-                                                smelt_events.send(SmeltEvent(recipe.clone()));
+                                                smelt_events.write(SmeltEvent(recipe.clone()));
                                             }
                                         })
                                     });
@@ -171,7 +171,7 @@ pub fn ui_ship_hover_context(
                         });
                     }
                     BuildingType::Storage => {
-                        let inventory = inventory_query.single();
+                        let inventory = inventory_query.single().expect("No Inventory");
 
                         ui.group(|ui| {
                             ui.heading("Base Station Inventory:");

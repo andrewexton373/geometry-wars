@@ -1,4 +1,4 @@
-use bevy::{ecs::system::Resource, time::Timer};
+use bevy::{ecs::resource::Resource, time::Timer};
 
 #[derive(Resource)]
 pub struct InventoryFullNotificationTimer(pub Option<Timer>);

@@ -24,7 +24,7 @@ pub fn absorb_egui_inputs(
     mut mouse: ResMut<ButtonInput<MouseButton>>,
     // mut keyboard: ResMut<ButtonInput<KeyCode>>,
 ) {
-    let ctx = contexts.ctx_mut();
+    let ctx = contexts.ctx_mut().expect("No Context");
     if ctx.is_pointer_over_area() {
         mouse.reset_all();
     }

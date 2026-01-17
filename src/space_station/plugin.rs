@@ -24,6 +24,7 @@ impl Plugin for SpaceStationPlugin {
                 (
                     init_space_station_module_material_map,
                     (init_space_station_core, init_space_station_turret)
+                        .chain()
                         .after(setup_hex_grid)
                         .after(init_space_station_module_material_map),
                 ),

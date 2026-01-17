@@ -13,6 +13,7 @@ use bevy::{
 };
 // use bevy_particle_systems::Playing;
 use avian2d::{
+    collision::collider::contact_query,
     math::{Scalar, Vector, PI},
     prelude::*,
 };
@@ -50,8 +51,9 @@ pub fn spawn_asteroids_aimed_at_ship(
         asteroid_spawner.timer.reset();
 
         let mut rng = rand::thread_rng();
-        let (_player, player_g_transform) = player_query.single();
-        let (_base_station, base_station_g_transform) = base_station_query.single();
+        let (_player, player_g_transform) = player_query.single().expect("No Player");
+        let (_base_station, base_station_g_transform) =
+            base_station_query.single().expect("No Base Station");
 
         let distance_to_base_station =
             (player_g_transform.translation() - base_station_g_transform.translation()).length();
@@ -90,12 +92,12 @@ pub fn tag_small_asteroids_as_collectible(
     mut commands: Commands,
     asteroid_query: Query<(Entity, &Mass), With<Asteroid>>,
 ) {
-    let asteroid_ent = trigger.entity();
+    let asteroid_ent = trigger.target();
 
     if let Ok((_, mass)) = asteroid_query.get(asteroid_ent) {
         if mass.0 <= THRESHOLD_COLLECTIBLE_MASS {
             info!("{:?} THRESHOLD HIT -> COLLECTIBLE", mass.0);
-            if let Some(mut ent_commands) = commands.get_entity(asteroid_ent) {
+            if let Ok(mut ent_commands) = commands.get_entity(asteroid_ent) {
                 ent_commands.insert(Collectible);
                 ent_commands.insert(CollisionLayers::new(
                     [GameLayer::Collectible],
@@ -113,7 +115,7 @@ pub fn update_collectible_material_color(
     asteroid_query: Query<(Entity, &Asteroid), With<Collectible>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    let ent = trigger.entity();
+    let ent = trigger.target();
     // info!("UPDATE COLLECTIBLE FOR: {:?}", ent);
     // info!("{:?}", asteroid_query.iter().count());
 
@@ -145,25 +147,25 @@ pub fn despawn_far_asteroids(
     player_query: Query<(&Player, &Transform), (With<Player>, Without<Asteroid>)>,
 ) {
     const DESPAWN_DISTANCE: f32 = 1000.0 * PIXELS_PER_METER as f32;
-    let (_player, transform) = player_query.single();
+    let (_player, transform) = player_query.single().expect("No Player");
     let player_position = transform.translation.truncate();
 
     for (entity, _asteroid, transform, sleeping) in asteroid_query.iter() {
         let asteroid_position = transform.translation.truncate();
         if player_position.distance(asteroid_position) > DESPAWN_DISTANCE && sleeping.is_some() {
-            commands.entity(entity).try_despawn_recursive();
+            commands.entity(entity).despawn();
         }
     }
 }
 
 pub fn handle_collectible_collision_event(
     mut commands: Commands,
-    collisions: Res<Collisions>,
+    collisions: Collisions,
     asteroid_query: Query<(Entity, &Asteroid, &Mass), With<Collectible>>,
     mut player_query: Query<(Entity, &mut Inventory), With<Player>>,
     mut inventory_full_notification: ResMut<InventoryFullNotificationTimer>,
 ) {
-    let (player_ent, mut inventory) = player_query.single_mut();
+    let (player_ent, mut inventory) = player_query.single_mut().expect("No Player");
 
     for (asteroid_ent, asteroid, mass) in asteroid_query.iter() {
         for _ in collisions.get(player_ent, asteroid_ent).iter() {
@@ -177,25 +179,25 @@ pub fn handle_collectible_collision_event(
             }
 
             // FIXME: will despawn even if there's no room in inventory to collect.
-            commands.entity(asteroid_ent).try_despawn_recursive();
+            commands.entity(asteroid_ent).despawn();
         }
     }
 }
 
 pub fn handle_asteroid_collision_event(
-    collisions: Res<Collisions>,
+    collisions: Collisions,
     mut asteroid_query: Query<Entity, (With<Asteroid>, Without<Collectible>)>,
     mut player_query: Query<Entity, With<Player>>,
     mut damage_events: EventWriter<DamageEvent>,
 ) {
-    let player_ent = player_query.single_mut();
+    let player_ent = player_query.single_mut().expect("No Player");
 
     for asteroid_entity in asteroid_query.iter_mut() {
         if let Some(collision) = collisions.get(player_ent, asteroid_entity) {
             let damage_scale = 0.01;
-            let damage = -((collision.manifolds[0].contacts[0].penetration * damage_scale) - 0.1);
+            let damage = -((collision.manifolds[0].points[0].penetration * damage_scale) - 0.1);
 
-            damage_events.send(DamageEvent {
+            damage_events.write(DamageEvent {
                 entity: player_ent,
                 damage: damage as f32,
             });
@@ -228,7 +230,7 @@ pub fn ablate_asteroids_events(
     mut damage_indicator_events: EventWriter<DamageIndicatorEvent>,
 ) {
     for ablate_event in events.read() {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         if let Ok((ent, mut asteroid_health, _g_trans)) =
             asteroids_query.get_mut(ablate_event.entity)
@@ -237,7 +239,7 @@ pub fn ablate_asteroids_events(
             asteroid_health.set_current(damaged_health);
 
             if damaged_health < 0.0 {
-                commands.entity(ent).try_despawn_recursive();
+                commands.entity(ent).despawn();
             }
 
             let n: u8 = rng.gen();
@@ -252,7 +254,7 @@ pub fn ablate_asteroids_events(
                 ..default()
             };
 
-            damage_indicator_events.send(DamageIndicatorEvent {
+            damage_indicator_events.write(DamageIndicatorEvent {
                 damage: 1.0,
                 traslation: translation,
             });
@@ -265,15 +267,15 @@ pub fn ablate_asteroids_events(
 
             let max_jitter_angle = 60.0;
 
-            let mut rng = rand::thread_rng();
+            let mut rng = rand::rng();
             let jitter_angle =
-                rng.gen_range(-max_jitter_angle..max_jitter_angle) * (PI / 180.0) as f32;
+                rng.random_range(-max_jitter_angle..max_jitter_angle) * (PI / 180.0) as f32;
             let rotation_matrix = bevy::math::Mat2::from_angle(jitter_angle);
             let rotated_x = rotation_matrix.x_axis.dot(ablate_event.normal);
             let rotated_y = rotation_matrix.y_axis.dot(ablate_event.normal);
             let jitter_normal = DVec2::new(rotated_x as f64, rotated_y as f64);
 
-            let jitter_velocity = rng.gen_range(200.0..400.0);
+            let jitter_velocity = rng.random_range(200.0..400.0);
 
             commands.send_event(SpawnAsteroidEvent(
                 asteroid.clone(),
@@ -296,9 +298,9 @@ pub fn split_asteroids_over_split_ratio(
 }
 fn random_normalized_vec2() -> DVec2 {
     // Generate random components for x and y
-    let mut rng = rand::thread_rng();
-    let x: f64 = rng.gen_range(-1.0..1.0); // Random x between -1 and 1
-    let y: f64 = rng.gen_range(-1.0..1.0); // Random y between -1 and 1
+    let mut rng = rand::rng();
+    let x: f64 = rng.random_range(-1.0..1.0); // Random x between -1 and 1
+    let y: f64 = rng.random_range(-1.0..1.0); // Random y between -1 and 1
 
     // Create a random vector
     let random_vec = DVec2::new(x, y);
@@ -336,7 +338,7 @@ pub fn split_asteroid_events(
                 LinearVelocity(right_velocity),
             ));
 
-            commands.entity(asteroid_ent).try_despawn_recursive();
+            commands.entity(asteroid_ent).despawn();
         }
     }
 }

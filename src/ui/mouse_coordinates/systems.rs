@@ -14,7 +14,7 @@ pub fn ui_mouse_coordinates(
         .anchor(Align2::RIGHT_TOP, Vec2::ZERO)
         .title_bar(false)
         .resizable(false)
-        .show(ctx.ctx_mut(), |ui| {
+        .show(ctx.ctx_mut().expect("No Context"), |ui| {
             ui.group(|ui| {
                 ui.label(format!(
                     "X:{:.2} Y:{:.2}",

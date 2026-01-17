@@ -41,9 +41,11 @@ pub fn guide_player_to_space_station(
 ) {
     const FADE_DISTANCE: f32 = 500.0;
 
-    let (mut dir_indicator_transform, mut material) = dir_indicator_query.single_mut();
-    let (_player, player_trans) = player_query.single();
-    let (_base_station, base_station_trans) = base_query.single();
+    let (mut dir_indicator_transform, mut material) = dir_indicator_query
+        .single_mut()
+        .expect("No Direction Indicator");
+    let (_player, player_trans) = player_query.single().expect("No Player");
+    let (_base_station, base_station_trans) = base_query.single().expect("No Base Station");
 
     let player_pos = player_trans.translation().truncate();
     let base_station_pos = base_station_trans.translation().truncate();

@@ -14,13 +14,13 @@ pub fn ui_ship_information(
     player_query: Query<(&Player, &Health, &Battery, &LinearVelocity), With<Player>>,
     mut ctx: EguiContexts,
 ) {
-    let (player, health, battery, velocity) = player_query.single();
+    let (player, health, battery, velocity) = player_query.single().expect("No Player");
 
     Window::new("Ship Information")
         .anchor(Align2::LEFT_TOP, Vec2 { x: 0.0, y: 0.0 })
         .title_bar(false)
         .resizable(false)
-        .show(ctx.ctx_mut(), |ui| {
+        .show(ctx.ctx_mut().expect("No Context"), |ui| {
             ui.vertical_centered_justified(|ui| {
                 ui.horizontal(|ui| {
                     ui.group(|ui| {

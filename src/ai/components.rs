@@ -1,7 +1,6 @@
 use bevy::prelude::*;
-use big_brain::prelude::*;
 
-#[derive(Debug, Clone, Component, ScorerBuilder)]
+#[derive(Debug, Clone, Component)]
 pub struct Hostile;
 
 #[derive(Component, Debug)]
@@ -19,12 +18,12 @@ impl Hostility {
     }
 }
 
-#[derive(Clone, Component, Debug, ActionBuilder)]
+#[derive(Clone, Component, Debug)]
 pub struct Attack {
     pub per_second: f32,
 }
 
-#[derive(Clone, Component, Debug, ActionBuilder)]
+#[derive(Clone, Component, Debug)]
 pub struct MoveTowardsPlayer {
     pub speed: f32,
 }
