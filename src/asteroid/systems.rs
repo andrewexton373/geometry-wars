@@ -187,14 +187,20 @@ pub fn handle_collectible_collision_event(
 pub fn handle_asteroid_collision_event(
     collisions: Collisions,
     mut asteroid_query: Query<Entity, (With<Asteroid>, Without<Collectible>)>,
-    mut player_query: Query<Entity, With<Player>>,
+    player_query: Single<Entity, With<Player>>,
     mut damage_events: MessageWriter<DamageEvent>,
 ) {
-    let player_ent = player_query.single_mut().expect("No Player");
+    let player_ent = player_query.entity();
 
     for asteroid_entity in asteroid_query.iter_mut() {
         if let Some(collision) = collisions.get(player_ent, asteroid_entity) {
             let damage_scale = 0.01;
+
+            // prevents a panic when manifolds is empty
+            if collision.manifolds.is_empty() {
+                return;
+            }
+
             let damage = -((collision.manifolds[0].points[0].penetration * damage_scale) - 0.1);
 
             damage_events.write(DamageEvent {
