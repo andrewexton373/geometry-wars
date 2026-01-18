@@ -4,6 +4,7 @@
     // "CARGO_TARGET_DIR": "/cache/rust-analyzer"
   },
   "rust-analyzer.check.command": "clippy",
+  // "rust-analyzer.rustup.toolchain": "nightly",
   // "rust-analyzer.check.extraArgs": [
   //   "-- -D warnings --target-dir target/check"
   // ],

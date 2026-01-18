@@ -1,8 +1,8 @@
 use avian2d::prelude::*;
+use bevy::asset::RenderAssetUsages;
+use bevy::mesh::Indices;
 use bevy::platform::collections::HashMap;
 use bevy::prelude::*;
-use bevy::render::mesh::Indices;
-use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::PrimitiveTopology;
 use hexx::{shapes, Hex, HexLayout, PlaneMeshBuilder};
 
@@ -191,7 +191,7 @@ pub fn handle_ship_hovering_context(
 
 pub fn handle_build_events(
     mut commands: Commands,
-    mut build_events: EventReader<BuildHexBuildingEvent>,
+    mut build_events: MessageReader<BuildHexBuildingEvent>,
 ) {
     for evt in build_events.read() {
         println!("HANDLING!");

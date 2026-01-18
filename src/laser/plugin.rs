@@ -9,7 +9,7 @@ pub struct LaserPlugin;
 
 impl Plugin for LaserPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<LaserEvent>()
+        app.add_message::<LaserEvent>()
             .add_systems(Startup, setup_laser)
             .add_systems(
                 Update,

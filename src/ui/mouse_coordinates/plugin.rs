@@ -1,4 +1,4 @@
-use bevy::app::{App, Plugin, Update};
+use bevy::app::{App, Plugin};
 use bevy_egui::EguiPrimaryContextPass;
 
 use super::systems::ui_mouse_coordinates;

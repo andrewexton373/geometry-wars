@@ -12,7 +12,7 @@ pub const PROJECTILE_RADIUS: f64 = 0.160;
 pub fn handle_fire_projectile_events(
     mut commands: Commands,
     global_transforms: Query<&GlobalTransform>,
-    mut events: EventReader<FireProjectileEvent>,
+    mut events: MessageReader<FireProjectileEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
@@ -54,14 +54,14 @@ pub fn handle_fire_projectile_events(
 pub fn handle_projectile_collision_event(
     mut commands: Commands,
     projectile_query: Query<(Entity, &CollidingEntities), With<Projectile>>,
-    mut damage_events: EventWriter<DamageEvent>,
+    mut damage_events: MessageWriter<DamageEvent>,
 ) {
     let mut projectiles_to_remove: Vec<Entity> = Vec::new();
 
     for (projectile_ent, _projectile) in projectile_query.iter() {
         if let Ok((_, colliding_entities)) = projectile_query.get(projectile_ent) {
             for colliding_entity in colliding_entities.iter() {
-                damage_events.send(DamageEvent {
+                damage_events.write(DamageEvent {
                     entity: *colliding_entity,
                     damage: 5.0,
                 });
@@ -74,6 +74,6 @@ pub fn handle_projectile_collision_event(
 
     // Remove Projectiles that experienced a collision.
     for projectile_to_remove in projectiles_to_remove.iter() {
-        commands.entity(*projectile_to_remove).despawn_recursive();
+        commands.entity(*projectile_to_remove).despawn();
     }
 }

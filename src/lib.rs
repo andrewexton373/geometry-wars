@@ -1,30 +1,30 @@
-pub(crate) mod ai;
-pub(crate) mod asteroid;
-pub(crate) mod asteroid_field;
-pub(crate) mod background;
-pub(crate) mod battery;
-pub(crate) mod camera;
-pub(crate) mod collectible;
-pub(crate) mod crosshair;
-pub(crate) mod events;
-pub(crate) mod factory;
-pub(crate) mod health;
-pub(crate) mod hexgrid;
-pub(crate) mod inventory;
-pub(crate) mod item_producer;
-pub(crate) mod items;
-pub(crate) mod laser;
-pub(crate) mod particles;
-pub(crate) mod player;
-pub(crate) mod player_input;
-pub(crate) mod projectile;
-pub(crate) mod rcs;
-pub(crate) mod recipe;
-pub(crate) mod refinery;
-pub(crate) mod sector;
-pub(crate) mod space_station;
-pub(crate) mod ui;
-pub(crate) mod upgrades;
+mod ai;
+mod asteroid;
+mod asteroid_field;
+mod background;
+mod battery;
+mod camera;
+mod collectible;
+mod crosshair;
+mod events;
+mod factory;
+mod health;
+mod hexgrid;
+mod inventory;
+mod item_producer;
+mod items;
+mod laser;
+mod particles;
+mod player;
+mod player_input;
+mod projectile;
+mod rcs;
+mod recipe;
+mod refinery;
+mod sector;
+mod space_station;
+mod ui;
+mod upgrades;
 
 use asteroid_field::AsteroidFieldPlugin;
 use avian2d::{
@@ -34,7 +34,6 @@ use avian2d::{
 use bevy::prelude::*;
 use bevy_hanabi::HanabiPlugin;
 
-use ai::plugin::AiPlugin;
 use background::plugin::BackgroundPlugin;
 use sector::SectorPlugin;
 
@@ -48,7 +47,6 @@ use factory::FactoryPlugin;
 use health::plugin::HealthPlugin;
 use hexgrid::plugin::HexBasePlugin;
 use inventory::plugin::InventoryPlugin;
-use iyes_perf_ui::prelude::*;
 use particles::plugin::ParticlePlugin;
 use player::plugin::PlayerPlugin;
 use player_input::plugin::PlayerInputPlugin;
@@ -97,7 +95,7 @@ impl Plugin for GamePlugin {
             HanabiPlugin,
             PhysicsPlugins::default(),
             PhysicsDebugPlugin::default(),
-            PerfUiPlugin,
+            // PerfUiPlugin,
         ))
         .add_plugins((
             HexBasePlugin,
@@ -126,9 +124,11 @@ impl Plugin for GamePlugin {
             SectorPlugin,
             AsteroidFieldPlugin,
         ))
-        .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::new(100))
-        .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin)
-        .add_plugins(bevy::diagnostic::SystemInformationDiagnosticsPlugin)
+        // .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::new(100))
+        // .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin {
+        //     max_history_length: 100,
+        // })
+        // .add_plugins(bevy::diagnostic::SystemInformationDiagnosticsPlugin)
         .add_systems(Startup, setup)
         .insert_resource(Gravity::ZERO)
         .init_state::<AppState>();
@@ -136,5 +136,5 @@ impl Plugin for GamePlugin {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(PerfUiAllEntries::default());
+    // commands.spawn(PerfUiAllEntries::default());
 }

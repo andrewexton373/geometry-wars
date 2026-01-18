@@ -1,6 +1,9 @@
-use bevy::{ecs::event::Event, transform::components::Transform};
+use bevy::{
+    ecs::{event::Event, message::Message},
+    transform::components::Transform,
+};
 
-#[derive(Event)]
+#[derive(Event, Message)]
 pub struct DamageIndicatorEvent {
     pub damage: f32,
     pub traslation: Transform,

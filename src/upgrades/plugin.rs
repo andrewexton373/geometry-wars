@@ -6,6 +6,6 @@ pub struct UpgradesPlugin;
 
 impl Plugin for UpgradesPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<UpgradeEvent>();
+        app.add_message::<UpgradeEvent>();
     }
 }

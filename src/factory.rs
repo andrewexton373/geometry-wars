@@ -112,7 +112,7 @@ pub struct FactoryPlugin;
 
 impl Plugin for FactoryPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<CraftEvent>()
+        app.add_message::<CraftEvent>()
             .insert_resource(FactoryTimer(None))
             .add_systems(
                 Update,
@@ -154,7 +154,7 @@ impl FactoryPlugin {
         inventory: Mut<Inventory>,
         recipe: &Recipe,
         mut factory: Mut<Factory>,
-        timer: &mut ResMut<FactoryTimer>,
+        timer: &mut FactoryTimer,
     ) {
         if Self::have_materials_to_craft(inventory.as_ref(), recipe) {
             println!("We have the materials!");
@@ -208,7 +208,7 @@ impl FactoryPlugin {
 
     /// Perfom a smelt action with a recipe provided by the SmeltEvent.
     fn on_craft_event(
-        mut reader: EventReader<CraftEvent>,
+        mut reader: MessageReader<CraftEvent>,
         mut base_station_query: Query<
             (&SpaceStation, &mut Inventory, &mut Factory),
             With<SpaceStation>,

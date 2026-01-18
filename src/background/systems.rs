@@ -37,12 +37,12 @@ pub fn parallax_layers(
 }
 
 pub fn generate_background_on_sector_add(
-    trigger: Trigger<OnAdd, Sector>,
+    trigger: On<Add, Sector>,
     sectors: Query<&Sector>,
     mut commands: Commands,
     layers: Query<(Entity, &Layer), With<Layer>>,
 ) {
-    let sector = sectors.get(trigger.target()).unwrap();
+    let sector = sectors.get(trigger.event().entity).unwrap();
 
     for (layer_ent, layer) in layers.iter() {
         generate_sector(commands.borrow_mut(), layer_ent, layer, sector);
@@ -50,26 +50,26 @@ pub fn generate_background_on_sector_add(
 }
 
 pub fn destroy_background_on_sector_remove(
-    trigger: Trigger<OnRemove, Sector>,
+    trigger: On<Remove, Sector>,
     mut commands: Commands,
     sectors: Query<&Sector>,
     background_sectors: Query<(Entity, &BackgroundSector)>,
 ) {
-    let sector = sectors.get(trigger.target()).unwrap();
+    let sector = sectors.get(trigger.event().entity).unwrap();
 
     for (entity, _bg_sector_to_remove) in background_sectors
         .into_iter()
         .filter(|(_, bs)| bs.0 == *sector)
         .collect::<Vec<(Entity, &BackgroundSector)>>()
     {
-        commands.entity(entity).despawn_recursive();
+        commands.entity(entity).despawn();
     }
 }
 
 pub const SECTOR_SIZE: f32 = 1280.0;
 
 fn generate_sector(commands: &mut Commands, layer_entity: Entity, layer: &Layer, sector: &Sector) {
-    let mut rng: rand::prelude::ThreadRng = rand::thread_rng();
+    let mut rng: rand::prelude::ThreadRng = rand::rng();
     let layer_scale = match layer.0 {
         1 => 0.5,
         2 => 1.0,
@@ -91,9 +91,9 @@ fn generate_sector(commands: &mut Commands, layer_entity: Entity, layer: &Layer,
             // Generate Foreground Stars
             for _ in 0..128 {
                 let r = SECTOR_SIZE / 2.0;
-                let p = Vec3::new(rng.gen_range(-r..r), rng.gen_range(-r..r), 0.0);
+                let p = Vec3::new(rng.random_range(-r..r), rng.random_range(-r..r), 0.0);
 
-                let s = rng.gen_range(0.2..2.8);
+                let s = rng.random_range(0.2..2.8);
                 let scale = Vec3::new(s, s, 1.0) * layer_scale;
                 parent.spawn((
                     Sprite {

@@ -9,8 +9,8 @@ pub struct HealthPlugin;
 
 impl Plugin for HealthPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<DamageEvent>()
-            .add_event::<RepairEvent>()
+        app.add_message::<DamageEvent>()
+            .add_message::<RepairEvent>()
             .add_systems(Update, (handle_damage_events, handle_repair_events));
     }
 }

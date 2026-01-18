@@ -7,7 +7,7 @@ use crate::{laser::components::Laser, player::components::Player};
 use super::components::{PlayerShipTrailParticles, ProjectileImpactParticles};
 
 pub fn setup_projectile_impact_particle_system(
-    _trigger: Trigger<OnAdd, Laser>,
+    _trigger: On<Add, Laser>,
     mut commands: Commands,
     mut effects: ResMut<Assets<EffectAsset>>,
 ) {
@@ -16,7 +16,7 @@ pub fn setup_projectile_impact_particle_system(
     let writer = ExprWriter::new();
 
     // Define a color gradient from red to transparent black
-    let mut gradient = Gradient::new();
+    let mut gradient = bevy_hanabi::Gradient::new();
     gradient.add_key(0.0, Vec4::new(1., 0., 0., 1.));
     gradient.add_key(1.0, Vec4::ZERO);
 
@@ -60,7 +60,7 @@ pub fn setup_projectile_impact_particle_system(
     // Render the particles with a color gradient over their
     // lifetime. This maps the gradient key 0 to the particle spawn
     // time, and the gradient key 1 to the particle death (10s).
-    .render(ColorOverLifetimeModifier::new(gradient));
+    .render(ColorOverLifetimeModifier::new(gradient.into()));
 
     // Insert into the asset system
     let effect_asset = effects.add(effect);
@@ -73,7 +73,7 @@ pub fn setup_projectile_impact_particle_system(
 }
 
 pub fn setup_player_ship_trail_particle_system(
-    _trigger: Trigger<OnAdd, Player>,
+    _trigger: On<Add, Player>,
     mut commands: Commands,
     mut effects: ResMut<Assets<EffectAsset>>,
 ) {
@@ -82,7 +82,7 @@ pub fn setup_player_ship_trail_particle_system(
     let writer = ExprWriter::new();
 
     // Define a color gradient from red to transparent black
-    let mut gradient = Gradient::new();
+    let mut gradient = bevy_hanabi::Gradient::new();
     gradient.add_key(0.0, Vec4::new(1., 1., 1., 1.));
     gradient.add_key(1.0, Vec4::ZERO);
 
@@ -126,7 +126,7 @@ pub fn setup_player_ship_trail_particle_system(
     // Render the particles with a color gradient over their
     // lifetime. This maps the gradient key 0 to the particle spawn
     // time, and the gradient key 1 to the particle death (10s).
-    .render(ColorOverLifetimeModifier::new(gradient));
+    .render(ColorOverLifetimeModifier::new(gradient.into()));
 
     // Insert into the asset system
     let effect_asset = effects.add(effect);

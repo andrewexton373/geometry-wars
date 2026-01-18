@@ -17,10 +17,9 @@ use crate::player_input::resources::MouseWorldPosition;
 use crate::space_station::components::SpaceStation;
 use crate::ui::context_clue::resources::{ContextClue, ContextClues};
 use crate::upgrades::{components::UpgradesComponent, events::UpgradeEvent};
-use crate::PIXELS_PER_METER;
 use crate::{
     battery::{components::Battery, events::DrainBatteryEvent},
-    rcs::{components::RCSBooster, events::RCSThrustVectorEvent},
+    rcs::components::RCSBooster,
 };
 
 pub fn spawn_player(
@@ -38,7 +37,7 @@ pub fn spawn_player(
             RigidBody::Dynamic,
             Mass(1.0),
             AngularDamping(0.99),
-            ExternalForce::ZERO,
+            ConstantForce::new(0.0, 0.0),
             AngularVelocity::ZERO,
             LinearVelocity::ZERO,
             Friction::new(10.0),
@@ -105,8 +104,8 @@ pub fn ship_rotate_towards_mouse(
 pub fn player_fire_laser(
     keyboard_input: Res<ButtonInput<MouseButton>>,
     mut player: Query<(Entity, &Battery, &mut Transform, &GlobalTransform), With<Player>>,
-    mut laser_event_writer: EventWriter<LaserEvent>,
-    mut battery_events: EventWriter<DrainBatteryEvent>,
+    mut laser_event_writer: MessageWriter<LaserEvent>,
+    mut battery_events: MessageWriter<DrainBatteryEvent>,
 ) {
     let (entity, battery, player_transform, player_global_trans) =
         player.single_mut().expect("No Player");
@@ -122,8 +121,8 @@ pub fn player_fire_laser(
         let ray_pos = player_global_trans.translation().truncate();
         let ray_dir = player_direction;
 
-        laser_event_writer.send(LaserEvent(true, ray_pos, ray_dir));
-        battery_events.send(DrainBatteryEvent { entity, drain: 1.0 });
+        laser_event_writer.write(LaserEvent(true, ray_pos, ray_dir));
+        battery_events.write(DrainBatteryEvent { entity, drain: 1.0 });
     }
 }
 
@@ -136,7 +135,7 @@ pub fn display_empty_ship_inventory_context_clue(
         timer.tick(time.delta());
         context_clues.0.insert(ContextClue::ShipInventoryEmpty);
 
-        if timer.finished() {
+        if timer.is_finished() {
             empty_deposit_timer.0 = None;
         }
     } else {
@@ -159,7 +158,7 @@ pub fn update_player_mass(mut player_query: Query<(&Player, &Inventory, &mut Mas
 // TODO: Move to upgrades modle
 /// Perfom a smelt action with a recipe provided by the SmeltEvent.
 pub fn on_upgrade_event(
-    mut reader: EventReader<UpgradeEvent>,
+    mut reader: MessageReader<UpgradeEvent>,
     mut base_station_query: Query<(&SpaceStation, &mut Inventory), With<SpaceStation>>,
     mut player_query: Query<(&mut Player, &mut UpgradesComponent), Without<SpaceStation>>, // mut refinery_timer: ResMut<RefineryTimer>,
 ) {

@@ -1,6 +1,6 @@
-use bevy::prelude::Event;
+use bevy::{ecs::message::Message, prelude::Event};
 
 use super::components::UpgradeType;
 
-#[derive(Event)]
+#[derive(Event, Message)]
 pub struct UpgradeEvent(pub UpgradeType);

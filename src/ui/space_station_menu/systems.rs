@@ -13,7 +13,7 @@ pub fn ui_space_station_menu(
     mut ctx: EguiContexts,
     // cc_res: Res<ContextClues>,
     player_query: Query<(&Player, &UpgradesComponent)>,
-    mut upgrade_events: EventWriter<UpgradeEvent>,
+    mut upgrade_events: MessageWriter<UpgradeEvent>,
 ) {
     Window::new("Space Station Information")
         .anchor(Align2::RIGHT_BOTTOM, Vec2 { x: 0.0, y: 0.0 })
@@ -23,13 +23,13 @@ pub fn ui_space_station_menu(
 
                 ui.heading("Ship Upgrades:");
 
-                for upgrade in &upgrades.upgrades {
+                for upgrade in upgrades.upgrades.iter() {
                     ui.group(|ui| {
                         ui.horizontal(|ui| {
                             ui.vertical(|ui| {
                                 ui.label(format!("{:?}", upgrade));
                                 if ui.button("Upgrade").clicked() {
-                                    upgrade_events.send(UpgradeEvent(*upgrade));
+                                    upgrade_events.write(UpgradeEvent(*upgrade));
                                 }
                             });
 

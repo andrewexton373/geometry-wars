@@ -209,8 +209,8 @@ impl Inventory {
     pub fn remove_all_from_inventory(&mut self, items: Vec<InventoryItem>) -> bool {
         let mut all_removed = true;
 
-        for item in items {
-            all_removed &= self.remove_from_inventory(&item);
+        for item in items.iter() {
+            all_removed &= self.remove_from_inventory(item);
         }
 
         println!("ALLREMOVED: {}", all_removed);

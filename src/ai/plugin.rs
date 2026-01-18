@@ -1,17 +1,11 @@
 use bevy::{
-    app::{App, Plugin, PreUpdate, Update},
+    app::{App, Plugin, Update},
     time::{Timer, TimerMode},
 };
 
 use super::{
     resources::EnemySpawnTimer,
-    systems::{
-        //attack_action_system,
-        despawn_dead_enemies,
-        // hostility_scorer_system, hostility_system,
-        //move_towards_player_action_system,
-        spawn_enemies,
-    },
+    systems::{despawn_dead_enemies, spawn_enemies},
 };
 
 pub struct AiPlugin;
@@ -22,21 +16,6 @@ impl Plugin for AiPlugin {
             .insert_resource(EnemySpawnTimer {
                 timer: Timer::from_seconds(100.0, TimerMode::Repeating),
             })
-            .add_systems(
-                Update,
-                (
-                    // hostility_system,
-                    spawn_enemies,
-                    despawn_dead_enemies,
-                ),
-            );
-        // .add_systems(
-        //     PreUpdate,
-        //     (
-        //         // attack_action_system,
-        //         // hostility_scorer_system,
-        //         // move_towards_player_action_system,
-        //     ), // .in_set(BigBrainSet::Actions),
-        // );
+            .add_systems(Update, (spawn_enemies, despawn_dead_enemies));
     }
 }

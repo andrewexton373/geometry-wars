@@ -171,8 +171,8 @@ pub fn handle_space_station_collision_event(
     base_station_query: Query<(Entity, &SpaceStation), With<SpaceStation>>,
     mut can_deposit_res: ResMut<CanDeposit>,
     mut context_clues_res: ResMut<ContextClues>,
-    mut repair_events: EventWriter<RepairEvent>,
-    mut charge_events: EventWriter<ChargeBatteryEvent>,
+    mut repair_events: MessageWriter<RepairEvent>,
+    mut charge_events: MessageWriter<ChargeBatteryEvent>,
     time: Res<Time>,
 ) {
     let (player_ent, player) = player_query.single_mut().expect("No Player");
@@ -182,12 +182,12 @@ pub fn handle_space_station_collision_event(
         *can_deposit_res = CanDeposit(true);
         context_clues_res.0.insert(ContextClue::NearBaseStation);
 
-        charge_events.send(ChargeBatteryEvent {
+        charge_events.write(ChargeBatteryEvent {
             entity: player_ent,
             charge: 100.0 * time.delta_secs(),
         });
 
-        repair_events.send(RepairEvent {
+        repair_events.write(RepairEvent {
             entity: player_ent,
             repair: 10.0 * time.delta_secs(),
         });

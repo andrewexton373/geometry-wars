@@ -12,11 +12,11 @@ pub fn ui_build_mode(
     selected: Res<SelectedHex>,
     entity_g_t_q: Query<&GlobalTransform, Without<GameCamera>>,
     camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
-    mut build_events: EventWriter<BuildSpaceStationModuleEvent>,
+    mut build_events: MessageWriter<BuildSpaceStationModuleEvent>,
 ) {
     if let Some(selected) = selected.entity {
         if let Ok(gt) = entity_g_t_q.get(selected) {
-            if let Ok((camera, camera_gt)) = camera.get_single() {
+            if let Ok((camera, camera_gt)) = camera.single() {
                 if let Ok(computed_pos) = camera.world_to_viewport(camera_gt, gt.translation()) {
                     let pos = Pos2 {
                         x: computed_pos.x,
@@ -41,7 +41,7 @@ pub fn ui_build_mode(
                                 for button in buttons {
                                     if ui.button(button.0).clicked() {
                                         println!("SEND EVENT");
-                                        build_events.send(BuildSpaceStationModuleEvent {
+                                        build_events.write(BuildSpaceStationModuleEvent {
                                             entity: selected,
                                             module_type: button.1,
                                         });

@@ -1,6 +1,6 @@
-use avian2d::prelude::{LinearVelocity, Position};
+use avian2d::prelude::LinearVelocity;
 use bevy::{platform::collections::HashSet, prelude::*};
-use rand::{thread_rng, Rng};
+use rand::Rng;
 use rand_pcg::Pcg64;
 use rand_seeder::Seeder;
 
@@ -17,7 +17,7 @@ pub struct AsteroidFieldPlugin;
 
 impl Plugin for AsteroidFieldPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (init_asteroid_field))
+        app.add_systems(Startup, init_asteroid_field)
             .add_observer(generate_asteroids_in_sector);
     }
 }
@@ -27,12 +27,12 @@ pub fn init_asteroid_field(mut commands: Commands) {
 }
 
 pub fn generate_asteroids_in_sector(
-    trigger: Trigger<OnAdd, Sector>,
-    mut spawn_events: EventWriter<SpawnAsteroidEvent>,
+    trigger: On<Add, Sector>,
+    mut spawn_events: MessageWriter<SpawnAsteroidEvent>,
     sectors: Query<(&Sector, &Transform)>,
     mut visited_sectors: Local<HashSet<Sector>>,
 ) {
-    let (sector, transform) = sectors.get(trigger.target()).unwrap();
+    let (sector, transform) = sectors.get(trigger.event().entity).unwrap();
 
     if !visited_sectors.contains(sector) {
         let mut rng: Pcg64 = Seeder::from(sector).into_rng();

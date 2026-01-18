@@ -1,4 +1,4 @@
-use bevy::{ecs::system::Query, prelude::EventReader};
+use bevy::{ecs::system::Query, prelude::MessageReader};
 
 use super::{
     components::Health,
@@ -6,7 +6,7 @@ use super::{
 };
 
 pub fn handle_damage_events(
-    mut damage_events: EventReader<DamageEvent>,
+    mut damage_events: MessageReader<DamageEvent>,
     mut entity_q: Query<&mut Health>,
 ) {
     for evt in damage_events.read() {
@@ -17,7 +17,7 @@ pub fn handle_damage_events(
 }
 
 pub fn handle_repair_events(
-    mut damage_events: EventReader<RepairEvent>,
+    mut damage_events: MessageReader<RepairEvent>,
     mut entity_q: Query<&mut Health>,
 ) {
     for evt in damage_events.read() {

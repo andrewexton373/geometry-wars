@@ -1,7 +1,6 @@
 use bevy::input::mouse::MouseWheel;
-use bevy::math::DVec2;
 use bevy::prelude::*;
-use bevy::window::{CursorGrabMode, PrimaryWindow};
+use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};
 
 use crate::camera::components::{CameraTarget, GameCamera};
 use crate::player::components::Player;
@@ -15,7 +14,7 @@ use super::resources::{MouseScreenPosition, MouseWorldPosition};
 pub fn update_mouse_world_position_resource(
     mut mouse_position: ResMut<MouseWorldPosition>,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    _cursor_event: EventReader<CursorMoved>,
+    _cursor_event: MessageReader<CursorMoved>,
     q_camera: Query<(&Camera, &GlobalTransform), With<GameCamera>>,
 ) {
     let window = window_query.single().expect("No Window");
@@ -34,7 +33,7 @@ pub fn update_mouse_world_position_resource(
 pub fn update_mouse_screen_position_resource(
     mut mouse_position: ResMut<MouseScreenPosition>,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    _cursor_event: EventReader<CursorMoved>,
+    _cursor_event: MessageReader<CursorMoved>,
 ) {
     let window = window_query.single().expect("No Window");
     if let Some(pos) = window.cursor_position() {
@@ -77,24 +76,24 @@ pub fn cancel_player_targeting(
         }
 
         // Add CameraTarget to Player as default
-        let player_ent = player_q.get_single_mut().unwrap();
+        let player_ent = player_q.single_mut().expect("No Player");
         commands.entity(player_ent).insert(CameraTarget);
     }
 }
 
 pub fn scroll_events(
-    mut scroll_events: EventReader<MouseWheel>,
-    mut engine_events: EventWriter<RCSThrustPowerEvent>,
+    mut scroll_events: MessageReader<MouseWheel>,
+    mut engine_events: MessageWriter<RCSThrustPowerEvent>,
 ) {
     use bevy::input::mouse::MouseScrollUnit;
 
     for event in scroll_events.read() {
         match event.unit {
             MouseScrollUnit::Line => {
-                engine_events.send(RCSThrustPowerEvent(event.y));
+                engine_events.write(RCSThrustPowerEvent(event.y));
             }
             MouseScrollUnit::Pixel => {
-                engine_events.send(RCSThrustPowerEvent(event.y));
+                engine_events.write(RCSThrustPowerEvent(event.y));
             }
         }
     }
@@ -163,7 +162,7 @@ pub fn player_movement_input_handling(
     }
 
     if thrust_vector != Vec2::ZERO {
-        commands.send_event(RCSThrustVectorEvent {
+        commands.write_message(RCSThrustVectorEvent {
             entity,
             thrust_vector,
         });
@@ -180,26 +179,26 @@ pub fn player_deposit_control(
 ) {
     // If player pressed space and they're in depositing range
     if kb.just_pressed(KeyCode::Space) && can_deposit.0 {
-        commands.send_event(DepositInventoryEvent);
+        commands.write_message(DepositInventoryEvent);
     }
 }
 
 // This system grabs the mouse when the left mouse button is pressed
 // and releases it when the escape key is pressed
 pub fn grab_mouse(
-    mut windows: Query<&mut Window>,
+    mut cursor_options: Single<&mut CursorOptions, With<Window>>,
     mouse: Res<ButtonInput<MouseButton>>,
     key: Res<ButtonInput<KeyCode>>,
 ) {
-    let mut window = windows.single_mut().expect("No Window");
+    // let mut window = windows.single_mut().expect("No Window");
 
     if mouse.just_pressed(MouseButton::Left) {
-        window.cursor_options.visible = false;
-        window.cursor_options.grab_mode = CursorGrabMode::Locked;
+        cursor_options.visible = false;
+        cursor_options.grab_mode = CursorGrabMode::Locked;
     }
 
     if key.just_pressed(KeyCode::Escape) {
-        window.cursor_options.visible = true;
-        window.cursor_options.grab_mode = CursorGrabMode::None;
+        cursor_options.visible = true;
+        cursor_options.grab_mode = CursorGrabMode::None;
     }
 }

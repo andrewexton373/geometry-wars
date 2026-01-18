@@ -1,12 +1,12 @@
 use bevy::{color::palettes::css::RED, prelude::*};
-use bevy_tweening::{lens::TextColorLens, Animator, RepeatCount, Tween, TweenCompleted};
+use bevy_tweening::{lens::TextColorLens, RepeatCount, Tween, TweenAnim};
 
 use super::events::DamageIndicatorEvent;
 
 pub fn damage_indicator_events(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut events: EventReader<DamageIndicatorEvent>,
+    mut events: MessageReader<DamageIndicatorEvent>,
 ) {
     for evt in events.read() {
         let font = asset_server.load("fonts/FiraMono-Regular.ttf");
@@ -34,8 +34,7 @@ pub fn damage_indicator_events(
                 // section: 0,
             },
         )
-        .with_repeat_count(RepeatCount::Finite(1))
-        .with_completed_event(111);
+        .with_repeat_count(RepeatCount::Finite(1));
 
         commands.spawn((
             Text2d(damage_text),
@@ -46,18 +45,19 @@ pub fn damage_indicator_events(
             },
             TextColor(Color::from(RED)),
             transform,
-            Animator::new(tween),
+            TweenAnim::new(tween),
+            // Animator::new(tween),
         ));
     }
 }
 
 pub fn remove_post_animation_text(
     mut commands: Commands,
-    mut tween_completed: EventReader<TweenCompleted>,
+    // mut tween_completed: MessageReader<TweenCompleted>,
 ) {
-    for evt in tween_completed.read() {
-        if evt.user_data == 111 {
-            commands.entity(evt.entity).despawn_recursive();
-        }
-    }
+    // for evt in tween_completed.read() {
+    //     if evt.user_data == 111 {
+    //         commands.entity(evt.entity).despawn();
+    //     }
+    // }
 }

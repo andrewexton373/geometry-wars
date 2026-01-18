@@ -9,7 +9,7 @@ pub struct ProjectilePlugin;
 
 impl Plugin for ProjectilePlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<FireProjectileEvent>().add_systems(
+        app.add_message::<FireProjectileEvent>().add_systems(
             Update,
             (
                 handle_projectile_collision_event,

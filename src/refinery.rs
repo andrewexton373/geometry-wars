@@ -99,7 +99,7 @@ pub struct RefineryPlugin;
 
 impl Plugin for RefineryPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SmeltEvent>()
+        app.add_message::<SmeltEvent>()
             .insert_resource(RefineryTimer(None))
             .add_systems(
                 Update,
@@ -142,7 +142,7 @@ impl RefineryPlugin {
         inventory: Mut<Inventory>,
         recipe: &Recipe,
         mut refinery: Mut<Refinery>,
-        timer: &mut ResMut<RefineryTimer>,
+        timer: &mut RefineryTimer,
     ) {
         if Self::have_materials_to_smelt(inventory.as_ref(), recipe) {
             println!("We have the materials!");
@@ -196,7 +196,7 @@ impl RefineryPlugin {
 
     /// Perfom a smelt action with a recipe provided by the SmeltEvent.
     fn on_smelt_event(
-        mut reader: EventReader<SmeltEvent>,
+        mut reader: MessageReader<SmeltEvent>,
         mut base_station_query: Query<
             (&SpaceStation, &mut Inventory, &mut Refinery),
             With<SpaceStation>,
@@ -220,5 +220,5 @@ impl RefineryPlugin {
     }
 }
 
-#[derive(Event)]
+#[derive(Event, Message)]
 pub struct SmeltEvent(pub Recipe);

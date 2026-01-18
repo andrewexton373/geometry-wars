@@ -3,13 +3,13 @@ use bevy::{
     color::Color,
     ecs::{
         entity::Entity,
-        event::EventReader,
+        message::MessageReader,
         query::Without,
         system::{Commands, Query, Res, ResMut},
     },
     input::{keyboard::KeyCode, ButtonInput},
     prelude::NextState,
-    sprite::{ColorMaterial, MeshMaterial2d},
+    sprite_render::{ColorMaterial, MeshMaterial2d},
 };
 
 use crate::{
@@ -75,7 +75,7 @@ pub fn highlight_build_locations(
 
 pub fn handle_build_events(
     mut commands: Commands,
-    mut build_events: EventReader<BuildSpaceStationModuleEvent>,
+    mut build_events: MessageReader<BuildSpaceStationModuleEvent>,
 ) {
     for build_event in build_events.read() {
         // dbg!("{:?}", build_event.module_type);

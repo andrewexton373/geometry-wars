@@ -11,7 +11,7 @@ pub struct DamageIndicatorPlugin;
 impl Plugin for DamageIndicatorPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(TweeningPlugin)
-            .add_event::<DamageIndicatorEvent>()
+            .add_message::<DamageIndicatorEvent>()
             .add_systems(
                 Update,
                 (damage_indicator_events, remove_post_animation_text),

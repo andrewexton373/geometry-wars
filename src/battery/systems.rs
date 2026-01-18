@@ -7,7 +7,7 @@ use super::components::Battery;
 use super::events::{ChargeBatteryEvent, DrainBatteryEvent};
 
 pub fn handle_drain_battery_events(
-    mut events: EventReader<DrainBatteryEvent>,
+    mut events: MessageReader<DrainBatteryEvent>,
     mut battery_q: Query<&mut Battery>,
 ) {
     for evt in events.read() {
@@ -18,7 +18,7 @@ pub fn handle_drain_battery_events(
 }
 
 pub fn handle_charge_battery_events(
-    mut events: EventReader<ChargeBatteryEvent>,
+    mut events: MessageReader<ChargeBatteryEvent>,
     mut battery_q: Query<&mut Battery>,
 ) {
     for evt in events.read() {
@@ -30,10 +30,10 @@ pub fn handle_charge_battery_events(
 
 pub fn trickle_charge(
     mut commands: Commands,
-    battery: Query<Entity, (With<Player>, With<Battery>)>,
+    battery: Single<Entity, (With<Player>, With<Battery>)>,
 ) {
-    if let Ok(entity) = battery.get_single() {
-        commands.send_event(ChargeBatteryEvent {
+    if let entity = battery.entity() {
+        commands.write_message(ChargeBatteryEvent {
             entity,
             charge: 0.01,
         });
@@ -42,13 +42,11 @@ pub fn trickle_charge(
 
 pub fn ship_battery_is_empty_context_clue(
     mut context_clues_res: ResMut<ContextClues>,
-    mut battery_q: Query<&Battery, With<Player>>,
+    mut battery: Single<&Battery, With<Player>>,
 ) {
-    if let Ok(battery) = battery_q.get_single_mut() {
-        if battery.is_empty() {
-            context_clues_res.0.insert(ContextClue::ShipFuelEmpty);
-        } else {
-            context_clues_res.0.remove(&ContextClue::ShipFuelEmpty);
-        }
+    if battery.is_empty() {
+        context_clues_res.0.insert(ContextClue::ShipFuelEmpty);
+    } else {
+        context_clues_res.0.remove(&ContextClue::ShipFuelEmpty);
     }
 }

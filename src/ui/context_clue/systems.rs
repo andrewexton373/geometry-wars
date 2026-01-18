@@ -21,7 +21,7 @@ pub fn ui_context_clue(mut ctx: EguiContexts, context_clues_res: Res<ContextClue
         )
         .show(ctx.ctx_mut().expect("No Context"), |ui| {
             ui.vertical(|ui| {
-                for clue in cc {
+                for clue in cc.iter() {
                     ui.label(clue.text());
                 }
             });

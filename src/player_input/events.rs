@@ -1,4 +1,4 @@
-use bevy::prelude::Event;
+use bevy::{ecs::message::Message, prelude::Event};
 
-#[derive(Event)]
+#[derive(Event, Message)]
 pub struct DepositInventoryEvent;

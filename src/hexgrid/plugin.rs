@@ -17,7 +17,7 @@ impl Plugin for HexBasePlugin {
     fn build(&self, app: &mut App) {
         app
             // .add_plugin(TilemapPlugin)
-            .add_event::<BuildHexBuildingEvent>()
+            .add_message::<BuildHexBuildingEvent>()
             .init_resource::<PlayerHoveringBuilding>()
             .init_resource::<HighlightedHexes>()
             .init_resource::<SelectedHex>()

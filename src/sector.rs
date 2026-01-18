@@ -1,5 +1,4 @@
-use avian2d::prelude::{Collider, DebugRender, RigidBody, Sensor};
-use bevy::{color::palettes::css::BLUE, prelude::*};
+use bevy::prelude::*;
 
 use crate::camera::components::GameCamera;
 pub struct SectorPlugin;

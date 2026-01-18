@@ -1,6 +1,5 @@
 use bevy::app::App;
 use bevy::app::Plugin;
-use bevy::app::Update;
 use bevy_egui::EguiPrimaryContextPass;
 
 use super::systems::ui_ship_information;

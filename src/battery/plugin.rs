@@ -10,8 +10,8 @@ pub struct BatteryPlugin;
 
 impl Plugin for BatteryPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ChargeBatteryEvent>()
-            .add_event::<DrainBatteryEvent>()
+        app.add_message::<ChargeBatteryEvent>()
+            .add_message::<DrainBatteryEvent>()
             .add_systems(
                 Update,
                 (

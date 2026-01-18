@@ -20,7 +20,7 @@ pub struct BuildModePlugin;
 impl Plugin for BuildModePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<BuildModeMaterials>()
-            .add_event::<BuildSpaceStationModuleEvent>()
+            .add_message::<BuildSpaceStationModuleEvent>()
             .add_systems(Startup, init_materials)
             .add_systems(
                 Update,

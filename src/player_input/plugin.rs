@@ -15,7 +15,7 @@ pub struct PlayerInputPlugin;
 
 impl Plugin for PlayerInputPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<DepositInventoryEvent>()
+        app.add_message::<DepositInventoryEvent>()
             .insert_resource(MouseWorldPosition(Vec2::ZERO))
             .insert_resource(MouseScreenPosition(Vec2::ZERO))
             .add_systems(

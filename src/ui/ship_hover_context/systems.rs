@@ -24,10 +24,10 @@ pub fn ui_ship_hover_context(
     inventory_query: Query<&Inventory, With<SpaceStation>>,
     factory_query: Query<&Factory>,
     refinery_query: Query<&Refinery>,
-    mut craft_events: EventWriter<CraftEvent>,
-    mut smelt_events: EventWriter<SmeltEvent>,
+    mut craft_events: MessageWriter<CraftEvent>,
+    mut smelt_events: MessageWriter<SmeltEvent>,
     // mut upgrade_events: EventWriter<UpgradeEvent>,
-    mut build_event: EventWriter<BuildHexBuildingEvent>,
+    mut build_event: MessageWriter<BuildHexBuildingEvent>,
 ) {
     //If player is not hovering over a building
     if player_hovering_building.0.is_none() {
@@ -89,7 +89,7 @@ pub fn ui_ship_hover_context(
                             }
 
                             ui.heading("Factory Recipes:");
-                            for recipe in &factory.recipes {
+                            for recipe in factory.recipes.iter() {
                                 ui.group(|ui| {
                                     ui.vertical(|ui| {
                                         ui.horizontal(|ui| {
@@ -141,7 +141,7 @@ pub fn ui_ship_hover_context(
 
                             ui.heading("Refine Raw Ores:");
 
-                            for recipe in &refinery.recipes {
+                            for recipe in refinery.recipes.iter() {
                                 ui.group(|ui| {
                                     ui.vertical(|ui| {
                                         ui.horizontal(|ui| {

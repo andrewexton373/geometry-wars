@@ -47,10 +47,10 @@ pub fn spawn_asteroids_aimed_at_ship(
 
     asteroid_spawner.timer.tick(time.delta());
 
-    if asteroid_spawner.timer.finished() {
+    if asteroid_spawner.timer.is_finished() {
         asteroid_spawner.timer.reset();
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let (_player, player_g_transform) = player_query.single().expect("No Player");
         let (_base_station, base_station_g_transform) =
             base_station_query.single().expect("No Base Station");
@@ -59,15 +59,15 @@ pub fn spawn_asteroids_aimed_at_ship(
             (player_g_transform.translation() - base_station_g_transform.translation()).length();
         let player_position = player_g_transform.translation().truncate();
 
-        let rand_x: f32 = rng.gen_range(-PI as f32..PI as f32);
-        let rand_y: f32 = rng.gen_range(-PI as f32..PI as f32);
+        let rand_x: f32 = rng.random_range(-PI as f32..PI as f32);
+        let rand_y: f32 = rng.random_range(-PI as f32..PI as f32);
         let rand_direction = Vec2::new(rand_x.cos(), rand_y.sin()).normalize();
 
         let random_spawn_position =
             player_position + (rand_direction * SPAWN_DISTANCE * crate::PIXELS_PER_METER as f32);
         let direction_to_player = (player_position - random_spawn_position).normalize() * 200.0; // maybe?
 
-        let rand_radius = rand::thread_rng().gen_range(20.0..200.0);
+        let rand_radius = rand::rng().random_range(20.0..200.0);
 
         let asteroid = Asteroid::new_with(
             rand_radius,
@@ -77,7 +77,7 @@ pub fn spawn_asteroids_aimed_at_ship(
         let asteroid_transform = Transform::from_translation(random_spawn_position.extend(0.0));
         let asteroid_linear_velocity = LinearVelocity(direction_to_player.as_dvec2());
 
-        commands.send_event(SpawnAsteroidEvent(
+        commands.write_message(SpawnAsteroidEvent(
             asteroid,
             asteroid_transform,
             asteroid_linear_velocity,
@@ -88,11 +88,11 @@ pub fn spawn_asteroids_aimed_at_ship(
 const THRESHOLD_COLLECTIBLE_MASS: f32 = 2500.0;
 
 pub fn tag_small_asteroids_as_collectible(
-    trigger: Trigger<OnAdd, Asteroid>,
+    trigger: On<Add, Asteroid>,
     mut commands: Commands,
     asteroid_query: Query<(Entity, &Mass), With<Asteroid>>,
 ) {
-    let asteroid_ent = trigger.target();
+    let asteroid_ent = trigger.event().entity;
 
     if let Ok((_, mass)) = asteroid_query.get(asteroid_ent) {
         if mass.0 <= THRESHOLD_COLLECTIBLE_MASS {
@@ -110,12 +110,12 @@ pub fn tag_small_asteroids_as_collectible(
 
 // TODO: Verify this is working... it's definitely not (12/17/2024)
 pub fn update_collectible_material_color(
-    trigger: Trigger<OnAdd, Collectible>,
+    trigger: On<Add, Collectible>,
     mut commands: Commands,
     asteroid_query: Query<(Entity, &Asteroid), With<Collectible>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    let ent = trigger.target();
+    let ent = trigger.event().entity;
     // info!("UPDATE COLLECTIBLE FOR: {:?}", ent);
     // info!("{:?}", asteroid_query.iter().count());
 
@@ -188,7 +188,7 @@ pub fn handle_asteroid_collision_event(
     collisions: Collisions,
     mut asteroid_query: Query<Entity, (With<Asteroid>, Without<Collectible>)>,
     mut player_query: Query<Entity, With<Player>>,
-    mut damage_events: EventWriter<DamageEvent>,
+    mut damage_events: MessageWriter<DamageEvent>,
 ) {
     let player_ent = player_query.single_mut().expect("No Player");
 
@@ -215,7 +215,7 @@ pub fn display_inventory_full_context_clue(
 
         context_clues_res.0.insert(ContextClue::CargoBayFull);
 
-        if timer.finished() {
+        if timer.is_finished() {
             inventory_full_notification.0 = None;
         }
     } else {
@@ -224,10 +224,10 @@ pub fn display_inventory_full_context_clue(
 }
 
 pub fn ablate_asteroids_events(
-    mut events: EventReader<AblateEvent>,
+    mut events: MessageReader<AblateEvent>,
     mut commands: Commands,
     mut asteroids_query: Query<(Entity, &mut Health, &GlobalTransform), With<Asteroid>>,
-    mut damage_indicator_events: EventWriter<DamageIndicatorEvent>,
+    mut damage_indicator_events: MessageWriter<DamageIndicatorEvent>,
 ) {
     for ablate_event in events.read() {
         let mut rng = rand::rng();
@@ -242,7 +242,7 @@ pub fn ablate_asteroids_events(
                 commands.entity(ent).despawn();
             }
 
-            let n: u8 = rng.gen();
+            let n: u8 = rng.random();
             if n > 25 {
                 return;
             }
@@ -277,7 +277,7 @@ pub fn ablate_asteroids_events(
 
             let jitter_velocity = rng.random_range(200.0..400.0);
 
-            commands.send_event(SpawnAsteroidEvent(
+            commands.write_message(SpawnAsteroidEvent(
                 asteroid.clone(),
                 Transform::from_translation(ablate_event.position.extend(0.0)),
                 LinearVelocity(jitter_normal * jitter_velocity),
@@ -288,11 +288,11 @@ pub fn ablate_asteroids_events(
 
 pub fn split_asteroids_over_split_ratio(
     mut asteroid_query: Query<(Entity, &Health, &Splittable), With<Asteroid>>,
-    mut split_astroid_events: EventWriter<SplitAsteroidEvent>,
+    mut split_astroid_events: MessageWriter<SplitAsteroidEvent>,
 ) {
     for (ent, asteroid_health, split) in asteroid_query.iter_mut() {
         if asteroid_health.current_percent() < split.0 {
-            split_astroid_events.send(SplitAsteroidEvent(ent));
+            split_astroid_events.write(SplitAsteroidEvent(ent));
         }
     }
 }
@@ -309,7 +309,7 @@ fn random_normalized_vec2() -> DVec2 {
     random_vec.normalize()
 }
 pub fn split_asteroid_events(
-    mut events: EventReader<SplitAsteroidEvent>,
+    mut events: MessageReader<SplitAsteroidEvent>,
     mut commands: Commands,
     mut asteroid_q: Query<(&Asteroid, &Transform, &LinearVelocity)>,
 ) {
@@ -326,13 +326,13 @@ pub fn split_asteroid_events(
             let left_asteroid = Asteroid::new_with(half_radius, asteroid.composition.jitter());
             let right_asteroid = Asteroid::new_with(half_radius, asteroid.composition.jitter());
 
-            commands.send_event(SpawnAsteroidEvent(
+            commands.write_message(SpawnAsteroidEvent(
                 left_asteroid,
                 *transform,
                 LinearVelocity(left_velocity),
             ));
 
-            commands.send_event(SpawnAsteroidEvent(
+            commands.write_message(SpawnAsteroidEvent(
                 right_asteroid,
                 *transform,
                 LinearVelocity(right_velocity),
@@ -344,7 +344,7 @@ pub fn split_asteroid_events(
 }
 
 pub fn handle_spawn_asteroid_events(
-    mut spawn_events: EventReader<SpawnAsteroidEvent>,
+    mut spawn_events: MessageReader<SpawnAsteroidEvent>,
     mut commands: Commands,
     spatial: SpatialQuery,
     query: Query<(&Collider, &Transform)>,
@@ -358,7 +358,7 @@ pub fn handle_spawn_asteroid_events(
         let collider = Collider::convex_hull(
             asteroid
                 .polygon()
-                .vertices
+                .vertices()
                 .iter()
                 .map(|point| Vector {
                     x: point.x as f64,
@@ -369,8 +369,8 @@ pub fn handle_spawn_asteroid_events(
         .unwrap();
         let health_pool = collider.mass_properties(1.0).mass; // Set Healthpool to mass?
 
-        let mut rng = rand::thread_rng();
-        let splittable = Splittable(rng.gen_range(0.4..0.8));
+        let mut rng = rand::rng();
+        let splittable = Splittable(rng.random_range(0.4..0.8));
 
         if let Some(transform) =
             find_free_space(&spatial, &query, target_transform, &collider, 0.1, 10)

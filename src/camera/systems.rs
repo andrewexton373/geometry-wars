@@ -1,12 +1,12 @@
 use avian2d::prelude::{LinearVelocity, RigidBody, Sensor};
 use bevy::{
+    camera::Camera,
     ecs::{
         name::Name,
         query::{With, Without},
         system::{Commands, Query},
     },
     prelude::Camera2d,
-    render::camera::Camera,
     transform::components::Transform,
 };
 

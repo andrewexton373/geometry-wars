@@ -1,4 +1,4 @@
-use bevy::{asset::Handle, ecs::resource::Resource, sprite::ColorMaterial};
+use bevy::{asset::Handle, ecs::resource::Resource, sprite_render::ColorMaterial};
 
 #[derive(Resource, Default)]
 pub struct BuildModeMaterials {

@@ -1,9 +1,9 @@
 use bevy::asset::RenderAssetUsages;
+use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::platform::collections::HashMap;
-use bevy::render::mesh::Indices;
-use bevy::{prelude::*, render::mesh::PrimitiveTopology};
+use bevy::prelude::*;
 use rand::seq::SliceRandom;
-use rand::{thread_rng, Rng};
+use rand::Rng;
 use rand_distr::{Distribution, Normal};
 use std::{cmp::Ordering, fmt};
 
@@ -12,10 +12,8 @@ pub struct Splittable(pub f32);
 
 #[derive(Component, Clone, Debug)]
 pub struct Asteroid {
-    // pub size: AsteroidSize,
-    // pub health: Health,
     pub composition: AsteroidComposition,
-    pub polygon: BoxedPolygon,
+    pub polygon: ConvexPolygon,
     pub radius: f32,
 }
 
@@ -34,19 +32,19 @@ impl Asteroid {
         self.composition.most_abundant()
     }
 
-    pub fn polygon(&self) -> BoxedPolygon {
+    pub fn polygon(&self) -> ConvexPolygon {
         self.polygon.clone()
     }
 
     pub fn generate_mesh(&self) -> Mesh {
         let verticies: Vec<Vec3> = self
             .polygon()
-            .vertices
+            .vertices()
             .to_vec()
             .iter()
             .map(|v| v.extend(0.0))
             .collect();
-        let indicies = Self::create_triangles_for_mesh(&self.polygon().vertices);
+        let indicies = Self::create_triangles_for_mesh(&self.polygon().vertices());
 
         let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::all());
         mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, verticies);
@@ -68,12 +66,11 @@ impl Asteroid {
         indicies
     }
 
-    fn generate_shape_from_size(radius: f32) -> BoxedPolygon {
-        let rand_side_count = thread_rng().gen_range(6..20);
+    fn generate_shape_from_size(radius: f32) -> ConvexPolygon {
+        let rand_side_count = rand::rng().random_range(6..20);
 
-        BoxedPolygon {
-            vertices: Self::make_valtr_convex_polygon_coords(rand_side_count, radius).into(),
-        }
+        ConvexPolygon::new(Self::make_valtr_convex_polygon_coords(rand_side_count, radius).into())
+            .expect("Couldn't Gernerate Convex Polygon")
     }
 
     // TODO: comment this well...
@@ -98,7 +95,7 @@ impl Asteroid {
         let vec_xs = make_vector_chain(xs, min_xs, max_xs);
         let mut vec_ys = make_vector_chain(ys, min_ys, max_ys);
 
-        vec_ys.shuffle(&mut rand::thread_rng());
+        vec_ys.shuffle(&mut rand::rng());
 
         let mut vecs: Vec<(f32, f32)> = vec_xs.into_iter().zip(vec_ys).collect();
 
@@ -117,7 +114,7 @@ impl Asteroid {
 
         let mut vec_angs2: Vec<f32> = vec![];
 
-        for vec in &vecs {
+        for vec in vecs.iter() {
             let a = vec.1.atan2(vec.0);
             vec_angs2.push(a);
         }
@@ -125,7 +122,7 @@ impl Asteroid {
         let mut poly_coords = vec![];
         let mut x = 0.0;
         let mut y = 0.0;
-        for vec in &vecs {
+        for vec in vecs.iter() {
             x += vec.0 * 1.0;
             y += vec.1 * 1.0;
             poly_coords.push(Vec2 { x, y })
@@ -280,7 +277,7 @@ impl AsteroidComposition {
     }
 
     pub fn jitter(&self) -> AsteroidComposition {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let normal = Normal::new(0.0, 0.05).unwrap();
 
         AsteroidComposition {
@@ -295,7 +292,7 @@ impl AsteroidComposition {
 
 impl fmt::Debug for AsteroidComposition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for element in &self.composition {
+        for element in self.composition.iter() {
             let _ = writeln!(f, "{:?}: {:.2}%", element.0, element.1 * 100.0);
         }
         write!(f, "")

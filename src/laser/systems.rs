@@ -1,10 +1,8 @@
 use avian2d::prelude::{LayerMask, PhysicsLayer, SpatialQuery, SpatialQueryFilter};
 use bevy::color::palettes::css::RED;
-use bevy::ecs::entity::{EntityHash, EntityHashSet};
-use bevy::platform::collections::HashSet;
+use bevy::ecs::entity::EntityHashSet;
 use bevy::prelude::*;
-use bevy_hanabi::{EffectProperties, Value, VectorValue};
-// use bevy_particle_systems::Playing;
+use bevy_hanabi::EffectProperties;
 
 use super::components::Laser;
 use super::events::LaserEvent;
@@ -18,7 +16,7 @@ pub fn setup_laser(mut commands: Commands, mut laser_query: Query<&mut Laser>) {
     // let line = shapes::Line(Vec2::ZERO, Vec2::X);
 
     // Create Laser if it Doesn't Exist
-    let Ok(_laser) = laser_query.get_single_mut() else {
+    let Ok(_laser) = laser_query.single_mut() else {
         commands
             .spawn(Laser)
             .insert((Transform::from_xyz(0.0, 0.0, 1.0), Name::new("Laser")));
@@ -28,10 +26,10 @@ pub fn setup_laser(mut commands: Commands, mut laser_query: Query<&mut Laser>) {
 
 pub fn fire_laser_raycasting(
     mut commands: Commands,
-    mut laser_event_reader: EventReader<LaserEvent>,
+    mut laser_event_reader: MessageReader<LaserEvent>,
     player_q: Query<Entity, With<Player>>,
     spatial_query: SpatialQuery,
-    mut damage_events: EventWriter<DamageEvent>,
+    mut damage_events: MessageWriter<DamageEvent>,
     mut gizmos: Gizmos,
     mut effect: Query<(&mut EffectProperties, &mut Transform), With<ProjectileImpactParticles>>,
 ) {
@@ -63,7 +61,7 @@ pub fn fire_laser_raycasting(
 
                 gizmos.line_2d(ray_pos, hit_point.as_vec2(), Color::from(RED));
 
-                commands.send_event(AblateEvent {
+                commands.write_message(AblateEvent {
                     entity: hit_ent,
                     position: hit_point.as_vec2(),
                     // normal: hit_normal.as_vec2(),
@@ -77,7 +75,7 @@ pub fn fire_laser_raycasting(
 
                 // Note: On first frame where the effect spawns, EffectSpawner is spawned during
                 // PostUpdate, so will not be available yet. Ignore for a frame if so.
-                let Ok((mut properties, mut effect_transform)) = effect.get_single_mut() else {
+                let Ok((mut properties, mut effect_transform)) = effect.single_mut() else {
                     return;
                 };
 

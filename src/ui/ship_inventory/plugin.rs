@@ -1,7 +1,4 @@
-use bevy::{
-    app::Update,
-    prelude::{App, Plugin},
-};
+use bevy::prelude::{App, Plugin};
 use bevy_egui::EguiPrimaryContextPass;
 
 use super::systems::ui_ship_inventory;

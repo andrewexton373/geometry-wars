@@ -28,7 +28,7 @@ pub fn attach_inventory_to_entity(
 }
 
 pub fn handle_deposit_inventory_event(
-    mut events: EventReader<DepositInventoryEvent>,
+    mut events: MessageReader<DepositInventoryEvent>,
     mut player_query: Query<&mut Inventory, (With<Player>, Without<SpaceStation>)>,
     mut base_station_query: Query<&mut Inventory, (With<SpaceStation>, Without<Player>)>,
     mut empty_deposit_timer: ResMut<EmptyInventoryDepositTimer>,
