@@ -69,8 +69,11 @@ impl Asteroid {
     fn generate_shape_from_size(radius: f32) -> ConvexPolygon {
         let rand_side_count = rand::rng().random_range(6..20);
 
-        ConvexPolygon::new(Self::make_valtr_convex_polygon_coords(rand_side_count, radius).into())
-            .expect("Couldn't Gernerate Convex Polygon")
+        ConvexPolygon::new(Self::make_valtr_convex_polygon_coords(
+            rand_side_count,
+            radius,
+        ))
+        .expect("Couldn't Gernerate Convex Polygon")
     }
 
     // TODO: comment this well...
