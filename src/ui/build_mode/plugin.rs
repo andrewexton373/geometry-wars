@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_egui::EguiPrimaryContextPass;
 
 use crate::AppState;
 
@@ -10,6 +11,9 @@ impl Plugin for BuildModeUIPlugin {
     fn build(&self, app: &mut App) {
         app
             // .init_resource::<PlayerHoveringBuilding>()
-            .add_systems(Update, ui_build_mode.run_if(in_state(AppState::BuildMode)));
+            .add_systems(
+                EguiPrimaryContextPass,
+                ui_build_mode.run_if(in_state(AppState::BuildMode)),
+            );
     }
 }
