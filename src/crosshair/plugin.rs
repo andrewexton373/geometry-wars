@@ -6,9 +6,11 @@ pub struct CrosshairPlugin;
 
 impl Plugin for CrosshairPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .init_gizmo_group::<CrosshairGizmos>()
+        app.init_gizmo_group::<CrosshairGizmos>()
             .add_systems(Startup, crosshair_gizmo_config)
-            .add_systems(PostUpdate, draw_crosshair);
+            .add_systems(
+                PostUpdate,
+                draw_crosshair.after(TransformSystems::Propagate),
+            );
     }
 }
