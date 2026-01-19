@@ -35,8 +35,8 @@ pub fn guide_player_to_space_station(
             Without<Player>,
         ),
     >,
-    player_query: Query<(&Player, &GlobalTransform), (With<Player>, Without<SpaceStation>)>,
-    base_query: Query<(&SpaceStation, &GlobalTransform), (With<SpaceStation>, Without<Player>)>,
+    player_query: Query<(&Transform), (With<Player>, Without<SpaceStation>)>,
+    base_query: Query<(&Transform), (With<SpaceStation>, Without<Player>)>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     const FADE_DISTANCE: f32 = 500.0;
@@ -44,11 +44,11 @@ pub fn guide_player_to_space_station(
     let (mut dir_indicator_transform, mut material) = dir_indicator_query
         .single_mut()
         .expect("No Direction Indicator");
-    let (_player, player_trans) = player_query.single().expect("No Player");
-    let (_base_station, base_station_trans) = base_query.single().expect("No Base Station");
+    let (player_trans) = player_query.single().expect("No Player");
+    let (base_station_trans) = base_query.single().expect("No Base Station");
 
-    let player_pos = player_trans.translation().truncate();
-    let base_station_pos = base_station_trans.translation().truncate();
+    let player_pos = player_trans.translation.truncate();
+    let base_station_pos = base_station_trans.translation.truncate();
 
     let distance_to_base = (base_station_pos - player_pos).length();
     let direction_to_base = (base_station_pos - player_pos).normalize();
@@ -56,7 +56,7 @@ pub fn guide_player_to_space_station(
 
     dir_indicator_transform.rotation = Quat::from_rotation_z(rotation);
     dir_indicator_transform.translation =
-        (player_trans.translation().truncate() + direction_to_base * 100.0).extend(100.0);
+        (player_trans.translation.truncate() + direction_to_base * 100.0).extend(100.0);
 
     dir_indicator_transform.scale = Vec3::new(0.3, 1.0, 1.0);
 
