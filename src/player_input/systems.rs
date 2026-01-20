@@ -118,9 +118,7 @@ pub fn player_camera_control(
         }
 
         projection.scale = log_scale.exp();
-    } else {
-        return;
-    }
+    } 
 }
 
 pub fn player_movement_input_handling(

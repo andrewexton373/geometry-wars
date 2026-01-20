@@ -75,14 +75,14 @@ pub fn fire_laser_raycasting(
 
                 // Note: On first frame where the effect spawns, EffectSpawner is spawned during
                 // PostUpdate, so will not be available yet. Ignore for a frame if so.
-                let Ok((mut properties, mut effect_transform)) = effect.single_mut() else {
+                let Ok((_properties, mut effect_transform)) = effect.single_mut() else {
                     return;
                 };
 
                 effect_transform.translation = hit_point.extend(0.0).as_vec3();
 
                 // Set the collision normal
-                let normal = hit_normal.as_vec2().normalize();
+                let _normal = hit_normal.as_vec2().normalize();
                 // info!("Collision: n={:?}", normal);
                 // properties.set(
                 //     "normal",

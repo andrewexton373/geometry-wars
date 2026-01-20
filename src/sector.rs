@@ -144,7 +144,7 @@ fn destroy_invalid_sectors(
         .collect();
 
     // Despawn each invalid sector
-    for (entity, sector) in invalid_sectors {
+    for (entity, _sector) in invalid_sectors {
         // info!("DESTROYING SECTOR: {:?}", sector);
         commands.entity(entity).despawn();
     }

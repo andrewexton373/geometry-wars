@@ -8,6 +8,7 @@ use ordered_float::OrderedFloat;
 use super::components::Player;
 use super::resources::EmptyInventoryDepositTimer;
 
+use crate::battery::events::{BatteryEvent, BatteryEventType};
 use crate::camera::components::CameraTarget;
 use crate::health::components::Health;
 use crate::inventory::components::{Capacity, Inventory};
@@ -18,7 +19,10 @@ use crate::space_station::components::SpaceStation;
 use crate::ui::context_clue::resources::{ContextClue, ContextClues};
 use crate::upgrades::{components::UpgradesComponent, events::UpgradeEvent};
 use crate::{
-    battery::{components::Battery, events::DrainBatteryEvent},
+    battery::{
+        components::Battery,
+        //  events::DrainBatteryEvent
+    },
     rcs::components::RCSBooster,
 };
 
@@ -102,10 +106,11 @@ pub fn ship_rotate_towards_mouse(
 }
 
 pub fn player_fire_laser(
+    mut commands: Commands,
     keyboard_input: Res<ButtonInput<MouseButton>>,
     mut player: Query<(Entity, &Battery, &mut Transform, &GlobalTransform), With<Player>>,
     mut laser_event_writer: MessageWriter<LaserEvent>,
-    mut battery_events: MessageWriter<DrainBatteryEvent>,
+    // mut battery_events: MessageWriter<DrainBatteryEvent>,
 ) {
     let (entity, battery, player_transform, player_global_trans) =
         player.single_mut().expect("No Player");
@@ -122,7 +127,11 @@ pub fn player_fire_laser(
         let ray_dir = player_direction;
 
         laser_event_writer.write(LaserEvent(true, ray_pos, ray_dir));
-        battery_events.write(DrainBatteryEvent { entity, drain: 1.0 });
+        commands.trigger(BatteryEvent {
+            entity,
+            event_type: BatteryEventType::Drain,
+            amount: 1.0,
+        });
     }
 }
 

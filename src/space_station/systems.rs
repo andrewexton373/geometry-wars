@@ -7,9 +7,10 @@ use bevy::{
 // use bevy_prototype_lyon::prelude::*;
 use hexx::Hex;
 
+use crate::battery::events::{BatteryEvent, BatteryEventType};
 use crate::{
     asteroid::components::Asteroid,
-    battery::events::ChargeBatteryEvent,
+    // battery::events::ChargeBatteryEvent,
     health::{components::Health, events::RepairEvent},
     hexgrid::{
         components::{BuildingType, HexTile},
@@ -72,7 +73,7 @@ pub fn init_space_station_turret(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    gizmos: Gizmos,
+    _gizmos: Gizmos,
     hex_grid_map: Res<HexGridMap>,
 ) {
     if let Some(origin_hex_ent) = hex_grid_map.entities.get(&Hex::new(0, 1)).copied() {
@@ -166,25 +167,27 @@ pub fn repel_asteroids_from_space_station(
 }
 
 pub fn handle_space_station_collision_event(
+    mut commands: Commands,
     collisions: Collisions,
     mut player_query: Query<(Entity, &mut Player), With<Player>>,
     base_station_query: Query<(Entity, &SpaceStation), With<SpaceStation>>,
     mut can_deposit_res: ResMut<CanDeposit>,
     mut context_clues_res: ResMut<ContextClues>,
     mut repair_events: MessageWriter<RepairEvent>,
-    mut charge_events: MessageWriter<ChargeBatteryEvent>,
+    // mut charge_events: MessageWriter<ChargeBatteryEvent>,
     time: Res<Time>,
 ) {
-    let (player_ent, player) = player_query.single_mut().expect("No Player");
+    let (player_ent, _player) = player_query.single_mut().expect("No Player");
     let (base_station_ent, _base_station) = base_station_query.single().expect("No Base Station");
 
     if let Some(_collision) = collisions.get(player_ent, base_station_ent) {
         *can_deposit_res = CanDeposit(true);
         context_clues_res.0.insert(ContextClue::NearBaseStation);
 
-        charge_events.write(ChargeBatteryEvent {
+        commands.trigger(BatteryEvent {
             entity: player_ent,
-            charge: 100.0 * time.delta_secs(),
+            event_type: BatteryEventType::Charge,
+            amount: 100.0 * time.delta_secs(),
         });
 
         repair_events.write(RepairEvent {

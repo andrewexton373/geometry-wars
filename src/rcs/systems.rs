@@ -1,4 +1,4 @@
-use avian2d::prelude::{ConstantForce, Forces, RigidBodyForces};
+use avian2d::prelude::{Forces, RigidBodyForces};
 use bevy::{
     ecs::{message::MessageReader, system::Query},
     prelude::{Commands, Transform, With, Without},
@@ -6,8 +6,10 @@ use bevy::{
 use bevy_hanabi::prelude::*;
 
 use crate::{
-    battery::events::DrainBatteryEvent, particles::components::PlayerShipTrailParticles,
-    player::components::Player, PIXELS_PER_METER,
+    battery::events::{BatteryEvent, BatteryEventType},
+    particles::components::PlayerShipTrailParticles,
+    player::components::Player,
+    PIXELS_PER_METER,
 };
 
 use super::{
@@ -51,9 +53,10 @@ pub fn handle_thrust_events(
 
             let energy_spent = thrust_vector.length() / 5000000.0; // TODO: magic number
 
-            commands.trigger(DrainBatteryEvent {
+            commands.trigger(BatteryEvent {
                 entity: evt.entity,
-                drain: energy_spent,
+                event_type: BatteryEventType::Drain,
+                amount: energy_spent,
             });
 
             // Note: On first frame where the effect spawns, EffectSpawner is spawned during

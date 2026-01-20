@@ -52,7 +52,7 @@ pub fn damage_indicator_events(
 }
 
 pub fn remove_post_animation_text(
-    mut commands: Commands,
+    _commands: Commands,
     // mut tween_completed: MessageReader<TweenCompleted>,
 ) {
     // for evt in tween_completed.read() {

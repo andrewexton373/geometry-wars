@@ -1,5 +1,5 @@
 use bevy::{
-    app::{App, Plugin, Update},
+    app::{App, Plugin},
     ecs::schedule::IntoScheduleConfigs,
 };
 use bevy_egui::EguiPrimaryContextPass;

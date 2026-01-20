@@ -37,7 +37,7 @@ impl UpgradesComponent {
     pub fn upgrade(
         &mut self,
         upgrade_type: UpgradeType,
-        player: &mut Player,
+        _player: &mut Player,
         ship_inventory: &mut Inventory,
     ) {
         if let Some(to_upgrade) = self

@@ -60,7 +60,7 @@ pub fn setup_projectile_impact_particle_system(
     // Render the particles with a color gradient over their
     // lifetime. This maps the gradient key 0 to the particle spawn
     // time, and the gradient key 1 to the particle death (10s).
-    .render(ColorOverLifetimeModifier::new(gradient.into()));
+    .render(ColorOverLifetimeModifier::new(gradient));
 
     // Insert into the asset system
     let effect_asset = effects.add(effect);
@@ -126,7 +126,7 @@ pub fn setup_player_ship_trail_particle_system(
     // Render the particles with a color gradient over their
     // lifetime. This maps the gradient key 0 to the particle spawn
     // time, and the gradient key 1 to the particle death (10s).
-    .render(ColorOverLifetimeModifier::new(gradient.into()));
+    .render(ColorOverLifetimeModifier::new(gradient));
 
     // Insert into the asset system
     let effect_asset = effects.add(effect);
@@ -139,8 +139,8 @@ pub fn setup_player_ship_trail_particle_system(
 }
 
 pub fn setup_ship_asteroid_impact_particle_system(
-    commands: Commands,
-    asset_server: Res<AssetServer>,
+    _commands: Commands,
+    _asset_server: Res<AssetServer>,
 ) {
     // commands
     //     .spawn(ParticleSystemBundle {

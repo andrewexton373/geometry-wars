@@ -28,7 +28,7 @@ mod upgrades;
 
 use asteroid_field::AsteroidFieldPlugin;
 use avian2d::{
-    prelude::{Gravity, PhysicsDebugPlugin, PhysicsInterpolationPlugin, PhysicsLayer},
+    prelude::{Gravity, PhysicsDebugPlugin, PhysicsLayer},
     PhysicsPlugins,
 };
 use bevy::prelude::*;
@@ -135,6 +135,6 @@ impl Plugin for GamePlugin {
     }
 }
 
-fn setup(mut commands: Commands) {
+fn setup(_commands: Commands) {
     // commands.spawn(PerfUiAllEntries::default());
 }

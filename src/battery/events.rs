@@ -1,16 +1,13 @@
-use bevy::{
-    ecs::message::Message,
-    prelude::{Entity, Event},
-};
+use bevy::prelude::{Entity, Event};
 
-#[derive(Event, Message)]
-pub struct DrainBatteryEvent {
+#[derive(Event)]
+pub struct BatteryEvent {
     pub entity: Entity,
-    pub drain: f32,
+    pub event_type: BatteryEventType,
+    pub amount: f32,
 }
 
-#[derive(Event, Message)]
-pub struct ChargeBatteryEvent {
-    pub entity: Entity,
-    pub charge: f32,
+pub enum BatteryEventType {
+    Drain,
+    Charge,
 }

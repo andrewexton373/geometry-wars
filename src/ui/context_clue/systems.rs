@@ -1,6 +1,6 @@
 use bevy::ecs::system::Res;
 use bevy_egui::{
-    egui::{self, Align2, Window},
+    egui::{self},
     EguiContexts,
 };
 

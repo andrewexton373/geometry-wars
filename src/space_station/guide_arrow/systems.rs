@@ -35,8 +35,8 @@ pub fn guide_player_to_space_station(
             Without<Player>,
         ),
     >,
-    player_query: Query<(&Transform), (With<Player>, Without<SpaceStation>)>,
-    base_query: Query<(&Transform), (With<SpaceStation>, Without<Player>)>,
+    player_query: Query<&Transform , (With<Player>, Without<SpaceStation>)>,
+    base_query: Query<&Transform , (With<SpaceStation>, Without<Player>)>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     const FADE_DISTANCE: f32 = 500.0;
@@ -44,8 +44,8 @@ pub fn guide_player_to_space_station(
     let (mut dir_indicator_transform, mut material) = dir_indicator_query
         .single_mut()
         .expect("No Direction Indicator");
-    let (player_trans) = player_query.single().expect("No Player");
-    let (base_station_trans) = base_query.single().expect("No Base Station");
+    let player_trans  = player_query.single().expect("No Player");
+    let base_station_trans  = base_query.single().expect("No Base Station");
 
     let player_pos = player_trans.translation.truncate();
     let base_station_pos = base_station_trans.translation.truncate();

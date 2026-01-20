@@ -1,7 +1,5 @@
 use bevy::app::{App, Plugin, PreUpdate};
-use bevy::ecs::schedule::IntoScheduleConfigs;
 use bevy::math::Vec2;
-use bevy::transform::TransformSystems;
 
 use super::resources::{MouseScreenPosition, MouseWorldPosition};
 

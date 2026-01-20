@@ -44,7 +44,7 @@ impl Asteroid {
             .iter()
             .map(|v| v.extend(0.0))
             .collect();
-        let indicies = Self::create_triangles_for_mesh(&self.polygon().vertices());
+        let indicies = Self::create_triangles_for_mesh(self.polygon().vertices());
 
         let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::all());
         mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, verticies);

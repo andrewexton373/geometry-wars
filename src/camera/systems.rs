@@ -27,7 +27,7 @@ pub fn camera_follows_target(
     mut camera_query: Query<(&Camera, &mut Transform, &mut LinearVelocity), With<GameCamera>>,
     target_query: Query<&Transform, (With<CameraTarget>, Without<GameCamera>)>,
 ) {
-    let (_camera, mut camera_trans, mut lin_vel) = camera_query.single_mut().expect("No Camera");
+    let (_camera, camera_trans, mut lin_vel) = camera_query.single_mut().expect("No Camera");
     for target_t in target_query.iter() {
         // TODO: I'd like to do it this way , but it introduces a bug.
         let vec_to_target = target_t.translation.truncate() - camera_trans.translation.truncate();
