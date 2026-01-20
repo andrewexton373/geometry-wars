@@ -81,19 +81,16 @@ pub fn cancel_player_targeting(
     }
 }
 
-pub fn scroll_events(
-    mut scroll_events: MessageReader<MouseWheel>,
-    mut engine_events: MessageWriter<RCSThrustPowerEvent>,
-) {
+pub fn scroll_events(mut commands: Commands, mut scroll_events: MessageReader<MouseWheel>) {
     use bevy::input::mouse::MouseScrollUnit;
 
     for event in scroll_events.read() {
         match event.unit {
             MouseScrollUnit::Line => {
-                engine_events.write(RCSThrustPowerEvent(event.y));
+                commands.trigger(RCSThrustPowerEvent(event.y));
             }
             MouseScrollUnit::Pixel => {
-                engine_events.write(RCSThrustPowerEvent(event.y));
+                commands.trigger(RCSThrustPowerEvent(event.y));
             }
         }
     }
@@ -118,7 +115,7 @@ pub fn player_camera_control(
         }
 
         projection.scale = log_scale.exp();
-    } 
+    }
 }
 
 pub fn player_movement_input_handling(
@@ -147,7 +144,7 @@ pub fn player_movement_input_handling(
     }
 
     if thrust_vector != Vec2::ZERO {
-        commands.write_message(RCSThrustVectorEvent {
+        commands.trigger(RCSThrustVectorEvent {
             entity,
             thrust_vector,
         });
