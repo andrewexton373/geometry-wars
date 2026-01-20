@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use super::{
-    events::{RCSThrustPowerEvent, RCSThrustVectorEvent},
+    events::{RCSThrustSetPowerEvent, RCSThrustVectorEvent},
     systems::{handle_set_thrust_power_events, handle_thrust_events},
 };
 

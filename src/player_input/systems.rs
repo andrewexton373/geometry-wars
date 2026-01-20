@@ -4,7 +4,7 @@ use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};
 
 use crate::camera::components::{CameraTarget, GameCamera};
 use crate::player::components::Player;
-use crate::rcs::events::{RCSThrustPowerEvent, RCSThrustVectorEvent};
+use crate::rcs::events::{RCSThrustSetPowerEvent, RCSThrustVectorEvent};
 use crate::space_station::resources::CanDeposit;
 use crate::ui::mouse_hover_context::resources::MouseHoverContext;
 
@@ -87,10 +87,10 @@ pub fn scroll_events(mut commands: Commands, mut scroll_events: MessageReader<Mo
     for event in scroll_events.read() {
         match event.unit {
             MouseScrollUnit::Line => {
-                commands.trigger(RCSThrustPowerEvent(event.y));
+                commands.trigger(RCSThrustSetPowerEvent(event.y));
             }
             MouseScrollUnit::Pixel => {
-                commands.trigger(RCSThrustPowerEvent(event.y));
+                commands.trigger(RCSThrustSetPowerEvent(event.y));
             }
         }
     }

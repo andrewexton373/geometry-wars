@@ -1,5 +1,5 @@
 use bevy::{
-    ecs::{entity::Entity, event::Event, message::Message},
+    ecs::{entity::Entity, event::Event},
     math::Vec2,
 };
 
@@ -10,4 +10,4 @@ pub struct RCSThrustVectorEvent {
 }
 
 #[derive(Event)]
-pub struct RCSThrustPowerEvent(pub f32);
+pub struct RCSThrustSetPowerEvent(pub f32);

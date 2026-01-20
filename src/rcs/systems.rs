@@ -18,11 +18,11 @@ use crate::{
 
 use super::{
     components::RCSBooster,
-    events::{RCSThrustPowerEvent, RCSThrustVectorEvent},
+    events::{RCSThrustSetPowerEvent, RCSThrustVectorEvent},
 };
 
 pub fn handle_set_thrust_power_events(
-    trigger: On<RCSThrustPowerEvent>,
+    trigger: On<RCSThrustSetPowerEvent>,
     mut player: Single<&mut Player>,
 ) {
     player.rcs_booster.delta_power_level(trigger.event().0);
@@ -30,7 +30,6 @@ pub fn handle_set_thrust_power_events(
 
 pub fn handle_thrust_events(
     trigger: On<RCSThrustVectorEvent>,
-    // mut events: MessageReader<RCSThrustVectorEvent>,
     mut commands: Commands,
     mut entity_query: Query<
         (&RCSBooster, &Transform, Forces),
