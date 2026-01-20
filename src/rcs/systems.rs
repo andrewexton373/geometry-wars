@@ -1,4 +1,4 @@
-use avian2d::prelude::ConstantForce;
+use avian2d::prelude::{ConstantForce, Forces, RigidBodyForces};
 use bevy::{
     ecs::{message::MessageReader, system::Query},
     prelude::{Commands, Transform, With, Without},
@@ -31,7 +31,7 @@ pub fn handle_thrust_events(
     mut events: MessageReader<RCSThrustVectorEvent>,
     mut commands: Commands,
     mut entity_query: Query<
-        (&RCSBooster, &Transform, &mut ConstantForce),
+        (&RCSBooster, &Transform, Forces),
         (With<RCSBooster>, Without<PlayerShipTrailParticles>),
     >,
     mut engine_effect: Query<
@@ -44,12 +44,10 @@ pub fn handle_thrust_events(
     >,
 ) {
     for evt in events.read() {
-        if let Ok((booster, transform, mut external_force)) = entity_query.get_mut(evt.entity) {
+        if let Ok((booster, transform, mut forces)) = entity_query.get_mut(evt.entity) {
             let thrust_scale = 1000.0 * PIXELS_PER_METER as f32;
             let thrust_vector = evt.thrust_vector * booster.power_level * thrust_scale;
-            *external_force = ConstantForce::new(thrust_vector.x.into(), thrust_vector.y.into());
-            // external_force.set(thrust_vector.as_dvec2());
-            // external_force.persistent = false;
+            forces.apply_force(thrust_vector.as_dvec2());
 
             let energy_spent = thrust_vector.length() / 5000000.0; // TODO: magic number
 
