@@ -28,7 +28,7 @@ mod upgrades;
 
 use asteroid_field::AsteroidFieldPlugin;
 use avian2d::{
-    prelude::{Gravity, PhysicsDebugPlugin, PhysicsLayer},
+    prelude::{Gravity, PhysicsDebugPlugin, PhysicsInterpolationPlugin, PhysicsLayer},
     PhysicsPlugins,
 };
 use bevy::prelude::*;
@@ -94,7 +94,7 @@ impl Plugin for GamePlugin {
                 .set(ImagePlugin::default_nearest()),
             HanabiPlugin,
             PhysicsPlugins::default(),
-            PhysicsDebugPlugin::default(),
+            PhysicsDebugPlugin,
             // PerfUiPlugin,
         ))
         .add_plugins((
