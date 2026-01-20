@@ -121,19 +121,6 @@ pub fn player_camera_control(
     } else {
         return;
     }
-
-    // for mut projection in query.iter_mut() {
-    //     let mut log_scale = projection.scale.ln();
-
-    //     if kb.pressed(KeyCode::Period) {
-    //         log_scale -= dist;
-    //     }
-    //     if kb.pressed(KeyCode::Comma) {
-    //         log_scale += dist;
-    //     }
-
-    //     projection.scale = log_scale.exp();
-    // }
 }
 
 pub fn player_movement_input_handling(
