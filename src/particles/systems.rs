@@ -1,8 +1,8 @@
 use bevy::prelude::*;
-use bevy_hanabi::prelude::*;
+use bevy_hanabi::{prelude::*, Gradient};
 // use bevy_particle_systems::*;
 
-use crate::{laser::components::Laser, player::components::Player};
+use crate::{laser::components::Laser, player::components::Player, rcs::components::RCSBooster};
 
 use super::components::{PlayerShipTrailParticles, ProjectileImpactParticles};
 
@@ -60,87 +60,143 @@ pub fn setup_projectile_impact_particle_system(
     // Render the particles with a color gradient over their
     // lifetime. This maps the gradient key 0 to the particle spawn
     // time, and the gradient key 1 to the particle death (10s).
-    .render(ColorOverLifetimeModifier::new(gradient));
+    .render(ColorOverLifetimeModifier::new(gradient.into()));
 
     // Insert into the asset system
     let effect_asset = effects.add(effect);
-
-    commands.spawn((
-        ProjectileImpactParticles,
-        ParticleEffect::new(effect_asset),
-        Name::new("projectile_impact_effect"),
-    ));
+    // effect_handle.0 = effect_asset.clone();
 }
 
 pub fn setup_player_ship_trail_particle_system(
-    _trigger: On<Add, Player>,
+    _trigger: On<Add, RCSBooster>,
+    mut player: Single<Entity, With<Player>>,
     mut commands: Commands,
     mut effects: ResMut<Assets<EffectAsset>>,
 ) {
-    // Set `spawn_immediately` to false to spawn on command with Spawner::reset()
-    let spawner = SpawnerSettings::once(100.0.into());
-    let writer = ExprWriter::new();
+    // println!("Setting up player ship trail particle system");
+    // // Set `spawn_immediately` to false to spawn on command with Spawner::reset()
+    // let spawner = SpawnerSettings::once(100.0.into());
+    // let writer = ExprWriter::new();
+
+    // // Define a color gradient from red to transparent black
+    // let mut gradient = bevy_hanabi::Gradient::new();
+    // gradient.add_key(0.0, Vec4::new(1., 1., 1., 1.));
+    // gradient.add_key(1.0, Vec4::ZERO);
+
+    // // On spawn, randomly initialize the position of the particle
+    // // to be over the surface of a sphere of radius 2 units.
+    // let init_pos = SetPositionSphereModifier {
+    //     center: writer.lit(Vec3::ZERO).expr(),
+    //     radius: writer.lit(0.5).expr(),
+    //     dimension: ShapeDimension::Surface,
+    // };
+
+    // let thrust_vector = writer.add_property("thrust_vector", Vec3::ZERO.into());
+    // let thrust_vector = writer.prop(thrust_vector);
+
+    // let tangent = writer.lit(Vec3::Z).cross(thrust_vector.clone());
+    // let spread = writer.rand(ScalarType::Float) * writer.lit(0.2) - writer.lit(0.1);
+    // let speed = writer.rand(ScalarType::Float) * writer.lit(100.0);
+    // let velocity = (thrust_vector + tangent * spread).normalized() * speed;
+    // let init_vel = SetAttributeModifier::new(Attribute::VELOCITY, velocity.expr());
+
+    // // Initialize the total lifetime of the particle, that is
+    // // the time for which it's simulated and rendered. This modifier
+    // // is almost always required, otherwise the particles will stay
+    // // alive forever, and new particles can't be spawned instead.
+    // let lifetime = writer.lit(1.0); // literal value "10.0"
+    // let init_lifetime = SetAttributeModifier::new(Attribute::LIFETIME, lifetime.expr());
+
+    // // Create the effect asset
+    // let effect = EffectAsset::new(
+    //     // Maximum number of particles alive at a time
+    //     32768,
+    //     // Spawn at a rate of 5 particles per second
+    //     spawner,
+    //     // Move the expression module into the asset
+    //     writer.finish(),
+    // )
+    // .with_name("MyEffect2")
+    // .init(init_pos)
+    // .init(init_vel)
+    // .init(init_lifetime)
+    // // Render the particles with a color gradient over their
+    // // lifetime. This maps the gradient key 0 to the particle spawn
+    // // time, and the gradient key 1 to the particle death (10s).
+    // .render(ColorOverLifetimeModifier::new(gradient.into()));
+
+    // // Insert into the asset system
+    // let effect_asset = effects.add(effect);
 
     // Define a color gradient from red to transparent black
-    let mut gradient = bevy_hanabi::Gradient::new();
+    let mut gradient = Gradient::new();
     gradient.add_key(0.0, Vec4::new(1., 1., 1., 1.));
-    gradient.add_key(1.0, Vec4::ZERO);
+    gradient.add_key(1.0, Vec4::splat(0.));
+
+    // Create a new expression module
+    let mut module = Module::default();
 
     // On spawn, randomly initialize the position of the particle
     // to be over the surface of a sphere of radius 2 units.
     let init_pos = SetPositionSphereModifier {
-        center: writer.lit(Vec3::ZERO).expr(),
-        radius: writer.lit(0.5).expr(),
+        center: module.lit(Vec3::ZERO),
+        radius: module.lit(2.),
         dimension: ShapeDimension::Surface,
     };
 
-    let thrust_vector = writer.add_property("thrust_vector", Vec3::ZERO.into());
-    let thrust_vector = writer.prop(thrust_vector);
-
-    let tangent = writer.lit(Vec3::Z).cross(thrust_vector.clone());
-    let spread = writer.rand(ScalarType::Float) * writer.lit(0.2) - writer.lit(0.1);
-    let speed = writer.rand(ScalarType::Float) * writer.lit(100.0);
-    let velocity = (thrust_vector + tangent * spread).normalized() * speed;
-    let init_vel = SetAttributeModifier::new(Attribute::VELOCITY, velocity.expr());
+    // Also initialize a radial initial velocity to 6 units/sec
+    // away from the (same) sphere center.
+    let init_vel = SetVelocitySphereModifier {
+        center: module.lit(Vec3::ZERO),
+        speed: module.lit(6.),
+    };
 
     // Initialize the total lifetime of the particle, that is
     // the time for which it's simulated and rendered. This modifier
-    // is almost always required, otherwise the particles will stay
-    // alive forever, and new particles can't be spawned instead.
-    let lifetime = writer.lit(1.0); // literal value "10.0"
-    let init_lifetime = SetAttributeModifier::new(Attribute::LIFETIME, lifetime.expr());
+    // is almost always required, otherwise the particles won't show.
+    let lifetime = module.lit(1.); // literal value "10.0"
+    let init_lifetime = SetAttributeModifier::new(Attribute::LIFETIME, lifetime);
+
+    // Every frame, add a gravity-like acceleration downward
+    // let accel = module.lit(Vec3::new(0., -3., 0.));
+    // let update_accel = AccelModifier::new(accel);
 
     // Create the effect asset
     let effect = EffectAsset::new(
         // Maximum number of particles alive at a time
         32768,
         // Spawn at a rate of 5 particles per second
-        spawner,
+        SpawnerSettings::rate(100.0.into()),
         // Move the expression module into the asset
-        writer.finish(),
+        module,
     )
-    .with_name("MyEffect2")
+    .with_name("MyEffect")
     .init(init_pos)
     .init(init_vel)
     .init(init_lifetime)
+    // .update(update_accel)
     // Render the particles with a color gradient over their
     // lifetime. This maps the gradient key 0 to the particle spawn
     // time, and the gradient key 1 to the particle death (10s).
-    .render(ColorOverLifetimeModifier::new(gradient));
+    .render(ColorOverLifetimeModifier {
+        gradient: gradient.into(),
+        ..default()
+    });
 
     // Insert into the asset system
-    let effect_asset = effects.add(effect);
+    let effect_handle = effects.add(effect);
 
     commands.spawn((
         PlayerShipTrailParticles,
-        ParticleEffect::new(effect_asset),
+        ParticleEffect::new(effect_handle),
         Name::new("ship_trail_particle_system"),
+        ChildOf(player.entity()),
     ));
 }
 
 pub fn setup_ship_asteroid_impact_particle_system(
-    _commands: Commands,
-    _asset_server: Res<AssetServer>,
+    commands: Commands,
+    asset_server: Res<AssetServer>,
 ) {
     // commands
     //     .spawn(ParticleSystemBundle {
