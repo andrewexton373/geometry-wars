@@ -81,7 +81,7 @@ pub fn setup_projectile_impact_particle_system(
     // to be over the surface of a sphere of radius 2 units.
     let init_pos = SetPositionSphereModifier {
         center: module.lit(Vec3::ZERO),
-        radius: module.lit(2.),
+        radius: module.lit(10.),
         dimension: ShapeDimension::Surface,
     };
 
@@ -89,25 +89,21 @@ pub fn setup_projectile_impact_particle_system(
     // away from the (same) sphere center.
     let init_vel = SetVelocitySphereModifier {
         center: module.lit(Vec3::ZERO),
-        speed: module.lit(6.),
+        speed: module.lit(12.),
     };
 
     // Initialize the total lifetime of the particle, that is
     // the time for which it's simulated and rendered. This modifier
     // is almost always required, otherwise the particles won't show.
-    let lifetime = module.lit(10.); // literal value "10.0"
+    let lifetime = module.lit(0.2); // literal value "10.0"
     let init_lifetime = SetAttributeModifier::new(Attribute::LIFETIME, lifetime);
-
-    // Every frame, add a gravity-like acceleration downward
-    let accel = module.lit(Vec3::new(0., -3., 0.));
-    let update_accel = AccelModifier::new(accel);
 
     // Create the effect asset
     let effect = EffectAsset::new(
         // Maximum number of particles alive at a time
         32768,
         // Spawn at a rate of 5 particles per second
-        SpawnerSettings::rate(5.0.into()),
+        SpawnerSettings::rate(1000.0.into()),
         // Move the expression module into the asset
         module,
     )
@@ -115,7 +111,6 @@ pub fn setup_projectile_impact_particle_system(
     .init(init_pos)
     .init(init_vel)
     .init(init_lifetime)
-    .update(update_accel)
     // Render the particles with a color gradient over their
     // lifetime. This maps the gradient key 0 to the particle spawn
     // time, and the gradient key 1 to the particle death (10s).
