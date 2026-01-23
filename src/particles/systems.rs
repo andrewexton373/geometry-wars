@@ -131,6 +131,7 @@ pub fn setup_projectile_impact_particle_system(
     commands.spawn((
         ProjectileImpactParticles,
         ParticleEffect::new(effect_handle.clone()),
+        EffectProperties::default(),
         Name::new("projectile_impact_particle_system"),
     ));
 }

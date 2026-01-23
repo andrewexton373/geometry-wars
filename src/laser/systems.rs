@@ -2,13 +2,12 @@ use avian2d::prelude::{LayerMask, PhysicsLayer, SpatialQuery, SpatialQueryFilter
 use bevy::color::palettes::css::RED;
 use bevy::ecs::entity::EntityHashSet;
 use bevy::prelude::*;
-use bevy_hanabi::{EffectProperties, ParticleEffect, Value, VectorValue};
+use bevy_hanabi::{EffectProperties, EffectSpawner, Value, VectorValue};
 
 use super::components::Laser;
 use super::events::LaserEvent;
 
 use crate::particles::components::ProjectileImpactParticles;
-use crate::particles::resources::ProjectileImpactParticleEffect;
 use crate::player::components::Player;
 use crate::GameLayer;
 use crate::{asteroid::events::AblateEvent, health::events::DamageEvent};
@@ -32,13 +31,23 @@ pub fn fire_laser_raycasting(
     spatial_query: SpatialQuery,
     mut damage_events: MessageWriter<DamageEvent>,
     mut gizmos: Gizmos,
-    mut effect: Query<(&mut EffectProperties, &mut Transform), With<ProjectileImpactParticles>>,
-    mut particles: ResMut<ProjectileImpactParticleEffect>,
+    mut effect: Query<
+        (&mut EffectProperties, &mut EffectSpawner, &mut Transform),
+        With<ProjectileImpactParticles>,
+    >,
 ) {
     let player_ent = player_q.single().expect("No Player");
 
     // Exclude Player from Raycasting
     let excluded_entities: EntityHashSet = vec![player_ent].into_iter().collect();
+
+    // Note: On first frame where the effect spawns, EffectSpawner is spawned during
+    // PostUpdate, so will not be available yet. Ignore for a frame if so.
+    let Ok((mut properties, mut effect_spawner, mut effect_transform)) = effect.single_mut() else {
+        return;
+    };
+
+    effect_spawner.active = false;
 
     for fire_laser_event in laser_event_reader.read() {
         let laser_active = fire_laser_event.0;
@@ -67,19 +76,12 @@ pub fn fire_laser_raycasting(
                     entity: hit_ent,
                     position: hit_point.as_vec2(),
                     normal: hit_normal.as_vec2(),
-                    // normal: -ray_dir,
                 });
 
                 damage_events.write(DamageEvent {
                     entity: hit_ent,
                     damage: 5.0,
                 });
-
-                // Note: On first frame where the effect spawns, EffectSpawner is spawned during
-                // PostUpdate, so will not be available yet. Ignore for a frame if so.
-                let Ok((mut properties, mut effect_transform)) = effect.single_mut() else {
-                    return;
-                };
 
                 println!("Hit Point: {:?}", hit_point);
                 effect_transform.translation = hit_point.extend(0.0).as_vec3();
@@ -92,13 +94,8 @@ pub fn fire_laser_raycasting(
                     Value::Vector(VectorValue::new_vec3(normal.extend(0.))),
                 );
 
-                // Spawn the particles
-                // initializers.reset();
-
-                commands.spawn((
-                    ParticleEffect::new(particles.0.clone()),
-                    Name::new("projectile_impact_particle_system"),
-                ));
+                effect_transform.translation = hit_point.extend(0.0).as_vec3();
+                effect_spawner.active = true;
             } else {
                 // Laser Hit Nothing
                 gizmos.line_2d(ray_pos, ray_pos + ray_dir * 10000.0, Color::from(RED));
